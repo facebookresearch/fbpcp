@@ -2,9 +2,9 @@
 
 import unittest
 
-from entity.cluster_instance import ClusterStatus, Cluster
-from entity.container_instance import ContainerInstanceStatus, ContainerInstance
-from mapper.aws import (
+from fbpcs.entity.cluster_instance import ClusterStatus, Cluster
+from fbpcs.entity.container_instance import ContainerInstanceStatus, ContainerInstance
+from fbpcs.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
 )

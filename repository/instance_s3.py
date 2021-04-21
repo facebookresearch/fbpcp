@@ -3,8 +3,8 @@
 
 import pickle
 
-from entity.instance_base import InstanceBase
-from service.storage_s3 import S3StorageService
+from fbpcs.entity.instance_base import InstanceBase
+from fbpcs.service.storage_s3 import S3StorageService
 
 
 class S3InstanceRepository:

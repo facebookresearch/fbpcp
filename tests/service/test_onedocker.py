@@ -4,12 +4,12 @@ import unittest
 from unittest.mock import patch
 
 from libfb.py.asyncio.mock import AsyncMock
-from entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from service.onedocker import OneDockerService
+from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcs.service.onedocker import OneDockerService
 
 
 class TestOneDockerService(unittest.TestCase):
-    @patch("service.container.ContainerService")
+    @patch("fbpcs.service.container.ContainerService")
     def setUp(self, MockContainerService):
         container_svc = MockContainerService()
         self.onedocker_svc = OneDockerService(container_svc)

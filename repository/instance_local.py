@@ -4,7 +4,7 @@
 import pickle
 from pathlib import Path
 
-from entity.instance_base import InstanceBase
+from fbpcs.entity.instance_base import InstanceBase
 
 
 class LocalInstanceRepository:

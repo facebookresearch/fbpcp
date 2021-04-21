@@ -5,9 +5,9 @@ import unittest
 import uuid
 from unittest.mock import MagicMock
 
-from entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
-from repository.mpc_instance_s3 import S3MPCInstanceRepository
-from service.storage_s3 import S3StorageService
+from fbpcs.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcs.repository.mpc_instance_s3 import S3MPCInstanceRepository
+from fbpcs.service.storage_s3 import S3StorageService
 
 TEST_BASE_DIR = "./"
 TEST_INSTANCE_ID = str(uuid.uuid4())

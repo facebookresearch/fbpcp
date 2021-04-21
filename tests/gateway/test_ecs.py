@@ -3,9 +3,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from entity.cluster_instance import ClusterStatus, Cluster
-from entity.container_instance import ContainerInstanceStatus, ContainerInstance
-from gateway.ecs import ECSGateway
+from fbpcs.entity.cluster_instance import ClusterStatus, Cluster
+from fbpcs.entity.container_instance import ContainerInstanceStatus, ContainerInstance
+from fbpcs.gateway.ecs import ECSGateway
 
 
 class TestECSGateway(unittest.TestCase):

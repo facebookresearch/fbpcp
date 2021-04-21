@@ -3,7 +3,7 @@
 
 import abc
 
-from entity.mpc_instance import MPCInstance
+from fbpcs.entity.mpc_instance import MPCInstance
 
 
 class MPCInstanceRepository(abc.ABC):

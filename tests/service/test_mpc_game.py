@@ -4,10 +4,10 @@ import unittest
 from unittest.mock import Mock, MagicMock
 from typing import List
 
-from entity.mpc_game_config import MPCGameArgument
-from entity.mpc_game_config import MPCGameConfig
-from entity.mpc_instance import MPCRole
-from service.mpc_game import MPCGameService
+from fbpcs.entity.mpc_game_config import MPCGameArgument
+from fbpcs.entity.mpc_game_config import MPCGameConfig
+from fbpcs.entity.mpc_instance import MPCRole
+from fbpcs.service.mpc_game import MPCGameService
 
 INPUT_DIRECTORY = "input_directory"
 OUTPUT_DIRECTORY = "output_directory"

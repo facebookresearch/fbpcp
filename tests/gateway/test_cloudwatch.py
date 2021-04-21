@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from gateway.cloudwatch import CloudWatchGateway
+from fbpcs.gateway.cloudwatch import CloudWatchGateway
 
 
 class TestCloudWatchGateway(unittest.TestCase):

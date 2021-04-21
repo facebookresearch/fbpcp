@@ -4,9 +4,9 @@
 from functools import reduce
 from typing import Any, Dict, List
 
-from entity.cluster_instance import Cluster, ClusterStatus
-from entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from entity.vpc_instance import Vpc, VpcState
+from fbpcs.entity.cluster_instance import Cluster, ClusterStatus
+from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcs.entity.vpc_instance import Vpc, VpcState
 
 
 def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:

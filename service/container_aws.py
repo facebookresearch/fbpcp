@@ -4,10 +4,10 @@
 import asyncio
 from typing import Any, Dict, List, Optional, Tuple
 
-from entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from gateway.ecs import ECSGateway
-from service.container import ContainerService
-from util.typing import checked_cast
+from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcs.gateway.ecs import ECSGateway
+from fbpcs.service.container import ContainerService
+from fbpcs.util.typing import checked_cast
 
 
 class AWSContainerService(ContainerService):

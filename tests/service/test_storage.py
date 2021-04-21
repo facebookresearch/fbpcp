@@ -2,7 +2,7 @@
 
 import unittest
 
-from service.storage import PathType, StorageService
+from fbpcs.service.storage import PathType, StorageService
 
 
 class TestStorageService(unittest.TestCase):

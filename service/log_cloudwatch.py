@@ -2,8 +2,8 @@
 
 from typing import Any, Dict, Optional
 
-from gateway.cloudwatch import CloudWatchGateway
-from service.log import LogService
+from fbpcs.gateway.cloudwatch import CloudWatchGateway
+from fbpcs.service.log import LogService
 
 
 class CloudWatchLogService(LogService):

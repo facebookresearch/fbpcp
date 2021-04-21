@@ -4,8 +4,8 @@
 from typing import Any, Dict, List, Optional
 
 import boto3
-from entity.vpc_instance import Vpc
-from mapper.aws import map_ec2vpc_to_vpcinstance
+from fbpcs.entity.vpc_instance import Vpc
+from fbpcs.mapper.aws import map_ec2vpc_to_vpcinstance
 
 
 class EC2Gateway:

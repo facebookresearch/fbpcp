@@ -3,9 +3,9 @@
 import logging
 from typing import Any, Dict, Optional, Tuple
 
-from entity.mpc_game_config import MPCGameConfig
-from entity.mpc_instance import MPCRole
-from repository.mpc_game_repository import MPCGameRepository
+from fbpcs.entity.mpc_game_config import MPCGameConfig
+from fbpcs.entity.mpc_instance import MPCRole
+from fbpcs.repository.mpc_game_repository import MPCGameRepository
 
 # TODO: change to "attribution_compute" when one docker is ready
 ATTRIBUTION_COMPUTE_GAME_NAME = "attribution_compute_dev"

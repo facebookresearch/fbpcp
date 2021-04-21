@@ -2,7 +2,7 @@
 
 import unittest
 
-from util.s3path import S3Path
+from fbpcs.util.s3path import S3Path
 
 
 class TestS3Path(unittest.TestCase):

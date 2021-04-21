@@ -4,7 +4,7 @@
 import abc
 from typing import List
 
-from entity.container_instance import ContainerInstance
+from fbpcs.entity.container_instance import ContainerInstance
 
 
 class ContainerService(abc.ABC):

@@ -4,9 +4,9 @@
 from typing import Any, Dict, List, Optional
 
 import boto3
-from entity.cluster_instance import Cluster
-from entity.container_instance import ContainerInstance
-from mapper.aws import (
+from fbpcs.entity.cluster_instance import Cluster
+from fbpcs.entity.container_instance import ContainerInstance
+from fbpcs.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
 )

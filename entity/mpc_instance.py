@@ -6,8 +6,8 @@ from enum import Enum
 from typing import Any, Dict, List, Mapping, Optional
 
 from dataclasses_json import dataclass_json
-from entity.container_instance import ContainerInstance
-from entity.instance_base import InstanceBase
+from fbpcs.entity.container_instance import ContainerInstance
+from fbpcs.entity.instance_base import InstanceBase
 
 
 class MPCRole(Enum):

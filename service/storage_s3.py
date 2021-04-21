@@ -6,9 +6,9 @@ from os import path
 from os.path import join, normpath, relpath
 from typing import Any, Dict, Optional
 
-from gateway.s3 import S3Gateway
-from service.storage import PathType, StorageService
-from util.s3path import S3Path
+from fbpcs.gateway.s3 import S3Gateway
+from fbpcs.service.storage import PathType, StorageService
+from fbpcs.util.s3path import S3Path
 
 
 class S3StorageService(StorageService):

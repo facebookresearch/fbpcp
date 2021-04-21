@@ -6,8 +6,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import mock_open, MagicMock, patch
 
-from entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
-from repository.mpc_instance_local import LocalMPCInstanceRepository
+from fbpcs.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcs.repository.mpc_instance_local import LocalMPCInstanceRepository
 
 TEST_BASE_DIR = Path("./")
 TEST_INSTANCE_ID = "test-instance-id"

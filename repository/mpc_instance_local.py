@@ -3,9 +3,9 @@
 
 from typing import cast
 
-from entity.mpc_instance import MPCInstance
-from repository.instance_local import LocalInstanceRepository
-from repository.mpc_instance import MPCInstanceRepository
+from fbpcs.entity.mpc_instance import MPCInstance
+from fbpcs.repository.instance_local import LocalInstanceRepository
+from fbpcs.repository.mpc_instance import MPCInstanceRepository
 
 
 class LocalMPCInstanceRepository(MPCInstanceRepository):

@@ -3,7 +3,7 @@
 
 import abc
 
-from entity.mpc_game_config import MPCGameConfig
+from fbpcs.entity.mpc_game_config import MPCGameConfig
 
 
 class MPCGameRepository(abc.ABC):

@@ -5,14 +5,14 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
-from entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
-from repository.mpc_instance import MPCInstanceRepository
-from service.container import ContainerService
-from service.mpc_game import MPCGameService
-from service.onedocker import OneDockerService
-from service.storage import StorageService
-from util.typing import checked_cast
+from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcs.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcs.repository.mpc_instance import MPCInstanceRepository
+from fbpcs.service.container import ContainerService
+from fbpcs.service.mpc_game import MPCGameService
+from fbpcs.service.onedocker import OneDockerService
+from fbpcs.service.storage import StorageService
+from fbpcs.util.typing import checked_cast
 
 
 class MPCService:

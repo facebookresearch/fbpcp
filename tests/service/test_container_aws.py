@@ -3,7 +3,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from service.container_aws import (
+from fbpcs.service.container_aws import (
     ContainerInstance,
     ContainerInstanceStatus,
     AWSContainerService,
@@ -21,7 +21,7 @@ TEST_CONTAINER_DEFNITION = "test-task-definition#test-container-definition"
 
 
 class TestAWSContainerService(unittest.TestCase):
-    @patch("gateway.ecs.ECSGateway")
+    @patch("fbpcs.gateway.ecs.ECSGateway")
     def setUp(self, MockECSGateway):
         self.container_svc = AWSContainerService(
             TEST_REGION, TEST_KEY_ID, TEST_KEY_DATA, TEST_CLUSTER, TEST_SUBNET

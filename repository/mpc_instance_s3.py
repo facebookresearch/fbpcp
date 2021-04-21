@@ -3,10 +3,10 @@
 
 from typing import cast
 
-from entity.mpc_instance import MPCInstance
-from repository.instance_s3 import S3InstanceRepository
-from repository.mpc_instance import MPCInstanceRepository
-from service.storage_s3 import S3StorageService
+from fbpcs.entity.mpc_instance import MPCInstance
+from fbpcs.repository.instance_s3 import S3InstanceRepository
+from fbpcs.repository.mpc_instance import MPCInstanceRepository
+from fbpcs.service.storage_s3 import S3StorageService
 
 
 class S3MPCInstanceRepository(MPCInstanceRepository):

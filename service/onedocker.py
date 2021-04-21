@@ -5,8 +5,8 @@ import asyncio
 import logging
 from typing import List, Optional
 
-from entity.container_instance import ContainerInstance
-from service.container import ContainerService
+from fbpcs.entity.container_instance import ContainerInstance
+from fbpcs.service.container import ContainerService
 
 
 # patternlint-disable-next-line f-string-may-be-missing-leading-f
