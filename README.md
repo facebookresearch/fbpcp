@@ -30,7 +30,7 @@ sudo python3 pip install -e . --user
 ```
 
 ## Architecture
-<img src="docs/pcsArch.jpg" alt="Figure 1: Architecture of FBPCS" width="50%" height="50%">
+<img src="docs/PCSArch.jpg" alt="Figure 1: Architecture of FBPCS" width="50%" height="50%">
 
 ### Components:
 Facebook Private Computation Service follows MVCS( Model View Controller Service) design pattern.
@@ -70,11 +70,11 @@ OneDocker service is responsible for executing executable(s) in a Fargate contai
 Storage service provides APIs to do CRUD operations on AWS S3 storage.
 
 ### Other components in PCS
-/util
-reflect
-s3path
-typing
-yaml
+* util
+* reflect
+* s3path
+* typing
+* yaml
 
 ## License
 FBPCS is [MIT](LICENSE) licensed, as found in the LICENSE file.
