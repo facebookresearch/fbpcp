@@ -10,42 +10,27 @@ FBPCS (Facebook Private Computation Service) is a secure, privacy safe and scala
     * python3-pip
 * Python interpreter:
     * python3.8
-* Python libraries:
-    * boto3
-    * docopt
-    * schema
-    * pyyaml
-    * dataclasses-json
-    * jmespath
-    * s3transfer
-    * parameterized
-    * tqdm
 
 ## Installing Dependencies on Ubuntu 18.04:
 #### Python interpreter
 * python3.8
 ```
-sudo apt-get update && apt-get install -y python3.8
+sudo apt-get install -y python3.8
 ```
 #### Python module manager
 * python3-pip
 ```
-sudo apt-get update && apt-get install -y python3-pip
+sudo apt-get install -y python3-pip
 ```
-#### Python libraries
+## Installing fbpcs
 ```
-pip3 install boto3 \
-    docopt \
-    schema \
-    pyyaml \
-    dataclasses-json \
-    jmespath \
-    s3transfer \
-    parameterized \
-    tqdm
+git clone https://github.com/facebookresearch/FBPCS.git
+cd FBPCS
+sudo python3 pip install -e . --user
 ```
+
 ## Architecture
-<img src="assets/pcsArch.jpg" alt="Figure 1: Architecture of FBPCS" width="50%" height="50%">
+<img src="docs/pcsArch.jpg" alt="Figure 1: Architecture of FBPCS" width="50%" height="50%">
 
 ### Components:
 Facebook Private Computation Service follows MVCS( Model View Controller Service) design pattern.
