@@ -16,9 +16,9 @@ We propose to implement a privacy-preserving sharding mechanism such that the in
 ## Sharding Design
 The following figures show the high-level design of the solution. Both Amazon and Facebook each have a PL-Coordinator and multiple PL-Workers. The PL-Coordinator partitions the input database into shards in a round robin method, and assigns each shard to a PL-worker.
 
-<img src="ShardingDesignFB" alt="Figure 1: FB side sharding design">
+<img src="ShardingDesignFB.jpg" alt="Figure 1: FB side sharding design">
 
-<img src="ShardingDesignClient" alt="Figure 2: Client side sharding design">
+<img src="ShardingDesignClient.jpg" alt="Figure 2: Client side sharding design">
 
 ## Private Partitioning and Aggregation with EMP-toolkit
 To ensure that PL-workers will not learn the output of the computation on one shard, we do not reveal the intermediary output at the end of their game. Instead, The server will choose a random number as a new input and XOR the result of the computation with that random number in the garbled circuit (The process also called one-time pad). At the end of the game, the evaluator knows the result of the computation xored with that random number and garbler knows the random number. Jointly, they can reconstruct the result but individually, they do not have any information about it due to the security of one time pads. The following example shows how to implement games for a simple worker and aggregator in EMP (using the reveal function) while preserving privacy. The first game shows how to implement worker without revealing the intermediary result. The second game is the aggregator that accepts the Xored inputs. The third game is the same aggregator with an additional option that reveals the final output to only one party.

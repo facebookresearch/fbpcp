@@ -8,15 +8,10 @@
 from setuptools import setup, find_packages
 
 install_requires = [
-    "boto3",
-    "docopt",
-    "schema",
-    "pyyaml",
-    "dataclasses-json",
-    "jmespath",
-    "s3transfer",
-    "parameterized",
-    "tqdm",
+    "boto3==1.11.11",
+    "dataclasses-json==0.5.2",
+    "pyyaml==5.4.1",
+    "tqdm==4.55.1",
 ]
 
 package_name = "fbpcs"
