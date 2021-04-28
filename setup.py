@@ -18,6 +18,8 @@ package_name = "fbpcs"
 packages = [package_name] + [
     "%s.%s" % (package_name, sub_package) for sub_package in find_packages(package_name)
 ]
+with open("README.md", encoding="utf-8") as f:
+    long_description = f.read()
 
 setup(
     name=package_name,
@@ -25,7 +27,10 @@ setup(
     description="Facebook Private Computation Service",
     author="Facebook",
     author_email="researchtool-help@fb.com",
-    url="https://www.facebook.com/",
+    url="https://github.com/facebookresearch/FBPCS",
     install_requires=install_requires,
     packages=packages,
+    long_description_content_type="text/markdown",
+    long_description=long_description,
+    python_requires=">=3.8",
 )
