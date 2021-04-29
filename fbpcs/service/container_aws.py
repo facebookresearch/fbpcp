@@ -19,10 +19,10 @@ class AWSContainerService(ContainerService):
     def __init__(
         self,
         region: str,
-        access_key_id: str,
-        access_key_data: str,
         cluster: str,
         subnet: str,
+        access_key_id: Optional[str] = None,
+        access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.region = region

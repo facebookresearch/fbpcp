@@ -28,7 +28,7 @@ class TestAWSContainerService(unittest.TestCase):
     @patch("fbpcs.gateway.ecs.ECSGateway")
     def setUp(self, MockECSGateway):
         self.container_svc = AWSContainerService(
-            TEST_REGION, TEST_KEY_ID, TEST_KEY_DATA, TEST_CLUSTER, TEST_SUBNET
+            TEST_REGION, TEST_CLUSTER, TEST_SUBNET, TEST_KEY_ID, TEST_KEY_DATA
         )
         self.container_svc.ecs_gateway = MockECSGateway()
 
