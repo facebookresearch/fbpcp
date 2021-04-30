@@ -17,13 +17,15 @@ MPC Instance contains information about a MPC game. For example, MPC game name, 
 
 Container Instance contains information about a container on an ECS cluster. For example, the instance id, ip address and container status.
 
-Cluster Instance contains information about a cluster on the ECS. For example, the Amazon Resource Name (ARN) that identifies the cluster, the cluster name, etc.
-
-VPC contains information abouot a VPC(virtual Private Cloud) on AWS. For example, the VPC id, state, etc.
-
 ### Service:
-Service holds all business logic and exposes internal APIs to handlers or internal components within the same code base. Besides MPC Sevice, MPC Game Service and OneDocker Service:
+MPCService is the public interface that FBPCS provides. All other services are internal only so subject to changes.
 
-Container Service will take the advantage of ECS gateway and create instances on Amazon ECS for MPC service or other end-point services to use.
+Service holds all business logic and exposes internal APIs to controllers or other services within the same code base. Besides MPC Sevice, MPC Game Service and OneDocker Service:
 
-Storage Service provides APIs to do CRUD operations on AWS S3 storage.
+* OneDockerService is a cloud agnostic, serverless container management service. Currently, it supports AWS ECS.
+
+* MPCGameService bridges MPCService and OneDockerService together. Given a MPC game and it's arguments, MPCGameService transforms them to OneDocker arguments.
+
+* ContainerService is a generic interface that each cloud may extend to implement a concrete container service. Currently, we support AWS ECS.
+
+* Storage Service provides APIs to do CRUD operations on a particular storage, such as local and S3.

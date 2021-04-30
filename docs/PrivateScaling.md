@@ -14,7 +14,7 @@ Handling large volumes of data is crucial for products like Private Lift that le
 We propose to implement a privacy-preserving sharding mechanism such that the intermediary output of each shard remains private, i.e. the garbled values will not be open to the parties. Instead, each party will learn an XOR share of the value. Consequently, the aggregation step will happen after the data is reconstructed from the XOR-shares in the garbled circuit and only the final result of the computation will be revealed.
 
 ## Sharding Design
-The following figures show the high-level design of the solution. Both Amazon and Facebook each have a PL-Coordinator and multiple PL-Workers. The PL-Coordinator partitions the input database into shards in a round robin method, and assigns each shard to a PL-worker.
+The following figures show the high-level design of the solution. Both parties have a PL-Coordinator and multiple PL-Workers. The PL-Coordinator partitions the input database into shards in a round robin method, and assigns each shard to a PL-worker.
 
 <img src="ShardingDesignFB.jpg" alt="Figure 1: FB side sharding design">
 
@@ -36,6 +36,3 @@ The game should xor the inputs before aggregating them.
 #### Optional. The aggregator game accepts XORed inputs and reveals the output to only one party
 
 <img src="AggregateOneParty.jpg" alt="Figure 5: The aggregator game accepts XORed inputs and reveals the output to only one party">
-
-## Partitioning within Private Lift Game
-We’ll re-implement the Private Conversion Lift game such that its input is partitioned between PL-workers. Private Lift will have two games: the Worker game runs within PL-workers, calculates the Lift results on the shard in garbled circuit and outputs every intermediary output in a XOR format. The Aggregation game runs within PL-coordinator and receives all the intermediary outputs, XORs them pairwise to reconstruct the actual intermediary output in garbled circuit and then runs the aggregation function on them. Finally, the game reveals the result only to Amazon. In our first POC tests on a simple game, the computation and communication cost for this privacy-preserving version is not different from the non-privacy-preserving version.

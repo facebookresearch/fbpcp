@@ -1,9 +1,9 @@
 # FBPCS (Facebook Private Computation Service)
 [Secure multi-party computation](https://en.wikipedia.org/wiki/Secure_multi-party_computation) (also known as secure computation, multi-party computation (MPC), or privacy-preserving computation) is a subfield of cryptography with the goal of creating methods for parties to jointly compute a function over their inputs while keeping those inputs private.
 
-FBPCS (Facebook Private Computation Service) is a secure, privacy safe and scalable architecture to deploy MPC (Multi Party Computation) applications in a distributed way on virtual private clouds. [FBPCF](https://github.com/facebookresearch/fbpcf) is for scaling MPC vertically, while FBPCS is for scaling MPC horizontally. FBPCS consists of various services, interfaces to support various private measurement products, e.g. [Private Lift](https://github.com/facebookresearch/fbpcf/blob/master/docs/PrivateLift.md).
+FBPCS (Facebook Private Computation Service) is a secure, privacy safe and scalable architecture to deploy MPC (Multi Party Computation) applications in a distributed way on virtual private clouds. [FBPCF](https://github.com/facebookresearch/fbpcf) (Facebook Private Computation Framework) is for scaling MPC computation up via threading, while FBPCS is for scaling MPC computation out via [Private Scaling](https://github.com/facebookresearch/FBPCS/blob/main/docs/PrivateScaling.md) architecture. FBPCS consists of various services, interfaces that enalbe various private measurement solutions, e.g. [Private Lift](https://github.com/facebookresearch/fbpcf/blob/master/docs/PrivateLift.md).
 
- [Pirvate Scaling](https://github.com/facebookresearch/FBPCS/blob/main/docs/PrivateScaling.md) is to handle large volumes of data for products like Private Lift that leverage privacy enhancing technologies including multiparty computation games.
+[Private Scaling](https://github.com/facebookresearch/FBPCS/blob/main/docs/PrivateScaling.md) is a secure map/reduce architecture. The goal is to secure the intermediate output of each shard to prevent potential privacy leak.
 
 ## Installation Requirements:
 ### Prerequisites for working on Ubuntu 18.04:
@@ -32,13 +32,15 @@ sudo python3 pip install -e . --user
 
 ### Services:
 
-* MPC service provides APIs to upstream services like Private Lift to distribute a larger MPC game to multiple MPC workers in containers on specific clusters.
+* MPCService is the public interface that provides APIs to distribute a MPC application with large dataset to multiple MPC workers on cloud.
 
-* MPC game service will provide MPC service with executable package name and game arguments, which the containers on clouds will execute while running.
-
-* OneDocker service is responsible for executing executable(s) in a container on clouds. It will generate the commands input in the bash and trigger the containers to execute the executable(s).
 
 ### [Other components](https://github.com/facebookresearch/FBPCS/blob/main/docs/FBPCSComponents.md)
+
+## Join the FBPCS community
+* Website: https://github.com/facebookresearch/fbpcs
+
+See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
 
 ## License
 FBPCS is [MIT](LICENSE) licensed, as found in the LICENSE file.
