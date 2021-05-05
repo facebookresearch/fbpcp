@@ -1,0 +1,5 @@
+docopt ~= 0.6
+schema ~= 0.7
+jmespath ~= 0.10
+s3transfer ~= 0.3
+parameterized ~= 0.7

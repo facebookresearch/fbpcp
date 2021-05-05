@@ -1,0 +1,46 @@
+FROM ubuntu:18.04
+WORKDIR /root
+
+RUN apt-get update && apt-get install -y \
+  git \
+  wget \
+  software-properties-common \
+  python3.8 \
+  python3-pip \
+  libboost-all-dev \
+  libevent-dev \
+  libdouble-conversion-dev \
+  libgoogle-glog-dev \
+  libiberty-dev \
+  liblz4-dev \
+  liblzma-dev \
+  libsnappy-dev \
+  zlib1g-dev \
+  binutils-dev \
+  libssl-dev \
+  pkg-config \
+  libunwind-dev \
+  libdwarf-dev \
+  sudo
+
+# TODO: static link to libemp-tool.so in our game executable
+ADD install_emp.sh .
+RUN ["bash", "install_emp.sh"]
+CMD ["/bin/bash"]
+
+# installing fbpcs since one_docker_runner.py utilizes StorageServiceS3 to download the executable
+# TODO we want to install from pypi.org instead of test.pypi.org
+RUN python3.8 -m pip install -U pip
+RUN python3.8 -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ fbpcs==0.0.3
+
+# installing pip requirements
+RUN mkdir -p /root/src/
+ADD pip_requirements.txt /root/src
+RUN python3.8 -m pip install --user -r /root/src/pip_requirements.txt
+
+# add one_docker_runner script and make the folder that's going to host the executables in runtime
+ADD one_docker_runner.py /root
+RUN mkdir -p /root/one_docker/package
+
+CMD ["/bin/bash"]
+WORKDIR /root
