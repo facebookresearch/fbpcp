@@ -14,9 +14,9 @@ from fbpcs.error.pcs import PcsError
 
 
 def error_handler(f: Callable) -> Callable:
-    def wrap(*args):
+    def wrap(*args, **kwargs):
         try:
-            return f(*args)
+            return f(*args, **kwargs)
         except ClientError as err:
             raise map_aws_error(err)
         except Exception as err:

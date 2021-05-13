@@ -36,3 +36,21 @@ class TestErrorHandler(unittest.TestCase):
             raise err
 
         self.assertRaises(ThrottlingError, foo)
+
+    def test_wrapped_function_args(self):
+        @error_handler
+        def foo(**kwargs):
+            raise ValueError("just a test f")
+
+        error_msgs = {
+            "error_type1": "error_msg1",
+            "error_type2": "error_msg2",
+        }
+        self.assertRaises(PcsError, foo, error_msgs)
+
+    def test_wrapped_function_kwargs(self):
+        @error_handler
+        def foo(*args):
+            raise ValueError("just a test")
+
+        self.assertRaises(PcsError, foo, "error1", "error2")
