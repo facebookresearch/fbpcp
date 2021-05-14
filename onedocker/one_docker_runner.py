@@ -15,6 +15,7 @@ Usage:
 Options:
     -h --help                           Show this help
     --repository_path=<repository_path> The folder repository that the executables are to downloaded from
+    --exe_path=<exe_path>               The folder that the executables are located at
     --timeout=<timeout>                 Set timeout (in sec) to task to avoid endless running
     --log_path=<path>                   Override the default path where logs are saved
     --verbose                           Set logging level to DEBUG
@@ -47,18 +48,26 @@ def handler(signum, frame):
 
 def run(
     repository_path: str,
+    exe_path: str,
     package_name: str,
     cmd: str,
     logger: logging.Logger,
     timeout: int,
 ) -> None:
     # download executable from s3
-    logger.info("Downloading executables ...")
-    _download_executables(repository_path, package_name)
+    if repository_path.lower() != 'local':
+        logger.info("Downloading executables ...")
+        _download_executables(repository_path, package_name)
+    else:
+        logger.info("Local repository, skip download ...")
 
     # grant execute permission to the downloaded executable file
     team, exe_name = _parse_package_name(package_name)
-    subprocess.run(f"chmod +x {EXE_FOLDER}/{exe_name}", shell=True)
+    subprocess.run(f"chmod +x {exe_path}/{exe_name}", shell=True)
+
+    #TODO uncomment this line after proper change in fbcode/measurement/private_measurement/pcs/oss/fbpcs/service/onedocker.py to take
+    # out the hard coded exe_path in cmd string
+    # cmd = exe_path + cmd
 
     # run execution cmd
     logger.info(f"Running cmd: {cmd} ...")
@@ -104,6 +113,7 @@ def main():
             "--package_name": schema.Or(None, str),
             "--cmd": schema.Or(None, str),
             "--repository_path": schema.Or(None, str),
+            "--exe_path": schema.Or(None, str),
             "--timeout": schema.Or(None, schema.Use(int)),
             "--log_path": schema.Or(None, schema.Use(Path)),
             "--verbose": bool,
@@ -129,10 +139,22 @@ def main():
             repository_path = REPOSITORY_PATH
             logger.info("Read repository path from default value...")
 
+    exe_path = arguments["--exe_path"]
+    if exe_path is not None and exe_path.strip():
+        logger.info("exe folder path from program arguments...")
+    else:
+        exe_path = os.getenv("ONEDOCKER_EXE_PATH")
+        if exe_path is not None and exe_path.strip():
+            logger.info("exe folder path from environment variables...")
+        else:
+            exe_path = EXE_FOLDER
+            logger.info("Read repository path from default value...")
+
     logger.info("Starting container....")
     try:
         run(
             repository_path=repository_path,
+            exe_path=exe_path,
             package_name=arguments["--package_name"],
             cmd=arguments["--cmd"],
             logger=logger,
