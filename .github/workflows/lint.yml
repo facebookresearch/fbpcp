@@ -1,0 +1,18 @@
+name: lint
+
+on: [push, pull_request]
+jobs:
+  black:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+
+      - name: Install Dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install black==20.8b1
+      - name: Run Black
+        run: |
+          black --check --diff fbpcs
