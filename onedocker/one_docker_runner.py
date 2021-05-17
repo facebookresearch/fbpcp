@@ -29,6 +29,7 @@ import sys
 from pathlib import Path
 from typing import Tuple
 
+import psutil
 import schema
 from docopt import docopt
 from fbpcs.service.storage_s3 import S3StorageService
@@ -36,9 +37,9 @@ from fbpcs.util.s3path import S3Path
 
 
 # the folder in the docker image that is going to host the executables
-EXE_FOLDER = "/root/one_docker/package/"
+DEFAULT_EXE_FOLDER = "/root/one_docker/package/"
 # the folder on s3 that the executables are to downloaded from
-REPOSITORY_PATH = "https://one-docker-repository.s3.us-west-1.amazonaws.com/"
+DEFAULT_REPOSITORY_PATH = "https://one-docker-repository.s3.us-west-1.amazonaws.com/"
 
 
 # The handler dealing signal SIGINT, which could be Ctrl + C from user's terminal
@@ -55,7 +56,7 @@ def run(
     timeout: int,
 ) -> None:
     # download executable from s3
-    if repository_path.lower() != 'local':
+    if repository_path.lower() != "local":
         logger.info("Downloading executables ...")
         _download_executables(repository_path, package_name)
     else:
@@ -65,7 +66,7 @@ def run(
     team, exe_name = _parse_package_name(package_name)
     subprocess.run(f"chmod +x {exe_path}/{exe_name}", shell=True)
 
-    #TODO uncomment this line after proper change in fbcode/measurement/private_measurement/pcs/oss/fbpcs/service/onedocker.py to take
+    # TODO uncomment this line after proper change in fbcode/measurement/private_measurement/pcs/oss/fbpcs/service/onedocker.py to take
     # out the hard coded exe_path in cmd string
     # cmd = exe_path + cmd
 
@@ -78,17 +79,23 @@ def run(
      every process in the same process group can be killed by OS if timeout occurs.
      note: setsid() will set the pgid to its pid.
     """
-    with subprocess.Popen(cmd, shell=True, start_new_session=True) as process:
+    with subprocess.Popen(cmd, shell=True, start_new_session=True) as proc:
+        net_start = psutil.net_io_counters()
         try:
-            process.communicate(timeout=timeout)
+            proc.communicate(timeout=timeout)
         except (subprocess.TimeoutExpired, InterruptedError) as e:
-            process.terminate()
-            os.killpg(process.pid, signal.SIGTERM)
+            proc.terminate()
+            os.killpg(proc.pid, signal.SIGTERM)
             raise e
-    return_code = process.wait()
-    if return_code != 0:
-        logger.info(f"subprocess returned non-zero return code: {return_code}")
-        sys.exit(return_code)
+
+        return_code = proc.wait()
+        net_end = psutil.net_io_counters()
+        logger.info(
+            f"Net usage: {net_end.bytes_sent - net_start.bytes_sent} bytes sent, {net_end.bytes_recv - net_start.bytes_recv} bytes received"
+        )
+        if return_code != 0:
+            logger.info(f"Subprocess returned non-zero return code: {return_code}")
+            sys.exit(return_code)
 
 
 def _download_executables(
@@ -97,7 +104,7 @@ def _download_executables(
 ) -> None:
     s3_region = S3Path(repository_path).region
     team, exe_name = _parse_package_name(package_name)
-    exe_local_path = EXE_FOLDER + exe_name
+    exe_local_path = DEFAULT_EXE_FOLDER + exe_name
     exe_s3_path = repository_path + package_name
     storage_svc = S3StorageService(s3_region)
     storage_svc.copy(exe_s3_path, exe_local_path)
@@ -136,7 +143,7 @@ def main():
         if repository_path is not None and repository_path.strip():
             logger.info("Read repository path from environment variables...")
         else:
-            repository_path = REPOSITORY_PATH
+            repository_path = DEFAULT_REPOSITORY_PATH
             logger.info("Read repository path from default value...")
 
     exe_path = arguments["--exe_path"]
@@ -147,7 +154,7 @@ def main():
         if exe_path is not None and exe_path.strip():
             logger.info("exe folder path from environment variables...")
         else:
-            exe_path = EXE_FOLDER
+            exe_path = DEFAULT_EXE_FOLDER
             logger.info("Read repository path from default value...")
 
     logger.info("Starting container....")
