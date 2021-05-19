@@ -5,9 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from libfb.py.asyncio.mock import AsyncMock
 from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcs.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
 from fbpcs.service.mpc import MPCService
@@ -150,7 +149,7 @@ class TestMPCService(unittest.TestCase):
         )
 
     def _read_side_effect_start(self, instance_id: str):
-        """ mock MPCInstanceRepository.read for test_start """
+        """mock MPCInstanceRepository.read for test_start"""
         if instance_id == TEST_INSTANCE_ID:
             return self._get_sample_mpcinstance()
         else:
