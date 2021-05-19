@@ -22,9 +22,16 @@ sudo apt-get install -y python3-pip
 ```
 ## Installing fbpcs
 ```sh
+python3.8 -m pip install 'git+https://github.com/facebookresearch/FBPCS.git'
+# (add --user if you don't have permission)
+
+# Or, to install it from a local clone:
 git clone https://github.com/facebookresearch/FBPCS.git
-cd FBPCS
-sudo python3 -m pip install -e . --user
+python3.8 -m pip install -e FBPCS
+# (add --user if you don't have permission)
+
+# Or, to install it from Pypi
+python3.8 -m pip install fbpcs
 ```
 
 ## Architecture
