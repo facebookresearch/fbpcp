@@ -196,3 +196,7 @@ class S3StorageService(StorageService):
         """
         s3_path = S3Path(filename)
         return self.s3_gateway.get_object_info(s3_path.bucket, s3_path.key)
+
+    def get_file_size(self, filename: str) -> int:
+        s3_path = S3Path(filename)
+        return self.s3_gateway.get_object_size(s3_path.bucket, s3_path.key)

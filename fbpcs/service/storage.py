@@ -38,3 +38,7 @@ class StorageService(abc.ABC):
             return PathType.S3
 
         return PathType.Local
+
+    @abc.abstractmethod
+    def get_file_size(self, filename: str) -> int:
+        pass

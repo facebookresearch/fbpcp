@@ -52,7 +52,7 @@ class S3Gateway:
         )
 
     def download_file(self, bucket: str, key: str, file_name: str) -> None:
-        file_size = self.client.head_object(Bucket=bucket, Key=key)["ContentLength"]
+        file_size = self.get_object_size(bucket, key)
         self.client.download_file(
             bucket,
             key,
@@ -66,6 +66,9 @@ class S3Gateway:
     def get_object(self, bucket: str, key: str) -> str:
         res = self.client.get_object(Bucket=bucket, Key=key)
         return res["Body"].read().decode()
+
+    def get_object_size(self, bucket: str, key: str) -> int:
+        return self.client.head_object(Bucket=bucket, Key=key)["ContentLength"]
 
     def get_object_info(self, bucket: str, key: str) -> Dict[str, Any]:
         return self.client.get_object(Bucket=bucket, Key=key)
