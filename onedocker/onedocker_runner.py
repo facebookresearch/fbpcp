@@ -27,7 +27,7 @@ import signal
 import subprocess
 import sys
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Any
 
 import psutil
 import schema
@@ -81,7 +81,7 @@ def run(
      note: setsid() will set the pgid to its pid.
     """
     with subprocess.Popen(cmd, shell=True, start_new_session=True) as proc:
-        net_start = psutil.net_io_counters()
+        net_start: Any = psutil.net_io_counters()
         try:
             proc.communicate(timeout=timeout)
         except (subprocess.TimeoutExpired, InterruptedError) as e:
@@ -90,7 +90,7 @@ def run(
             raise e
 
         return_code = proc.wait()
-        net_end = psutil.net_io_counters()
+        net_end: Any = psutil.net_io_counters()
         logger.info(
             f"Net usage: {net_end.bytes_sent - net_start.bytes_sent} bytes sent, {net_end.bytes_recv - net_start.bytes_recv} bytes received"
         )
