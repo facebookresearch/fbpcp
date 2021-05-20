@@ -1,0 +1,26 @@
+{
+  "search_path": [
+    {
+      "site-package": "dataclasses_json"
+    },
+    {
+      "site-package": "botocore"
+    },
+    {
+      "site-package": "boto3"
+    },
+    {
+      "site-package": "tqdm"
+    },
+    {
+      "site-package": "pyyaml"
+    },
+    {
+      "site-package": "fbpcs"
+    }
+  ],
+  "source_directories": [
+    "fbpcs"
+  ],
+  "version": "0.0.101612872667"
+}
