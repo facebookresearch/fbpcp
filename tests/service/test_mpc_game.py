@@ -5,8 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-from unittest.mock import Mock, MagicMock
 from typing import List
+from unittest.mock import Mock, MagicMock
 
 from fbpcs.entity.mpc_game_config import MPCGameArgument
 from fbpcs.entity.mpc_game_config import MPCGameConfig
@@ -36,6 +36,7 @@ GAME_CONFIG = {
     }
 }
 
+
 class TestMPCGameService(unittest.TestCase):
     def setUp(self):
         game_repository = Mock()
@@ -49,7 +50,9 @@ class TestMPCGameService(unittest.TestCase):
             one_docker_package_name=GAME_CONFIG[GAME_NAME]["one_docker_package_name"],
             arguments=arguments,
         )
-        self.mpc_game_svc.mpc_game_repository.get_game = MagicMock(return_value=self.mpc_game_config)
+        self.mpc_game_svc.mpc_game_repository.get_game = MagicMock(
+            return_value=self.mpc_game_config
+        )
 
     def test_prepare_args(self):
         self.assertEqual(

@@ -5,9 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
-from libfb.py.asyncio.mock import AsyncMock
 from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcs.service.onedocker import OneDockerService
 
