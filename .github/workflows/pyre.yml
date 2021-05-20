@@ -1,0 +1,21 @@
+name: pyre
+
+on:
+  [push, pull_request]
+jobs:
+  pyre:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+
+      - name: Install Dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install .
+          VERSION=$(grep "version" .pyre_configuration | sed -n -e 's/.*\(0\.0\.[0-9]*\).*/\1/p')
+          python3 -m pip install pyre-check-nightly==$VERSION
+      - name: Run Pyre
+        run: |
+          pyre check
