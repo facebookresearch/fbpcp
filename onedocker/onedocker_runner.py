@@ -27,7 +27,7 @@ import signal
 import subprocess
 import sys
 from pathlib import Path
-from typing import Tuple, Any
+from typing import Tuple, Any, Optional
 
 import psutil
 import schema
@@ -35,11 +35,14 @@ from docopt import docopt
 from fbpcs.service.storage_s3 import S3StorageService
 from fbpcs.util.s3path import S3Path
 
+from .env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
+
+
+# the folder on s3 that the executables are to downloaded from
+DEFAULT_REPOSITORY_PATH = "https://one-docker-repository.s3.us-west-1.amazonaws.com/"
 
 # the folder in the docker image that is going to host the executables
 DEFAULT_EXE_FOLDER = "/root/one_docker/package/"
-# the folder on s3 that the executables are to downloaded from
-DEFAULT_REPOSITORY_PATH = "https://one-docker-repository.s3.us-west-1.amazonaws.com/"
 
 
 # The handler dealing signal SIGINT, which could be Ctrl + C from user's terminal
@@ -115,6 +118,25 @@ def _parse_package_name(package_name: str) -> Tuple[str, str]:
     return package_name.split("/")[0], package_name.split("/")[1]
 
 
+def _read_config(
+    logger: logging.Logger,
+    config_name: str,
+    argument: Optional[str],
+    env_var: str,
+    default_val: str,
+):
+    if argument:
+        logger.info(f"Read {config_name} from program arguments...")
+        return argument
+
+    if os.getenv(env_var):
+        logger.info(f"Read {config_name} from environment variables...")
+        return os.getenv(env_var)
+
+    logger.info(f"Read {config_name} from default value...")
+    return default_val
+
+
 def main():
     s = schema.Schema(
         {
@@ -139,27 +161,20 @@ def main():
     # timeout could be None if the caller did not provide the value
     timeout = arguments["--timeout"]
 
-    repository_path = arguments["--repository_path"]
-    if repository_path:
-        logger.info("Read repository path from program arguments...")
-    else:
-        repository_path = os.getenv("REPOSITORY_PATH", "").strip()
-        if repository_path:
-            logger.info("Read repository path from environment variables...")
-        else:
-            repository_path = DEFAULT_REPOSITORY_PATH
-            logger.info("Read repository path from default value...")
-
-    exe_path = arguments["--exe_path"]
-    if exe_path:
-        logger.info("exe folder path from program arguments...")
-    else:
-        exe_path = os.getenv("ONEDOCKER_EXE_PATH", "").strip()
-        if exe_path:
-            logger.info("exe folder path from environment variables...")
-        else:
-            exe_path = DEFAULT_EXE_FOLDER
-            logger.info("Read repository path from default value...")
+    repository_path = _read_config(
+        logger,
+        "repository_path",
+        arguments["--repository_path"],
+        ONEDOCKER_REPOSITORY_PATH,
+        DEFAULT_REPOSITORY_PATH,
+    )
+    exe_path = _read_config(
+        logger,
+        "exe_path",
+        arguments["--exe_path"],
+        ONEDOCKER_EXE_PATH,
+        DEFAULT_EXE_FOLDER,
+    )
 
     logger.info("Starting program....")
     try:
