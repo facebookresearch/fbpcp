@@ -9,6 +9,7 @@
 from typing import Any, Dict, List, Optional
 
 import boto3
+from fbpcs.decorator.error_handler import error_handler
 from fbpcs.entity.vpc_instance import Vpc
 from fbpcs.mapper.aws import map_ec2vpc_to_vpcinstance
 
@@ -33,13 +34,16 @@ class EC2Gateway:
         # pyre-ignore
         self.client = boto3.client("ec2", region_name=self.region, **config)
 
+    @error_handler
     def describe_vpcs(self, vpc_ids: List[str]) -> List[Vpc]:
         response = self.client.describe_vpcs(VpcIds=vpc_ids)
         return [map_ec2vpc_to_vpcinstance(vpc) for vpc in response["Vpcs"]]
 
+    @error_handler
     def describe_vpc(self, vpc_id: str) -> Vpc:
         return self.describe_vpcs([vpc_id])[0]
 
+    @error_handler
     def list_vpcs(self) -> List[str]:
         all_vpcs = self.client.describe_vpcs()
         return [vpc["VpcId"] for vpc in all_vpcs["Vpcs"]]

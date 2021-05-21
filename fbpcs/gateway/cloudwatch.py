@@ -9,6 +9,7 @@
 from typing import Any, Dict, Optional
 
 import boto3
+from fbpcs.decorator.error_handler import error_handler
 
 
 class CloudWatchGateway:
@@ -31,6 +32,7 @@ class CloudWatchGateway:
         # pyre-ignore
         self.client = boto3.client("logs", region_name=self.region, **config)
 
+    @error_handler
     def get_log_events(self, log_group: str, log_stream: str) -> Dict[str, Any]:
         return self.client.get_log_events(
             logGroupName=log_group, logStreamName=log_stream
