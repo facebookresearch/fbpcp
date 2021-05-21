@@ -17,6 +17,7 @@ class ClusterStatus(Enum):
     ACTIVE = "ACTIVE"
     INACTIVE = "INACTIVE"
     UNKNOWN = "UNKNOWN"
+    TEST = "test"
 
 
 @dataclass_json
