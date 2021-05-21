@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 import boto3
 from fbpcs.decorator.error_handler import error_handler
 from tqdm.auto import tqdm
+from fbpcs.decorator.error_handler import error_handler
 
 
 class S3Gateway:
