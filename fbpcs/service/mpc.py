@@ -165,6 +165,11 @@ class MPCService:
             timeout,
         )
 
+        if len(instance.containers) != instance.num_workers:
+            self.logger.warning(
+                f"Instance {instance_id} has {len(instance.containers)} containers spun up, but expecting {instance.num_workers} containers!"
+            )
+
         if instance.mpc_role is MPCRole.SERVER:
             ip_addresses = [
                 checked_cast(str, instance.ip_address)
@@ -189,8 +194,15 @@ class MPCService:
         if instance.status in [MPCInstanceStatus.COMPLETED, MPCInstanceStatus.FAILED]:
             return instance
 
-        if instance.containers is not None:
+        # skip if no containers registered under instance yet
+        if instance.containers:
             instance.containers = self._update_container_instances(instance.containers)
+
+            if len(instance.containers) != instance.num_workers:
+                self.logger.warning(
+                    f"Instance {instance_id} has {len(instance.containers)} containers after update, but expecting {instance.num_workers} containers!"
+                )
+
             instance.status = self._get_instance_status(instance)
             self.instance_repository.update(instance)
 
