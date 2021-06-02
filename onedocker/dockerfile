@@ -1,4 +1,7 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
+ENV TZ=America/Los_Angeles
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 WORKDIR /root
 
 RUN apt-get update && apt-get install -y \
@@ -7,20 +10,16 @@ RUN apt-get update && apt-get install -y \
   software-properties-common \
   python3.8 \
   python3-pip \
-  libboost-all-dev \
-  libevent-dev \
-  libdouble-conversion-dev \
-  libgoogle-glog-dev \
-  libiberty-dev \
-  liblz4-dev \
-  liblzma-dev \
-  libsnappy-dev \
-  zlib1g-dev \
-  binutils-dev \
-  libssl-dev \
-  pkg-config \
-  libunwind-dev \
-  libdwarf-dev \
+  ca-certificates \
+  libboost-regex1.71.0 \
+  libcurl4 \
+  libdouble-conversion3 \
+  libgflags2.2 \
+  libgmp10 \
+  libgoogle-glog0v5 \
+  libssl1.1 \
+  libre2-5 \
+  zlib1g \
   sudo
 
 # TODO: static link to libemp-tool.so in our game executable
@@ -28,18 +27,16 @@ ADD install_emp.sh .
 RUN ["bash", "install_emp.sh"]
 CMD ["/bin/bash"]
 
-# installing fbpcs since one_docker_runner.py utilizes StorageServiceS3 to download the executable
-# TODO we want to install from pypi.org instead of test.pypi.org
-RUN python3.8 -m pip install -U pip
-RUN python3.8 -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ fbpcs==0.0.3
+# installing fbpcs
+RUN python3.8 -m pip install 'git+https://github.com/facebookresearch/FBPCS.git'
 
 # installing pip requirements
 RUN mkdir -p /root/src/
 ADD pip_requirements.txt /root/src
 RUN python3.8 -m pip install --user -r /root/src/pip_requirements.txt
 
-# add one_docker_runner script and make the folder that's going to host the executables in runtime
-ADD one_docker_runner.py /root
+# add one_docker_runner and make the folder that's going to host the executables in runtime
+ADD env.py one_docker_runner.py /root
 RUN mkdir -p /root/one_docker/package
 
 CMD ["/bin/bash"]
