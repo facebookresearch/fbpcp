@@ -23,7 +23,6 @@ Options:
 
 import logging
 import os
-import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -35,6 +34,7 @@ from docopt import docopt
 from env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
 from fbpcs.service.storage_s3 import S3StorageService
 from fbpcs.util.s3path import S3Path
+from util import run_cmd
 
 
 # the folder on s3 that the executables are to downloaded from
@@ -42,11 +42,6 @@ DEFAULT_REPOSITORY_PATH = "https://one-docker-repository.s3.us-west-1.amazonaws.
 
 # the folder in the docker image that is going to host the executables
 DEFAULT_EXE_FOLDER = "/root/one_docker/package/"
-
-
-# The handler dealing signal SIGINT, which could be Ctrl + C from user's terminal
-def handler(signum, frame):
-    raise InterruptedError
 
 
 def run(
@@ -75,30 +70,18 @@ def run(
 
     # run execution cmd
     logger.info(f"Running cmd: {cmd} ...")
-    signal.signal(signal.SIGINT, handler)
-    """
-     If start_new_session is true the setsid() system call will be made in the
-     child process prior to the execution of the subprocess, which makes sure
-     every process in the same process group can be killed by OS if timeout occurs.
-     note: setsid() will set the pgid to its pid.
-    """
-    with subprocess.Popen(cmd, shell=True, start_new_session=True) as proc:
-        net_start: Any = psutil.net_io_counters()
-        try:
-            proc.communicate(timeout=timeout)
-        except (subprocess.TimeoutExpired, InterruptedError) as e:
-            proc.terminate()
-            os.killpg(proc.pid, signal.SIGTERM)
-            raise e
+    net_start: Any = psutil.net_io_counters()
 
-        return_code = proc.wait()
-        net_end: Any = psutil.net_io_counters()
-        logger.info(
-            f"Net usage: {net_end.bytes_sent - net_start.bytes_sent} bytes sent, {net_end.bytes_recv - net_start.bytes_recv} bytes received"
-        )
-        if return_code != 0:
-            logger.info(f"Subprocess returned non-zero return code: {return_code}")
-            sys.exit(return_code)
+    return_code = run_cmd(cmd, timeout)
+    if return_code != 0:
+        logger.info(f"Subprocess returned non-zero return code: {return_code}")
+
+    net_end: Any = psutil.net_io_counters()
+    logger.info(
+        f"Net usage: {net_end.bytes_sent - net_start.bytes_sent} bytes sent, {net_end.bytes_recv - net_start.bytes_recv} bytes received"
+    )
+
+    sys.exit(return_code)
 
 
 def _download_executables(
