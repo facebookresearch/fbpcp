@@ -12,6 +12,7 @@ import boto3
 from fbpcs.decorator.error_handler import error_handler
 from fbpcs.entity.cluster_instance import Cluster
 from fbpcs.entity.container_instance import ContainerInstance
+from fbpcs.error.pcs import PcsError
 from fbpcs.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
@@ -53,6 +54,10 @@ class ECSGateway:
             },
             overrides={"containerOverrides": [{"name": container, "command": [cmd]}]},
         )
+
+        if not response["tasks"]:
+            failure = response["failures"][0]
+            raise PcsError(f"ECS failure: reason: {failure['reason']}")
 
         return map_ecstask_to_containerinstance(response["tasks"][0])
 
