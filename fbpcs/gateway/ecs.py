@@ -75,8 +75,8 @@ class ECSGateway:
         return self.client.list_tasks(cluster=cluster)["taskArns"]
 
     @error_handler
-    def stop_task(self, cluster: str, task_id: str) -> Dict[str, Any]:
-        return self.client.stop_task(
+    def stop_task(self, cluster: str, task_id: str) -> None:
+        self.client.stop_task(
             cluster=cluster,
             task=task_id,
         )

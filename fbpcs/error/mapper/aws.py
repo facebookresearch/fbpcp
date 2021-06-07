@@ -7,6 +7,7 @@
 # pyre-strict
 
 from botocore.exceptions import ClientError
+from fbpcs.error.invalid_parameter import InvalidParameterError
 from fbpcs.error.pcs import PcsError
 from fbpcs.error.throttling import ThrottlingError
 
@@ -16,7 +17,10 @@ def map_aws_error(error: ClientError) -> PcsError:
     code = error.response["Error"]["Code"]
     message = error.response["Error"]["Message"]
 
+    if code == "InvalidParameterException":
+        return InvalidParameterError(message)
+
     if code == "ThrottlingException":
         return ThrottlingError(message)
-    else:
-        return PcsError(message)
+
+    return PcsError(message)
