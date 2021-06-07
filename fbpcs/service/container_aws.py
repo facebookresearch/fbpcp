@@ -10,6 +10,7 @@ import asyncio
 from typing import Any, Dict, List, Optional, Tuple
 
 from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcs.error.pcs import PcsError
 from fbpcs.gateway.ecs import ECSGateway
 from fbpcs.service.container import ContainerService
 from fbpcs.util.typing import checked_cast
@@ -54,6 +55,9 @@ class AWSContainerService(ContainerService):
 
     def stop_task(self, task_id: str) -> None:
         self.ecs_gateway.stop_task(cluster=self.cluster, task_id=task_id)
+
+    def cancel_instances(self, instance_ids: List[str]) -> List[Optional[PcsError]]:
+        return []
 
     def _split_container_definition(self, container_definition: str) -> Tuple[str, str]:
         """

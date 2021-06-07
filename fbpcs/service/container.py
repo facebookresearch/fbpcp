@@ -7,9 +7,10 @@
 # pyre-strict
 
 import abc
-from typing import List
+from typing import List, Optional
 
 from fbpcs.entity.container_instance import ContainerInstance
+from fbpcs.error.pcs import PcsError
 
 
 class ContainerService(abc.ABC):
@@ -35,4 +36,8 @@ class ContainerService(abc.ABC):
 
     @abc.abstractmethod
     def get_instances(self, instance_ids: List[str]) -> List[ContainerInstance]:
+        pass
+
+    @abc.abstractmethod
+    def cancel_instances(self, instance_ids: List[str]) -> List[Optional[PcsError]]:
         pass
