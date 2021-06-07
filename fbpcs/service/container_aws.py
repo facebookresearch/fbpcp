@@ -52,8 +52,8 @@ class AWSContainerService(ContainerService):
     def list_tasks(self) -> List[str]:
         return self.ecs_gateway.list_tasks(cluster=self.cluster)
 
-    def stop_task(self, task_id: str) -> Dict[str, Any]:
-        return self.ecs_gateway.stop_task(cluster=self.cluster, task_id=task_id)
+    def stop_task(self, task_id: str) -> None:
+        self.ecs_gateway.stop_task(cluster=self.cluster, task_id=task_id)
 
     def _split_container_definition(self, container_definition: str) -> Tuple[str, str]:
         """
