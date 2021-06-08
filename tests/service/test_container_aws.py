@@ -7,6 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from fbpcs.error.pcs import PcsError
 from fbpcs.service.container_aws import (
     ContainerInstance,
     ContainerInstanceStatus,
@@ -138,3 +139,9 @@ class TestAWSContainerService(unittest.TestCase):
         instance_ids = [TEST_INSTANCE_ID_1, TEST_INSTANCE_ID_2]
         self.container_svc.ecs_gateway.list_tasks = MagicMock(return_value=instance_ids)
         self.assertEqual(instance_ids, self.container_svc.list_tasks())
+
+    def test_cancel_instances(self):
+        instance_ids = [TEST_INSTANCE_ID_1, TEST_INSTANCE_ID_2]
+        errors = [None, PcsError("instance id not found")]
+        self.container_svc.ecs_gateway.stop_task = MagicMock(side_effect=errors)
+        self.assertEqual(self.container_svc.cancel_instances(instance_ids), errors)
