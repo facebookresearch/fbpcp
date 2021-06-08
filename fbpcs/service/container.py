@@ -41,3 +41,7 @@ class ContainerService(abc.ABC):
     @abc.abstractmethod
     def cancel_instances(self, instance_ids: List[str]) -> List[Optional[PcsError]]:
         pass
+
+    @abc.abstractmethod
+    def cancel_instance(self, instance_id: str) -> None:
+        pass

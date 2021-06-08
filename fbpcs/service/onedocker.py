@@ -11,6 +11,7 @@ import logging
 from typing import List, Optional
 
 from fbpcs.entity.container_instance import ContainerInstance
+from fbpcs.error.pcs import PcsError
 from fbpcs.service.container import ContainerService
 
 
@@ -77,6 +78,9 @@ class OneDockerService:
             container_definition, cmds
         )
         return container_ids
+
+    def stop_containers(self, containers: List[str]) -> List[Optional[PcsError]]:
+        return self.container_svc.cancel_instances(containers)
 
     def _get_exe_name(self, package_name: str) -> str:
         return package_name.split("/")[1]
