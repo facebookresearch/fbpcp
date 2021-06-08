@@ -9,3 +9,11 @@
 
 class PcsError(Exception):
     pass
+
+
+class InvalidParameterError(PcsError):
+    pass
+
+
+class ThrottlingError(PcsError):
+    pass

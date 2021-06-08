@@ -9,7 +9,7 @@ import unittest
 from botocore.exceptions import ClientError
 from fbpcs.decorator.error_handler import error_handler
 from fbpcs.error.pcs import PcsError
-from fbpcs.error.throttling import ThrottlingError
+from fbpcs.error.pcs import ThrottlingError
 
 
 class TestErrorHandler(unittest.TestCase):
