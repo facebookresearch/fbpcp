@@ -6,6 +6,7 @@
 
 # pyre-strict
 
+import logging
 from typing import Any, Dict, List, Optional
 
 import boto3
@@ -27,6 +28,7 @@ class ECSGateway:
         access_key_data: Optional[str],
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
+        self.logger: logging.Logger = logging.getLogger(__name__)
         self.region = region
         config = config or {}
 
@@ -56,7 +58,9 @@ class ECSGateway:
         )
 
         if not response["tasks"]:
+            # common failures: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/api_failures_messages.html
             failure = response["failures"][0]
+            self.logger.warn(f"ECSGateway failed to create a task. Failure: {failure}")
             raise PcsError(f"ECS failure: reason: {failure['reason']}")
 
         return map_ecstask_to_containerinstance(response["tasks"][0])

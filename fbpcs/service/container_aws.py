@@ -7,6 +7,7 @@
 # pyre-strict
 
 import asyncio
+import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
@@ -26,6 +27,7 @@ class AWSContainerService(ContainerService):
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
+        self.logger: logging.Logger = logging.getLogger(__name__)
         self.region = region
         self.cluster = cluster
         self.subnet = subnet
@@ -91,4 +93,7 @@ class AWSContainerService(ContainerService):
             for cmd in cmds
         ]
         res = await asyncio.gather(*tasks)
+        self.logger.info(
+            f"AWSContainerService created {len(res)} containers successfully"
+        )
         return [checked_cast(ContainerInstance, instance) for instance in res]
