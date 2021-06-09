@@ -182,6 +182,24 @@ class MPCService:
 
         return instance
 
+    def stop_instance(self, instance_id: str) -> MPCInstance:
+        instance = self.instance_repository.read(instance_id)
+        container_ids = [instance.instance_id for instance in instance.containers]
+        if container_ids:
+            errors = self.onedocker_svc.stop_containers(container_ids)
+            error_msg = list(filter(lambda _: _[1], zip(container_ids, errors)))
+
+            if error_msg:
+                self.logger.error(
+                    f"We encountered errors when stopping containers: {error_msg}"
+                )
+
+        instance.status = MPCInstanceStatus.CANCELED
+        self.instance_repository.update(instance)
+        self.logger.info(f"MPC instance {instance_id} has been successfully canceled.")
+
+        return instance
+
     def get_instance(self, instance_id: str) -> MPCInstance:
         self.logger.info(f"Getting MPC instance: {instance_id}")
         return self.instance_repository.read(instance_id)
@@ -191,7 +209,11 @@ class MPCService:
 
         self.logger.info(f"Updating MPC instance: {instance_id}")
 
-        if instance.status in [MPCInstanceStatus.COMPLETED, MPCInstanceStatus.FAILED]:
+        if instance.status in [
+            MPCInstanceStatus.COMPLETED,
+            MPCInstanceStatus.FAILED,
+            MPCInstanceStatus.CANCELED,
+        ]:
             return instance
 
         # skip if no containers registered under instance yet
@@ -250,6 +272,8 @@ class MPCService:
         return self.container_svc.get_instances(ids)
 
     def _get_instance_status(self, instance: MPCInstance) -> MPCInstanceStatus:
+        if instance.status is MPCInstanceStatus.CANCELED:
+            return instance.status
         status = MPCInstanceStatus.COMPLETED
 
         for container in instance.containers:

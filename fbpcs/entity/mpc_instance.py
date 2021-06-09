@@ -26,6 +26,7 @@ class MPCInstanceStatus(Enum):
     STARTED = "STARTED"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+    CANCELED = "CANCELED"
 
 
 @dataclass_json
