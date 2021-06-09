@@ -6,19 +6,19 @@
 
 # pyre-strict
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import config, dataclass_json
 from onedocker.onedocker_lib.entity.owdl_state import OWDLState
 
 
 @dataclass_json
 @dataclass
 class OWDLWorkflow:
-    starts_at: str
-    states: Dict[str, OWDLState]
-    version: Optional[str]
+    starts_at: str = field(metadata=config(field_name="StartAt"))
+    states: Dict[str, OWDLState] = field(metadata=config(field_name="States"))
+    version: Optional[str] = field(metadata=config(field_name="Version"), default=None)
 
     def __init__(
         self, starts_at: str, states: Dict[str, OWDLState], version: Optional[str]

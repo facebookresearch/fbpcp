@@ -6,23 +6,23 @@
 
 # pyre-strict
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import config, dataclass_json
 
 
 @dataclass_json
 @dataclass
 class OWDLState:
-    type_: str
-    container_definition: str
-    package_name: str
-    cmd_args_list: List[str]
-    timeout: Optional[int]
-    next_: Optional[str]
-    end: Optional[bool]
-    version: Optional[str]
+    type_: str = field(metadata=config(field_name="Type"))
+    container_definition: str = field(metadata=config(field_name="ContainerDefinition"))
+    package_name: str = field(metadata=config(field_name="PackageName"))
+    cmd_args_list: List[str] = field(metadata=config(field_name="CmdArgsList"))
+    timeout: Optional[int] = field(metadata=config(field_name="Timeout"), default=None)
+    next_: Optional[str] = field(metadata=config(field_name="Next"), default=None)
+    end: Optional[bool] = field(metadata=config(field_name="End"), default=None)
+    version: Optional[str] = field(metadata=config(field_name="Version"), default=None)
 
     def __init__(
         self,
