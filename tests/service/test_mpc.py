@@ -224,3 +224,21 @@ class TestMPCService(unittest.TestCase):
         )
         self.mpc_service.update_instance(TEST_INSTANCE_ID)
         self.mpc_service.instance_repository.update.assert_called()
+
+    def test_stop_instance(self):
+        self.mpc_service.instance_repository.read = MagicMock(
+            side_effect=self._read_side_effect_update
+        )
+        self.mpc_service.onedocker_svc.stop_containers = MagicMock(return_value=[None])
+        mpc_instance = self.mpc_service.stop_instance(TEST_INSTANCE_ID)
+        self.mpc_service.onedocker_svc.stop_containers.assert_called_with(
+            [
+                "arn:aws:ecs:us-west-1:592513842793:task/57850450-7a81-43cc-8c73-2071c52e4a68"
+            ]
+        )
+        expected_mpc_instance = self._read_side_effect_update(TEST_INSTANCE_ID)
+        expected_mpc_instance.status = MPCInstanceStatus.CANCELED
+        self.assertEqual(expected_mpc_instance, mpc_instance)
+        self.mpc_service.instance_repository.update.assert_called_with(
+            expected_mpc_instance
+        )
