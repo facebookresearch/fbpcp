@@ -7,7 +7,7 @@
 import subprocess
 import unittest
 
-from util import run_cmd
+from onedocker.common.util import run_cmd
 
 
 class TestUtil(unittest.TestCase):
