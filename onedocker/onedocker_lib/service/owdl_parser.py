@@ -23,6 +23,6 @@ class OWDLParserService:
         input_str: str,
     ) -> OWDLWorkflow:
 
-        workflow = OWDLWorkflow.from_json(input_str)  # pyre-ignore
+        workflow = OWDLWorkflow.from_json(input_str)
 
         return workflow

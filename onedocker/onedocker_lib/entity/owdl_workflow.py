@@ -9,13 +9,12 @@
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 
-from dataclasses_json import config, dataclass_json
+from dataclasses_json import config, DataClassJsonMixin
 from onedocker.onedocker_lib.entity.owdl_state import OWDLState
 
 
-@dataclass_json
 @dataclass
-class OWDLWorkflow:
+class OWDLWorkflow(DataClassJsonMixin):
     starts_at: str = field(metadata=config(field_name="StartAt"))
     states: Dict[str, OWDLState] = field(metadata=config(field_name="States"))
     version: Optional[str] = field(metadata=config(field_name="Version"), default=None)
@@ -28,5 +27,4 @@ class OWDLWorkflow:
         self.version = version
 
     def __str__(self) -> str:
-        # pyre-ignore
         return self.to_json()
