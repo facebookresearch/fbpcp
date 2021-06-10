@@ -31,10 +31,10 @@ from typing import Tuple, Any, Optional
 import psutil
 import schema
 from docopt import docopt
-from env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
 from fbpcs.service.storage_s3 import S3StorageService
 from fbpcs.util.s3path import S3Path
-from util import run_cmd
+from onedocker.common.env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
+from onedocker.common.util import run_cmd
 
 
 # the folder on s3 that the executables are to downloaded from
