@@ -9,12 +9,11 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from dataclasses_json import config, dataclass_json
+from dataclasses_json import config, DataClassJsonMixin
 
 
-@dataclass_json
 @dataclass
-class OWDLState:
+class OWDLState(DataClassJsonMixin):
     type_: str = field(metadata=config(field_name="Type"))
     container_definition: str = field(metadata=config(field_name="ContainerDefinition"))
     package_name: str = field(metadata=config(field_name="PackageName"))
@@ -45,5 +44,4 @@ class OWDLState:
         self.version = version
 
     def __str__(self) -> str:
-        # pyre-ignore
         return self.to_json()
