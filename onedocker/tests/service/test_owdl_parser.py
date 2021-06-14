@@ -8,6 +8,7 @@ import json
 import unittest
 from typing import Any, Dict
 
+from fbpcs.error.owdl import OWDLParsingError
 from onedocker.onedocker_lib.service.owdl_parser import OWDLParserService
 
 
@@ -112,121 +113,121 @@ class ParserTestUtil(unittest.TestCase):
             json.dumps(input_str),
         )
 
-    # def test_parse_bad_value(self):
-    #     input_str = {
-    #         "StartAt": 12,
-    #         "States": {
-    #             "Calculate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": 100,
-    #                 "Next": "Aggregate",
-    #             },
-    #             "Aggregate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": 0,
-    #                 "End": True,
-    #             },
-    #         },
-    #     }
+    def test_parse_bad_value(self):
+        input_str = {
+            "StartAt": 12,
+            "States": {
+                "Calculate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": 100,
+                    "Next": "Aggregate",
+                },
+                "Aggregate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": 0,
+                    "End": True,
+                },
+            },
+        }
 
-    #     self.assertRaises(
-    #         ValueError,
-    #         self.parser.parse,
-    #         json.dumps(input_str),
-    #     )
+        self.assertRaises(
+            OWDLParsingError,
+            self.parser.parse,
+            json.dumps(input_str),
+        )
 
-    # def test_parse_bad_value_state(self):
-    #     input_str = {
-    #         "StartAt": "Calculate",
-    #         "States": {
-    #             "Calculate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": "1z00",
-    #                 "Next": "Aggregate",
-    #             },
-    #             "Aggregate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": 0,
-    #                 "End": True,
-    #             },
-    #         },
-    #     }
+    def test_parse_bad_value_state(self):
+        input_str = {
+            "StartAt": "Calculate",
+            "States": {
+                "Calculate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": "1z00",
+                    "Next": "Aggregate",
+                },
+                "Aggregate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": 0,
+                    "End": True,
+                },
+            },
+        }
 
-    #     self.assertRaises(
-    #         ValueError,
-    #         self.parser.parse,
-    #         json.dumps(input_str),
-    #     )
+        self.assertRaises(
+            OWDLParsingError,
+            self.parser.parse,
+            json.dumps(input_str),
+        )
 
-    # def test_parse_bad_value_state_2(self):
-    #     input_str = {
-    #         "StartAt": "Calculate",
-    #         "States": {
-    #             "Calculate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": "100",
-    #                 "Next": "Aggregate",
-    #             },
-    #             "Aggregate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": 0,
-    #                 "End": True,
-    #             },
-    #         },
-    #     }
+    def test_parse_bad_value_state_2(self):
+        input_str = {
+            "StartAt": "Calculate",
+            "States": {
+                "Calculate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": "100",
+                    "Next": "Aggregate",
+                },
+                "Aggregate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": 0,
+                    "End": True,
+                },
+            },
+        }
 
-    #     self.assertRaises(
-    #         ValueError,
-    #         self.parser.parse,
-    #         json.dumps(input_str),
-    #     )
+        self.assertRaises(
+            OWDLParsingError,
+            self.parser.parse,
+            json.dumps(input_str),
+        )
 
-    # def test_parse_bad_value_state_3(self):
-    #     input_str = {
-    #         "StartAt": "Calculate",
-    #         "States": {
-    #             "Calculate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": 100,
-    #                 "Next": "Aggregate",
-    #             },
-    #             "Aggregate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": 0,
-    #                 "End": "true",
-    #             },
-    #         },
-    #     }
+    def test_parse_bad_value_state_3(self):
+        input_str = {
+            "StartAt": "Calculate",
+            "States": {
+                "Calculate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": 100,
+                    "Next": "Aggregate",
+                },
+                "Aggregate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": 0,
+                    "End": "true",
+                },
+            },
+        }
 
-    #     self.assertRaises(
-    #         ValueError,
-    #         self.parser.parse,
-    #         json.dumps(input_str),
-    #     )
+        self.assertRaises(
+            OWDLParsingError,
+            self.parser.parse,
+            json.dumps(input_str),
+        )
 
     def test_parse_missing_key(self):
         input_str = {
