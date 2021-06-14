@@ -23,7 +23,7 @@ class MPCGameService:
         self.mpc_game_repository: MPCGameRepository = mpc_game_repository
 
     # returns package_name and cmd which includes only arguments (no executable)
-    def build_one_docker_args(
+    def build_onedocker_args(
         self,
         game_name: str,
         mpc_role: MPCRole,
@@ -33,7 +33,7 @@ class MPCGameService:
     ) -> Tuple[str, str]:
         mpc_game_config = self.mpc_game_repository.get_game(game_name)
         return (
-            mpc_game_config.one_docker_package_name,
+            mpc_game_config.onedocker_package_name,
             self._build_cmd(
                 mpc_game_config=mpc_game_config,
                 mpc_role=mpc_role,

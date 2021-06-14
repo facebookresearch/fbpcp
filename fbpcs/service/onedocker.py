@@ -15,9 +15,9 @@ from fbpcs.error.pcs import PcsError
 from fbpcs.service.container import ContainerService
 
 
-ONE_DOCKER_CMD_PREFIX = (
+ONEDOCKER_CMD_PREFIX = (
     # patternlint-disable-next-line f-string-may-be-missing-leading-f
-    "python3.8 -m one_docker_runner --package_name={0} --cmd='/root/one_docker/package/"
+    "python3.8 -m onedocker.script.runner {package_name} --cmd='/root/onedocker/package/"
 )
 
 
@@ -96,4 +96,4 @@ class OneDockerService:
         """
         if timeout is not None:
             cmd_timeout = f" --timeout={timeout}"
-        return f"{ONE_DOCKER_CMD_PREFIX.format(package_name, timeout)}{self._get_exe_name(package_name)} {cmd_args}'{cmd_timeout}"
+        return f"{ONEDOCKER_CMD_PREFIX.format(package_name=package_name)}{self._get_exe_name(package_name)} {cmd_args}'{cmd_timeout}"

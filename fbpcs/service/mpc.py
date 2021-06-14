@@ -70,7 +70,7 @@ class MPCService:
 
     game_config = {
     "game": {
-        "one_docker_package_name": "package_name",
+        "onedocker_package_name": "package_name",
         "arguments": [
             {"name": "input_filenames", "required": True},
             {"name": "input_directory", "required": True},
@@ -252,7 +252,7 @@ class MPCService:
             game_arg = game_args[i] if game_args is not None else {}
             server_ip = ip_addresses[i] if ip_addresses is not None else None
             cmd_tuple_list.append(
-                self.mpc_game_svc.build_one_docker_args(
+                self.mpc_game_svc.build_onedocker_args(
                     game_name=game_name,
                     mpc_role=mpc_role,
                     server_ip=server_ip,
