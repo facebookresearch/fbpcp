@@ -286,34 +286,33 @@ class ParserTestUtil(unittest.TestCase):
             json.dumps(input_str),
         )
 
-    # def test_no_end(self):
-    #     parser = OWDLParserService()
-    #     input_str = {
-    #         "StartAt": "Calculate",
-    #         "States": {
-    #             "Calculate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": 100,
-    #                 "Next": "Aggregate",
-    #             },
-    #             "Aggregate": {
-    #                 "Type": "Task",
-    #                 "ContainerDefinition": "xx",
-    #                 "PackageName": "yy",
-    #                 "CmdArgsList": ["aa", "bb", "cc"],
-    #                 "Timeout": 0,
-    #             },
-    #         },
-    #     }
+    def test_no_end(self):
+        input_str = {
+            "StartAt": "Calculate",
+            "States": {
+                "Calculate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": 100,
+                    "Next": "Aggregate",
+                },
+                "Aggregate": {
+                    "Type": "Task",
+                    "ContainerDefinition": "xx",
+                    "PackageName": "yy",
+                    "CmdArgsList": ["aa", "bb", "cc"],
+                    "Timeout": 0,
+                },
+            },
+        }
 
-    #     self.assertRaises(
-    #         Exception,
-    #         self.parser.parse,
-    #         json.dumps(input_str),
-    #     )
+        self.assertRaises(
+            OWDLParsingError,
+            self.parser.parse,
+            json.dumps(input_str),
+        )
 
     def test_general_parse(self):
         input_str = {
