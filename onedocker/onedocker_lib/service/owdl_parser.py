@@ -8,6 +8,7 @@
 
 import logging
 
+from fbpcs.error.owdl import OWDLParsingError
 from onedocker.onedocker_lib.entity.owdl_workflow import OWDLWorkflow
 
 
@@ -22,7 +23,16 @@ class OWDLParserService:
         self,
         input_str: str,
     ) -> OWDLWorkflow:
-
         workflow = OWDLWorkflow.from_json(input_str)
+
+        has_end = 0
+        for state in workflow.states.values():
+            if state.end:
+                has_end += 1
+
+        if has_end != 1:
+            raise OWDLParsingError(
+                f"Configuration does not have an ending state or has multiple ending states ({has_end} ending states)"
+            )
 
         return workflow
