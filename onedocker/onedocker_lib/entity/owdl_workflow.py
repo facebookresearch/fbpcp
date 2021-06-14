@@ -11,8 +11,10 @@ from typing import Dict, Optional
 
 from dataclasses_json import config, DataClassJsonMixin
 from onedocker.onedocker_lib.entity.owdl_state import OWDLState
+from onedocker.onedocker_lib.util.enforce_types import enforce_types
 
 
+@enforce_types
 @dataclass
 class OWDLWorkflow(DataClassJsonMixin):
     starts_at: str = field(metadata=config(field_name="StartAt"))

@@ -10,8 +10,10 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from dataclasses_json import config, DataClassJsonMixin
+from onedocker.onedocker_lib.util.enforce_types import enforce_types
 
 
+@enforce_types
 @dataclass
 class OWDLState(DataClassJsonMixin):
     type_: str = field(metadata=config(field_name="Type"))
