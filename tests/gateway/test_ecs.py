@@ -18,7 +18,7 @@ class TestECSGateway(unittest.TestCase):
     TEST_CONTAINER = "test-container"
     TEST_CLUSTER = "test-cluster"
     TEST_CMD = "test-cmd"
-    TEST_SUBNET = "test-subnet"
+    TEST_SUBNETS = ["test-subnet"]
     TEST_ACCESS_KEY_ID = "test-access-key-id"
     TEST_ACCESS_KEY_DATA = "test-access-key-data"
     TEST_IP_ADDRESS = "127.0.0.1"
@@ -60,7 +60,7 @@ class TestECSGateway(unittest.TestCase):
             self.TEST_CONTAINER,
             self.TEST_CMD,
             self.TEST_CLUSTER,
-            self.TEST_SUBNET,
+            self.TEST_SUBNETS,
         )
         expected_task = ContainerInstance(
             self.TEST_TASK_ARN,
