@@ -20,7 +20,7 @@ TEST_REGION = "us-west-2"
 TEST_KEY_ID = "test-key-id"
 TEST_KEY_DATA = "test-key-data"
 TEST_CLUSTER = "test-cluster"
-TEST_SUBNET = "test-subnet"
+TEST_SUBNET = "test-subnet0, test-subnet1"
 TEST_IP_ADDRESS = "127.0.0.1"
 TEST_CONTAINER_DEFNITION = "test-task-definition#test-container-definition"
 

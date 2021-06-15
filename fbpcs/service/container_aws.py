@@ -75,14 +75,18 @@ class AWSContainerService(ContainerService):
         s = container_definition.split("#")
         return (s[0], s[1])
 
+    def _process_subnets(self, subnet: str) -> List[str]:
+        return subnet.split(",")
+
     async def _create_instance_async(
         self, container_definition: str, cmd: str
     ) -> ContainerInstance:
         task_definition, container = self._split_container_definition(
             container_definition
         )
+        subnets = self._process_subnets(self.subnet)
         instance = self.ecs_gateway.run_task(
-            task_definition, container, cmd, self.cluster, [self.subnet]
+            task_definition, container, cmd, self.cluster, subnets
         )
 
         # wait until the container is in running state
