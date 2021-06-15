@@ -43,14 +43,19 @@ class ECSGateway:
 
     @error_handler
     def run_task(
-        self, task_definition: str, container: str, cmd: str, cluster: str, subnet: str
+        self,
+        task_definition: str,
+        container: str,
+        cmd: str,
+        cluster: str,
+        subnets: List[str],
     ) -> ContainerInstance:
         response = self.client.run_task(
             taskDefinition=task_definition,
             cluster=cluster,
             networkConfiguration={
                 "awsvpcConfiguration": {
-                    "subnets": [subnet],
+                    "subnets": subnets,
                     "assignPublicIp": "ENABLED",
                 }
             },

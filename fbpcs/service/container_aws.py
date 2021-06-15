@@ -82,7 +82,7 @@ class AWSContainerService(ContainerService):
             container_definition
         )
         instance = self.ecs_gateway.run_task(
-            task_definition, container, cmd, self.cluster, self.subnet
+            task_definition, container, cmd, self.cluster, [self.subnet]
         )
 
         # wait until the container is in running state
