@@ -94,7 +94,7 @@ class TestMPCService(unittest.TestCase):
             game_args=GAME_ARGS,
         )
 
-    async def test_spin_up_containers_one_docker_inconsistent_arguments(self):
+    async def test_spin_up_containers_onedocker_inconsistent_arguments(self):
         with self.assertRaisesRegex(
             ValueError,
             "The number of containers is not consistent with the number of game argument dictionary.",
@@ -169,9 +169,9 @@ class TestMPCService(unittest.TestCase):
         self.mpc_service.container_svc.create_instances_async = AsyncMock(
             return_value=created_instances
         )
-        built_one_docker_args = ("private_lift/lift", "test one docker arguments")
-        self.mpc_service.mpc_game_svc.build_one_docker_args = MagicMock(
-            return_value=built_one_docker_args
+        built_onedocker_args = ("private_lift/lift", "test one docker arguments")
+        self.mpc_service.mpc_game_svc.build_onedocker_args = MagicMock(
+            return_value=built_onedocker_args
         )
         # check that update is called with correct status
         self.mpc_service.start_instance(TEST_INSTANCE_ID)

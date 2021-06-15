@@ -59,14 +59,14 @@ class AWSContainerService(ContainerService):
         return self.ecs_gateway.stop_task(cluster=self.cluster, task_id=instance_id)
 
     def cancel_instances(self, instance_ids: List[str]) -> List[Optional[PcsError]]:
-        errors = []
+        res = []
         for instance_id in instance_ids:
             try:
-                errors.append(self.cancel_instance(instance_id))
+                res.append(self.cancel_instance(instance_id))
             except PcsError as err:
-                errors.append(err)
+                res.append(err)
 
-        return errors
+        return res
 
     def _split_container_definition(self, container_definition: str) -> Tuple[str, str]:
         """
