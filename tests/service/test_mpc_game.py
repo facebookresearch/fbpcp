@@ -21,11 +21,11 @@ OUTPUT_PATH_1 = "out_path_1"
 OUTPUT_PATH_2 = "out_path_2"
 CONCURRENCY = 2
 GAME_NAME = "test_game"
-ONE_DOCKER_PACKAGE_NAME = "one_docker_package/package_name"
+ONEDOCKER_PACKAGE_NAME = "onedocker_package/package_name"
 
 GAME_CONFIG = {
     GAME_NAME: {
-        "one_docker_package_name": ONE_DOCKER_PACKAGE_NAME,
+        "onedocker_package_name": ONEDOCKER_PACKAGE_NAME,
         "arguments": [
             {"name": "input_filenames", "required": True},
             {"name": "input_directory", "required": True},
@@ -47,7 +47,7 @@ class TestMPCGameService(unittest.TestCase):
         ]
         self.mpc_game_config = MPCGameConfig(
             game_name=GAME_NAME,
-            one_docker_package_name=GAME_CONFIG[GAME_NAME]["one_docker_package_name"],
+            onedocker_package_name=GAME_CONFIG[GAME_NAME]["onedocker_package_name"],
             arguments=arguments,
         )
         self.mpc_game_svc.mpc_game_repository.get_game = MagicMock(
@@ -128,7 +128,7 @@ class TestMPCGameService(unittest.TestCase):
             f"--output_directory={OUTPUT_DIRECTORY} --concurrency={CONCURRENCY}",
         )
 
-    def test_build_one_docker_args(self):
+    def test_build_onedocker_args(self):
         game_args = [
             {
                 "input_filenames": INPUT_PATH_1,
@@ -148,13 +148,13 @@ class TestMPCGameService(unittest.TestCase):
 
         expected_arguments = [
             (
-                ONE_DOCKER_PACKAGE_NAME,
+                ONEDOCKER_PACKAGE_NAME,
                 f"--party=1 --input_filenames={INPUT_PATH_1} --input_directory={INPUT_DIRECTORY} "
                 f"--output_filenames={OUTPUT_PATH_1} --output_directory={OUTPUT_DIRECTORY} "
                 f"--concurrency={CONCURRENCY}",
             ),
             (
-                ONE_DOCKER_PACKAGE_NAME,
+                ONEDOCKER_PACKAGE_NAME,
                 f"--party=1 --input_filenames={INPUT_PATH_2} --input_directory={INPUT_DIRECTORY} "
                 f"--output_filenames={OUTPUT_PATH_2} --output_directory={OUTPUT_DIRECTORY} "
                 f"--concurrency={CONCURRENCY}",
@@ -165,7 +165,7 @@ class TestMPCGameService(unittest.TestCase):
             expected_argument = expected_arguments[i]
             game_arg = game_args[i]
             self.assertEqual(
-                self.mpc_game_svc.build_one_docker_args(
+                self.mpc_game_svc.build_onedocker_args(
                     game_name="game",
                     mpc_role=MPCRole.SERVER,
                     **game_arg,

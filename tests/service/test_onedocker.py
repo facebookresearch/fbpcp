@@ -57,7 +57,7 @@ class TestOneDockerService(unittest.TestCase):
         package_name = "project/exe_name"
         cmd_args = "--k1=v1 --k2=v2"
         timeout = 3600
-        expected_cmd_without_timeout = "python3.8 -m one_docker_runner --package_name=project/exe_name --cmd='/root/one_docker/package/exe_name --k1=v1 --k2=v2'"
+        expected_cmd_without_timeout = "python3.8 -m onedocker.script.runner project/exe_name --cmd='/root/onedocker/package/exe_name --k1=v1 --k2=v2'"
         expected_cmd_with_timeout = expected_cmd_without_timeout + " --timeout=3600"
         cmd_without_timeout = self.onedocker_svc._get_cmd(package_name, cmd_args)
         cmd_with_timeout = self.onedocker_svc._get_cmd(package_name, cmd_args, timeout)

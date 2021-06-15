@@ -19,5 +19,5 @@ class MPCGameArgument:
 @dataclass
 class MPCGameConfig:
     game_name: str
-    one_docker_package_name: str
+    onedocker_package_name: str
     arguments: List[MPCGameArgument]
