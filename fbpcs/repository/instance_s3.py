@@ -6,8 +6,6 @@
 
 # pyre-strict
 
-import pickle
-
 from fbpcs.entity.instance_base import InstanceBase
 from fbpcs.service.storage_s3 import S3StorageService
 
@@ -23,15 +21,14 @@ class S3InstanceRepository:
 
         filename = f"{self.base_dir}{instance.get_instance_id()}"
         # Use pickle protocol 0 to make ASCII only bytes that can be safely decoded into a string
-        self.s3_storage_svc.write(filename, pickle.dumps(instance, 0).decode())
+        self.s3_storage_svc.write(filename, instance.dumps_schema())
 
-    def read(self, instance_id: str) -> InstanceBase:
+    def read(self, instance_id: str) -> str:
         if not self._exist(instance_id):
             raise RuntimeError(f"{instance_id} does not exist")
 
         filename = f"{self.base_dir}{instance_id}"
-        instance = pickle.loads(self.s3_storage_svc.read(filename).encode())
-        return instance
+        return self.s3_storage_svc.read(filename)
 
     def update(self, instance: InstanceBase) -> None:
         if not self._exist(instance.get_instance_id()):
@@ -39,7 +36,7 @@ class S3InstanceRepository:
 
         filename = f"{self.base_dir}{instance.get_instance_id()}"
         # Use pickle protocol 0 to make ASCII only bytes that can be safely decoded into a string
-        self.s3_storage_svc.write(filename, pickle.dumps(instance, 0).decode())
+        self.s3_storage_svc.write(filename, instance.dumps_schema())
 
     def delete(self, instance_id: str) -> None:
         if not self._exist(instance_id):

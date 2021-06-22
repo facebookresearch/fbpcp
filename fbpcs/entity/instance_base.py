@@ -7,13 +7,24 @@
 # pyre-strict
 
 import abc
+from typing import Type, TypeVar
+
+from dataclasses_json import DataClassJsonMixin
+
+T = TypeVar("T", bound="InstanceBase")
 
 
-class InstanceBase(abc.ABC):
+class InstanceBase(DataClassJsonMixin):
     @abc.abstractmethod
     def get_instance_id(self) -> str:
         pass
 
-    @abc.abstractmethod
     def __str__(self) -> str:
-        pass
+        return self.to_json()
+
+    def dumps_schema(self) -> str:
+        return self.schema().dumps(self)
+
+    @classmethod
+    def loads_schema(cls: Type[T], json_schema_str: str) -> T:
+        return cls.schema().loads(json_schema_str, many=None)

@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import pickle
 import unittest
 import uuid
 from unittest.mock import MagicMock
@@ -69,9 +68,11 @@ class TestS3InstanceRepository(unittest.TestCase):
     def test_read_existing_instance(self):
         self.s3_storage_repo._exist = MagicMock(return_value=True)
         self.s3_storage_repo.s3_storage_svc.read = MagicMock(
-            return_value=pickle.dumps(self.mpc_instance, 0).decode()
+            return_value=self.mpc_instance.dumps_schema()
         )
-        instance = self.s3_storage_repo.read(self.mpc_instance)
+        instance = MPCInstance.loads_schema(
+            self.s3_storage_repo.read(self.mpc_instance)
+        )
         self.assertEqual(self.mpc_instance, instance)
 
     def test_update_non_existing_instance(self):
