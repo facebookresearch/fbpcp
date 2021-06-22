@@ -26,7 +26,7 @@ def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
     if status == "RUNNING":
         status = ContainerInstanceStatus.STARTED
     elif status == "STOPPED":
-        if container["exitCode"] == 0:
+        if container.get("exitCode") == 0:
             status = ContainerInstanceStatus.COMPLETED
         else:
             status = ContainerInstanceStatus.FAILED
