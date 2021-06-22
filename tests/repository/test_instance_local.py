@@ -30,7 +30,7 @@ ERROR_MSG_NOT_EXISTS = f"{TEST_INSTANCE_ID} does not exist"
 
 class TestLocalInstanceRepository(unittest.TestCase):
     def setUp(self):
-        self.mpc_instance = MPCInstance(
+        self.mpc_instance = MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
             mpc_role=TEST_MPC_ROLE,

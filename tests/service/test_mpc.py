@@ -60,7 +60,7 @@ class TestMPCService(unittest.TestCase):
 
     @staticmethod
     def _get_sample_mpcinstance():
-        return MPCInstance(
+        return MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
             mpc_role=TEST_MPC_ROLE,
@@ -72,7 +72,7 @@ class TestMPCService(unittest.TestCase):
 
     @staticmethod
     def _get_sample_mpcinstance_with_game_args():
-        return MPCInstance(
+        return MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
             mpc_role=TEST_MPC_ROLE,
@@ -84,7 +84,7 @@ class TestMPCService(unittest.TestCase):
 
     @staticmethod
     def _get_sample_mpcinstance_client():
-        return MPCInstance(
+        return MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
             mpc_role=MPCRole.CLIENT,

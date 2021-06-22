@@ -112,7 +112,7 @@ class MPCService:
     ) -> MPCInstance:
         self.logger.info(f"Creating MPC instance: {instance_id}")
 
-        instance = MPCInstance(
+        instance = MPCInstance.create_instance(
             instance_id=instance_id,
             game_name=game_name,
             mpc_role=mpc_role,

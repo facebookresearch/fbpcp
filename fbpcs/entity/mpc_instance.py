@@ -8,7 +8,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Mapping, Optional
+from typing import Any, Dict, List, Optional
 
 from dataclasses_json import dataclass_json
 from fbpcs.entity.container_instance import ContainerInstance
@@ -36,14 +36,16 @@ class MPCInstance(InstanceBase):
     game_name: str
     mpc_role: MPCRole
     num_workers: int
+    ip_config_file: Optional[str]
     server_ips: Optional[List[str]]
     containers: List[ContainerInstance]
     status: MPCInstanceStatus
     game_args: Optional[List[Dict[str, Any]]]
-    arguments: Mapping[str, Any]
+    arguments: Dict[str, Any]
 
-    def __init__(
-        self,
+    @classmethod
+    def create_instance(
+        cls,
         instance_id: str,
         game_name: str,
         mpc_role: MPCRole,
@@ -54,17 +56,19 @@ class MPCInstance(InstanceBase):
         status: MPCInstanceStatus = MPCInstanceStatus.UNKNOWN,
         game_args: Optional[List[Dict[str, Any]]] = None,
         **arguments  # pyre-ignore
-    ) -> None:
-        self.instance_id = instance_id
-        self.game_name = game_name
-        self.mpc_role = mpc_role
-        self.num_workers = num_workers
-        self.ip_config_file = ip_config_file
-        self.server_ips = server_ips
-        self.containers = containers or []
-        self.status = status
-        self.game_args = game_args
-        self.arguments = arguments
+    ) -> "MPCInstance":
+        return cls(
+            instance_id,
+            game_name,
+            mpc_role,
+            num_workers,
+            ip_config_file,
+            server_ips,
+            containers or [],
+            status,
+            game_args,
+            arguments,
+        )
 
     def get_instance_id(self) -> str:
         return self.instance_id
