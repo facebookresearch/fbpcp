@@ -32,7 +32,7 @@ class TestS3InstanceRepository(unittest.TestCase):
     def setUp(self):
         storage_svc = S3StorageService("us-west-1")
         self.s3_storage_repo = S3MPCInstanceRepository(storage_svc, TEST_BASE_DIR)
-        self.mpc_instance = MPCInstance(
+        self.mpc_instance = MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
             mpc_role=TEST_MPC_ROLE,
