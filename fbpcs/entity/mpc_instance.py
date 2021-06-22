@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from dataclasses_json import dataclass_json
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.entity.instance_base import InstanceBase
 
@@ -29,7 +28,6 @@ class MPCInstanceStatus(Enum):
     CANCELED = "CANCELED"
 
 
-@dataclass_json
 @dataclass
 class MPCInstance(InstanceBase):
     instance_id: str
@@ -72,7 +70,3 @@ class MPCInstance(InstanceBase):
 
     def get_instance_id(self) -> str:
         return self.instance_id
-
-    def __str__(self) -> str:
-        # pyre-ignore
-        return self.to_json()

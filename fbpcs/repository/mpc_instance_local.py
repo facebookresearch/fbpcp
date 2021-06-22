@@ -6,8 +6,6 @@
 
 # pyre-strict
 
-from typing import cast
-
 from fbpcs.entity.mpc_instance import MPCInstance
 from fbpcs.repository.instance_local import LocalInstanceRepository
 from fbpcs.repository.mpc_instance import MPCInstanceRepository
@@ -21,7 +19,7 @@ class LocalMPCInstanceRepository(MPCInstanceRepository):
         self.repo.create(instance)
 
     def read(self, instance_id: str) -> MPCInstance:
-        return cast(MPCInstance, self.repo.read(instance_id))
+        return MPCInstance.loads_schema(self.repo.read(instance_id))
 
     def update(self, instance: MPCInstance) -> None:
         self.repo.update(instance)

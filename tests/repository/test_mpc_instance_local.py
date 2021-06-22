@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 import copy
-import pickle
 import unittest
 from pathlib import Path
 from unittest.mock import mock_open, MagicMock, patch
@@ -51,15 +50,11 @@ class TestLocalMPCInstanceRepository(unittest.TestCase):
             self.local_instance_repo.create(self.mpc_instance)
 
     @patch("builtins.open")
-    @patch("pickle.dump")
-    def test_create_non_existing_instance(self, mock_dump, mock_open):
+    def test_create_non_existing_instance(self, mock_open):
         self.local_instance_repo.repo._exist = MagicMock(return_value=False)
         path = TEST_BASE_DIR.joinpath(TEST_INSTANCE_ID)
-        mock_dump.return_value = None
-        stream = mock_open().__enter__.return_value
         self.assertIsNone(self.local_instance_repo.create(self.mpc_instance))
-        mock_open.assert_called_with(path, "wb")
-        mock_dump.assert_called_with(self.mpc_instance, stream)
+        mock_open.assert_called_with(path, "w")
 
     def test_read_non_existing_instance(self):
         self.local_instance_repo.repo._exist = MagicMock(return_value=False)
@@ -68,13 +63,13 @@ class TestLocalMPCInstanceRepository(unittest.TestCase):
 
     def test_read_existing_instance(self):
         self.local_instance_repo.repo._exist = MagicMock(return_value=True)
-        data = pickle.dumps(self.mpc_instance)
+        data = self.mpc_instance.dumps_schema()
         path = TEST_BASE_DIR.joinpath(TEST_INSTANCE_ID)
         with patch("builtins.open", mock_open(read_data=data)) as mock_file:
-            self.assertEqual(open(path).read(), data)
+            self.assertEqual(open(path).read().strip(), data)
             mpc_instance = self.local_instance_repo.read(TEST_INSTANCE_ID)
             self.assertEqual(self.mpc_instance, mpc_instance)
-            mock_file.assert_called_with(path, "rb")
+            mock_file.assert_called_with(path, "r")
 
     def test_update_non_existing_instance(self):
         self.local_instance_repo.repo._exist = MagicMock(return_value=False)
@@ -82,17 +77,13 @@ class TestLocalMPCInstanceRepository(unittest.TestCase):
             self.local_instance_repo.update(self.mpc_instance)
 
     @patch("builtins.open")
-    @patch("pickle.dump")
-    def test_update_existing_instance(self, mock_dump, mock_open):
+    def test_update_existing_instance(self, mock_open):
         self.local_instance_repo.repo._exist = MagicMock(return_value=True)
         new_mpc_instance = copy.deepcopy(self.mpc_instance)
         new_mpc_instance.game_name = "aggregator"
         path = TEST_BASE_DIR.joinpath(TEST_INSTANCE_ID)
-        mock_dump.return_value = None
-        stream = mock_open().__enter__.return_value
         self.assertIsNone(self.local_instance_repo.update(new_mpc_instance))
-        mock_open.assert_called_with(path, "wb")
-        mock_dump.assert_called_with(new_mpc_instance, stream)
+        mock_open.assert_called_with(path, "w")
 
     def test_delete_non_existing_instance(self):
         self.local_instance_repo.repo._exist = MagicMock(return_value=False)
