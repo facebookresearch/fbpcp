@@ -6,7 +6,7 @@
 
 
 """
-CLI for running an executable in one docker
+CLI for running an executable in OneDocker containers.
 
 
 Usage:
@@ -14,11 +14,11 @@ Usage:
 
 Options:
     -h --help                           Show this help
-    --repository_path=<repository_path> The folder repository that the executables are to downloaded from
-    --exe_path=<exe_path>               The folder that the executables are located at
-    --timeout=<timeout>                 Set timeout (in sec) to task to avoid endless running
-    --log_path=<path>                   Override the default path where logs are saved
-    --verbose                           Set logging level to DEBUG
+    --repository_path=<repository_path> OneDocker repository path where the executables are downloaded from. No download when "LOCAL" repository is specified.
+    --exe_path=<exe_path>               The local path where the executables are downloaded to.
+    --timeout=<timeout>                 Set timeout (in sec) to kill the task.
+    --log_path=<path>                   Override the default path where logs are saved.
+    --verbose                           Set logging level to DEBUG.
 """
 
 import logging
@@ -37,21 +37,21 @@ from onedocker.common.env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
 from onedocker.common.util import run_cmd
 
 
-# the folder on s3 that the executables are to downloaded from
+# The default OneDocker repository path on S3
 DEFAULT_REPOSITORY_PATH = (
     "https://one-docker-repository-prod.s3.us-west-2.amazonaws.com/"
 )
 
-# the folder in the docker image that is going to host the executables
+# The default path in the Docker image that is going to host the executables
 DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
 
 
-def run(
+def _run_package(
+    logger: logging.Logger,
     repository_path: str,
     exe_path: str,
     package_name: str,
     cmd: str,
-    logger: logging.Logger,
     timeout: int,
 ) -> None:
     # download executable from s3
@@ -62,7 +62,9 @@ def run(
         logger.info("Local repository, skip download ...")
 
     # grant execute permission to the downloaded executable file
-    team, exe_name = _parse_package_name(package_name)
+    _, exe_name = _parse_package_name(package_name)
+
+    # TODO: Use Python API
     subprocess.run(f"chmod +x {exe_path}/{exe_name}", shell=True)
 
     # TODO update this line after proper change in fbcode/measurement/private_measurement/pcs/oss/fbpcs/service/onedocker.py to take
@@ -91,8 +93,10 @@ def _download_executables(
     package_name: str,
 ) -> None:
     s3_region = S3Path(repository_path).region
-    team, exe_name = _parse_package_name(package_name)
+    _, exe_name = _parse_package_name(package_name)
+    # TODO: Remove the hard coded path
     exe_local_path = DEFAULT_EXE_FOLDER + exe_name
+    # TODO: Support version
     exe_s3_path = repository_path + package_name
     storage_svc = S3StorageService(s3_region)
     storage_svc.copy(exe_s3_path, exe_local_path)
@@ -125,7 +129,7 @@ def main():
     s = schema.Schema(
         {
             "<package_name>": str,
-            "--cmd": schema.Or(None, str),
+            "--cmd": schema.Or(None, schema.And(str, len)),
             "--repository_path": schema.Or(None, schema.And(str, len)),
             "--exe_path": schema.Or(None, schema.And(str, len)),
             "--timeout": schema.Or(None, schema.Use(int)),
@@ -162,12 +166,12 @@ def main():
 
     logger.info("Starting program....")
     try:
-        run(
+        _run_package(
+            logger=logger,
             repository_path=repository_path,
             exe_path=exe_path,
             package_name=arguments["<package_name>"],
             cmd=arguments["--cmd"],
-            logger=logger,
             timeout=timeout,
         )
     except subprocess.TimeoutExpired:
