@@ -20,11 +20,7 @@ class TestS3InstanceRepository(unittest.TestCase):
     TEST_MPC_ROLE = MPCRole.SERVER
     TEST_NUM_WORKERS = 1
     TEST_SERVER_IPS = ["192.0.2.0", "192.0.2.1"]
-    TEST_INPUT_ARGS = [{"input_filenames": "test_input_file"}]
-    TEST_OUTPUT_ARGS = [{"output_filenames": "test_output_file"}]
-    TEST_CONCURRENCY_ARGS = {"concurrency": 2}
-    TEST_INPUT_DIRECTORY = "TEST_INPUT_DIRECTORY/"
-    TEST_OUTPUT_DIRECTROY = "TEST_OUTPUT_DIRECTORY/"
+    TEST_GAME_ARGS = [{}]
     ERROR_MSG_ALREADY_EXISTS = f"{TEST_INSTANCE_ID} already exists"
     ERROR_MSG_NOT_EXISTS = f"{TEST_INSTANCE_ID} does not exist"
 
@@ -38,11 +34,7 @@ class TestS3InstanceRepository(unittest.TestCase):
             num_workers=self.TEST_NUM_WORKERS,
             server_ips=self.TEST_SERVER_IPS,
             status=MPCInstanceStatus.CREATED,
-            input_args=self.TEST_INPUT_ARGS,
-            output_args=self.TEST_OUTPUT_ARGS,
-            concurrency_args=self.TEST_CONCURRENCY_ARGS,
-            input_directory=self.TEST_INPUT_DIRECTORY,
-            output_directory=self.TEST_OUTPUT_DIRECTROY,
+            game_args=self.TEST_GAME_ARGS,
         )
 
     def test_create_non_existing_instance(self):
