@@ -34,12 +34,10 @@ class MPCInstance(InstanceBase):
     game_name: str
     mpc_role: MPCRole
     num_workers: int
-    ip_config_file: Optional[str]
     server_ips: Optional[List[str]]
     containers: List[ContainerInstance]
     status: MPCInstanceStatus
     game_args: Optional[List[Dict[str, Any]]]
-    arguments: Dict[str, Any]
 
     @classmethod
     def create_instance(
@@ -48,24 +46,20 @@ class MPCInstance(InstanceBase):
         game_name: str,
         mpc_role: MPCRole,
         num_workers: int,
-        ip_config_file: Optional[str] = None,
         server_ips: Optional[List[str]] = None,
         containers: Optional[List[ContainerInstance]] = None,
         status: MPCInstanceStatus = MPCInstanceStatus.UNKNOWN,
         game_args: Optional[List[Dict[str, Any]]] = None,
-        **arguments  # pyre-ignore
     ) -> "MPCInstance":
         return cls(
             instance_id,
             game_name,
             mpc_role,
             num_workers,
-            ip_config_file,
             server_ips,
             containers or [],
             status,
             game_args,
-            arguments,
         )
 
     def get_instance_id(self) -> str:

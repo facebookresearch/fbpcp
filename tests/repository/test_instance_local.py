@@ -18,11 +18,7 @@ TEST_GAME_NAME = "lift"
 TEST_MPC_ROLE = MPCRole.SERVER
 TEST_NUM_WORKERS = 1
 TEST_SERVER_IPS = ["192.0.2.0"]
-TEST_INPUT_ARGS = [{"input_filenames": "test_input_file"}]
-TEST_OUTPUT_ARGS = [{"output_filenames": "test_output_file"}]
-TEST_CONCURRENCY_ARGS = {"concurrency": 1}
-TEST_INPUT_DIRECTORY = "TEST_INPUT_DIRECTORY/"
-TEST_OUTPUT_DIRECTORY = "TEST_OUTPUT_DIRECTORY/"
+TEST_GAME_ARGS = [{}]
 ERROR_MSG_ALREADY_EXISTS = f"{TEST_INSTANCE_ID} already exists"
 ERROR_MSG_NOT_EXISTS = f"{TEST_INSTANCE_ID} does not exist"
 
@@ -36,11 +32,7 @@ class TestLocalInstanceRepository(unittest.TestCase):
             num_workers=TEST_NUM_WORKERS,
             server_ips=TEST_SERVER_IPS,
             status=MPCInstanceStatus.CREATED,
-            input_args=TEST_INPUT_ARGS,
-            output_args=TEST_OUTPUT_ARGS,
-            concurrency_args=TEST_CONCURRENCY_ARGS,
-            input_directory=TEST_INPUT_DIRECTORY,
-            output_directory=TEST_OUTPUT_DIRECTORY,
+            game_args=TEST_GAME_ARGS,
         )
         self.local_instance_repo = LocalInstanceRepository(TEST_BASE_DIR)
 
