@@ -47,13 +47,13 @@ DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
 
 
 def _run_package(
-    logger: logging.Logger,
     repository_path: str,
     exe_path: str,
     package_name: str,
     cmd: str,
     timeout: int,
 ) -> None:
+    logger = logging.getLogger(__name__)
     # download executable from s3
     if repository_path.upper() != "LOCAL":
         logger.info("Downloading executables ...")
@@ -107,12 +107,12 @@ def _parse_package_name(package_name: str) -> Tuple[str, str]:
 
 
 def _read_config(
-    logger: logging.Logger,
     config_name: str,
     argument: Optional[str],
     env_var: str,
     default_val: str,
 ):
+    logger = logging.getLogger(__name__)
     if argument:
         logger.info(f"Read {config_name} from program arguments...")
         return argument
@@ -150,14 +150,12 @@ def main():
     timeout = arguments["--timeout"]
 
     repository_path = _read_config(
-        logger,
         "repository_path",
         arguments["--repository_path"],
         ONEDOCKER_REPOSITORY_PATH,
         DEFAULT_REPOSITORY_PATH,
     )
     exe_path = _read_config(
-        logger,
         "exe_path",
         arguments["--exe_path"],
         ONEDOCKER_EXE_PATH,
@@ -167,7 +165,6 @@ def main():
     logger.info("Starting program....")
     try:
         _run_package(
-            logger=logger,
             repository_path=repository_path,
             exe_path=exe_path,
             package_name=arguments["<package_name>"],
