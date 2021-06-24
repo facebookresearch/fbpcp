@@ -82,6 +82,9 @@ class OneDockerService:
     def stop_containers(self, containers: List[str]) -> List[Optional[PcsError]]:
         return self.container_svc.cancel_instances(containers)
 
+    def get_containers(self, instance_ids: List[str]) -> List[ContainerInstance]:
+        return self.container_svc.get_instances(instance_ids)
+
     def _get_exe_name(self, package_name: str) -> str:
         return package_name.split("/")[1]
 
