@@ -6,8 +6,9 @@
 
 # pyre-strict
 
-from typing import Any, Dict, Optional
+from typing import Dict, Any, List, Optional
 
+from fbpcs.entity.log_event import LogEvent
 from fbpcs.gateway.cloudwatch import CloudWatchGateway
 from fbpcs.service.log import LogService
 
@@ -26,6 +27,6 @@ class CloudWatchLogService(LogService):
         )
         self.log_group = log_group
 
-    def fetch(self, log_path: str) -> Dict[str, Any]:
+    def fetch(self, log_path: str) -> List[LogEvent]:
         """Fetch logs"""
         return self.cloudwatch_gateway.get_log_events(self.log_group, log_path)

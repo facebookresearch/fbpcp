@@ -6,13 +6,13 @@
 
 # pyre-strict
 
-import abc
-from typing import List
+from dataclasses import dataclass
 
-from fbpcs.entity.log_event import LogEvent
+from dataclasses_json import dataclass_json
 
 
-class LogService(abc.ABC):
-    @abc.abstractmethod
-    def fetch(self, log_path: str) -> List[LogEvent]:
-        pass
+@dataclass_json
+@dataclass
+class LogEvent:
+    timestamp: int
+    message: str
