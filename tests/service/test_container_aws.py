@@ -20,7 +20,7 @@ TEST_REGION = "us-west-2"
 TEST_KEY_ID = "test-key-id"
 TEST_KEY_DATA = "test-key-data"
 TEST_CLUSTER = "test-cluster"
-TEST_SUBNET = "test-subnet0, test-subnet1"
+TEST_SUBNETS = ["test-subnet0", "test-subnet1"]
 TEST_IP_ADDRESS = "127.0.0.1"
 TEST_CONTAINER_DEFNITION = "test-task-definition#test-container-definition"
 
@@ -29,7 +29,7 @@ class TestAWSContainerService(unittest.TestCase):
     @patch("fbpcs.gateway.ecs.ECSGateway")
     def setUp(self, MockECSGateway):
         self.container_svc = AWSContainerService(
-            TEST_REGION, TEST_CLUSTER, TEST_SUBNET, TEST_KEY_ID, TEST_KEY_DATA
+            TEST_REGION, TEST_CLUSTER, TEST_SUBNETS, TEST_KEY_ID, TEST_KEY_DATA
         )
         self.container_svc.ecs_gateway = MockECSGateway()
 

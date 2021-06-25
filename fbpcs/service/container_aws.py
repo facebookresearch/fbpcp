@@ -22,7 +22,7 @@ class AWSContainerService(ContainerService):
         self,
         region: str,
         cluster: str,
-        subnet: str,
+        subnets: List[str],
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
@@ -30,7 +30,7 @@ class AWSContainerService(ContainerService):
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.region = region
         self.cluster = cluster
-        self.subnet = subnet
+        self.subnets = subnets
         self.ecs_gateway = ECSGateway(region, access_key_id, access_key_data, config)
 
     def create_instance(self, container_definition: str, cmd: str) -> ContainerInstance:
@@ -75,18 +75,14 @@ class AWSContainerService(ContainerService):
         s = container_definition.split("#")
         return (s[0], s[1])
 
-    def _process_subnets(self, subnet: str) -> List[str]:
-        return subnet.split(",")
-
     async def _create_instance_async(
         self, container_definition: str, cmd: str
     ) -> ContainerInstance:
         task_definition, container = self._split_container_definition(
             container_definition
         )
-        subnets = self._process_subnets(self.subnet)
         instance = self.ecs_gateway.run_task(
-            task_definition, container, cmd, self.cluster, subnets
+            task_definition, container, cmd, self.cluster, self.subnets
         )
 
         # wait until the container is in running state
