@@ -6,10 +6,11 @@
 
 # pyre-strict
 
-from typing import Any, Dict, Optional
+from typing import Any, List, Dict, Optional
 
 import boto3
 from fbpcs.decorator.error_handler import error_handler
+from fbpcs.entity.log_event import LogEvent
 
 
 class CloudWatchGateway:
@@ -33,7 +34,9 @@ class CloudWatchGateway:
         self.client = boto3.client("logs", region_name=self.region, **config)
 
     @error_handler
-    def get_log_events(self, log_group: str, log_stream: str) -> Dict[str, Any]:
-        return self.client.get_log_events(
+    def get_log_events(self, log_group: str, log_stream: str) -> List[LogEvent]:
+        events = self.client.get_log_events(
             logGroupName=log_group, logStreamName=log_stream
-        )
+        )["events"]
+
+        return [LogEvent(event["timestamp"], event["message"]) for event in events]

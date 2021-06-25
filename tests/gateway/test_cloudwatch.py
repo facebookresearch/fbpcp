@@ -7,6 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from fbpcs.entity.log_event import LogEvent
 from fbpcs.gateway.cloudwatch import CloudWatchGateway
 
 
@@ -18,9 +19,9 @@ class TestCloudWatchGateway(unittest.TestCase):
     @patch("boto3.client")
     def test_get_log_events(self, BotoClient):
         gw = CloudWatchGateway(self.REGION)
-        mocked_log = {"test-events": [{"test-event-name": "test-event-data"}]}
+        mocked_log = {"events": [{"timestamp": 1, "message": "log"}]}
         gw.client = BotoClient()
         gw.client.get_log_events = MagicMock(return_value=mocked_log)
         returned_log = gw.get_log_events(self.GROUP_NAME, self.STREAM_NAME)
         gw.client.get_log_events.assert_called()
-        self.assertEqual(mocked_log, returned_log)
+        self.assertEqual([LogEvent(1, "log")], returned_log)
