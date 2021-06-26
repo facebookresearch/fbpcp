@@ -34,9 +34,16 @@ class CloudWatchGateway:
         self.client = boto3.client("logs", region_name=self.region, **config)
 
     @error_handler
-    def get_log_events(self, log_group: str, log_stream: str) -> List[LogEvent]:
+    def get_log_events(
+        self,
+        log_group: str,
+        log_stream: str,
+        start_time: int = 0,
+    ) -> List[LogEvent]:
         events = self.client.get_log_events(
-            logGroupName=log_group, logStreamName=log_stream
+            logGroupName=log_group,
+            logStreamName=log_stream,
+            startTime=start_time,
         )["events"]
 
         return [LogEvent(event["timestamp"], event["message"]) for event in events]

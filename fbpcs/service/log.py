@@ -14,5 +14,5 @@ from fbpcs.entity.log_event import LogEvent
 
 class LogService(abc.ABC):
     @abc.abstractmethod
-    def fetch(self, log_path: str) -> List[LogEvent]:
+    def fetch(self, log_path: str, start_time: int) -> List[LogEvent]:
         pass
