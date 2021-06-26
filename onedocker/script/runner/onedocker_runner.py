@@ -17,6 +17,7 @@ Options:
     --repository_path=<repository_path> OneDocker repository path where the executables are downloaded from. No download when "LOCAL" repository is specified.
     --exe_path=<exe_path>               The local path where the executables are downloaded to.
     --timeout=<timeout>                 Set timeout (in sec) to kill the task.
+    --version=<version>                 Specify the version of the binary
     --log_path=<path>                   Override the default path where logs are saved.
     --verbose                           Set logging level to DEBUG.
 """
@@ -45,6 +46,9 @@ DEFAULT_REPOSITORY_PATH = (
 # The default path in the Docker image that is going to host the executables
 DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
 
+# the default version of the binary
+DEFAULT_BINARY_VERSION = "latest"
+
 
 def _run_package(
     repository_path: str,
@@ -52,12 +56,12 @@ def _run_package(
     package_name: str,
     cmd: str,
     timeout: int,
+    version: Optional[str] = None,
 ) -> None:
     logger = logging.getLogger(__name__)
     # download executable from s3
     if repository_path.upper() != "LOCAL":
-        logger.info("Downloading executables ...")
-        _download_executables(repository_path, package_name)
+        _download_executables(repository_path, package_name, version)
     else:
         logger.info("Local repository, skip download ...")
 
@@ -91,13 +95,16 @@ def _run_package(
 def _download_executables(
     repository_path: str,
     package_name: str,
+    version: Optional[str],
 ) -> None:
+    logger = logging.getLogger(__name__)
     s3_region = S3Path(repository_path).region
     _, exe_name = _parse_package_name(package_name)
     # TODO: Remove the hard coded path
     exe_local_path = DEFAULT_EXE_FOLDER + exe_name
-    # TODO: Support version
-    exe_s3_path = repository_path + package_name
+    version_dir = version if version else DEFAULT_BINARY_VERSION
+    exe_s3_path = f"{repository_path}{package_name}/{version_dir}/{exe_name}"
+    logger.info(f"Downloading executables from {exe_s3_path}")
     storage_svc = S3StorageService(s3_region)
     storage_svc.copy(exe_s3_path, exe_local_path)
 
@@ -132,6 +139,7 @@ def main():
             "--cmd": schema.Or(None, schema.And(str, len)),
             "--repository_path": schema.Or(None, schema.And(str, len)),
             "--exe_path": schema.Or(None, schema.And(str, len)),
+            "--version": schema.Or(None, schema.And(str, len)),
             "--timeout": schema.Or(None, schema.Use(int)),
             "--log_path": schema.Or(None, schema.Use(Path)),
             "--verbose": bool,
@@ -168,6 +176,7 @@ def main():
             repository_path=repository_path,
             exe_path=exe_path,
             package_name=arguments["<package_name>"],
+            version=arguments["--version"],
             cmd=arguments["--cmd"],
             timeout=timeout,
         )
