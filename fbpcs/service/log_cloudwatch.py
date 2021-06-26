@@ -27,6 +27,8 @@ class CloudWatchLogService(LogService):
         )
         self.log_group = log_group
 
-    def fetch(self, log_path: str) -> List[LogEvent]:
+    def fetch(self, log_path: str, start_time: int = 0) -> List[LogEvent]:
         """Fetch logs"""
-        return self.cloudwatch_gateway.get_log_events(self.log_group, log_path)
+        return self.cloudwatch_gateway.get_log_events(
+            self.log_group, log_path, start_time
+        )
