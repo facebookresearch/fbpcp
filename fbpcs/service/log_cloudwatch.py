@@ -8,6 +8,7 @@
 
 from typing import Dict, Any, List, Optional
 
+from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.entity.log_event import LogEvent
 from fbpcs.gateway.cloudwatch import CloudWatchGateway
 from fbpcs.service.log import LogService
@@ -32,3 +33,6 @@ class CloudWatchLogService(LogService):
         return self.cloudwatch_gateway.get_log_events(
             self.log_group, log_path, start_time
         )
+
+    def get_log_path(self, container_instance: ContainerInstance) -> str:
+        return self.log_group[1:] + "/" + container_instance.instance_id.split("/")[-1]
