@@ -22,7 +22,7 @@ class AWSContainerService(ContainerService):
         self,
         region: str,
         cluster: str,
-        subnets: List[str],
+        subnets: Optional[List[str]] = None,
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
@@ -81,6 +81,12 @@ class AWSContainerService(ContainerService):
         task_definition, container = self._split_container_definition(
             container_definition
         )
+
+        if not self.subnets:
+            raise PcsError(
+                "No subnets specified. It's required to create container instances."
+            )
+
         instance = self.ecs_gateway.run_task(
             task_definition, container, cmd, self.cluster, self.subnets
         )
