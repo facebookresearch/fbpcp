@@ -34,6 +34,22 @@ python3.8 -m pip install -e FBPCS
 python3.8 -m pip install fbpcs
 ```
 
+## Upgrading fbpcs
+* To latest version in github main branch
+```sh
+python3.8 -m pip uninstall fbpcs
+# uninstall fbpcs first
+
+python3.8 -m pip install 'git+https://github.com/facebookresearch/FBPCS.git'
+# (add --user if you don't have permission)
+# re-install fbpcs from github repository
+```
+
+* To latest version in Pypi
+```sh
+python3.8 -m pip install fbpcs --upgrade
+```
+
 ## Architecture
 <img src="https://github.com/facebookresearch/FBPCS/blob/main/docs/PCSArch.jpg?raw=true" alt="Figure 1: Architecture of FBPCS" width="50%" height="50%">
 
