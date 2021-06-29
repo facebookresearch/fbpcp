@@ -10,14 +10,14 @@ CLI for running an executable in OneDocker containers.
 
 
 Usage:
-    onedocker-runner <package_name> --cmd=<cmd> [options]
+    onedocker-runner <package_name> --version=<version> [options]
 
 Options:
     -h --help                           Show this help
     --repository_path=<repository_path> OneDocker repository path where the executables are downloaded from. No download when "LOCAL" repository is specified.
     --exe_path=<exe_path>               The local path where the executables are downloaded to.
+    --exe_args=<exe_args>               The arguments the executable will use.
     --timeout=<timeout>                 Set timeout (in sec) to kill the task.
-    --version=<version>                 Specify the version of the binary
     --log_path=<path>                   Override the default path where logs are saved.
     --verbose                           Set logging level to DEBUG.
 """
@@ -27,6 +27,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from shlex import join, split
 from typing import Tuple, Any, Optional
 
 import psutil
@@ -54,9 +55,9 @@ def _run_package(
     repository_path: str,
     exe_path: str,
     package_name: str,
-    cmd: str,
+    version: str,
     timeout: int,
-    version: Optional[str] = None,
+    exe_args: Optional[str] = None,
 ) -> None:
     logger = logging.getLogger(__name__)
     # download executable from s3
@@ -68,15 +69,11 @@ def _run_package(
     # grant execute permission to the downloaded executable file
     _, exe_name = _parse_package_name(package_name)
 
-    # TODO: Use Python API
-    subprocess.run(f"chmod +x {exe_path}/{exe_name}", shell=True)
-
-    # TODO update this line after proper change in fbcode/measurement/private_measurement/pcs/oss/fbpcs/service/onedocker.py to take
-    # out the hard coded exe_path in cmd string
-    if repository_path.upper() == "LOCAL":
-        cmd = exe_path + cmd
+    executable = f"{exe_path}{exe_name}"
+    os.chmod(executable, 0o755)
 
     # run execution cmd
+    cmd = _build_cmd(executable, exe_args)
     logger.info(f"Running cmd: {cmd} ...")
     net_start: Any = psutil.net_io_counters()
 
@@ -92,18 +89,23 @@ def _run_package(
     sys.exit(return_code)
 
 
+def _build_cmd(executable: str, exe_args: Optional[str]) -> str:
+    args_list = split(exe_args) if exe_args else []
+    args_list.insert(0, executable)
+    return join(args_list)
+
+
 def _download_executables(
     repository_path: str,
     package_name: str,
-    version: Optional[str],
+    version: str,
 ) -> None:
     logger = logging.getLogger(__name__)
     s3_region = S3Path(repository_path).region
     _, exe_name = _parse_package_name(package_name)
     # TODO: Remove the hard coded path
     exe_local_path = DEFAULT_EXE_FOLDER + exe_name
-    version_dir = version if version else DEFAULT_BINARY_VERSION
-    exe_s3_path = f"{repository_path}{package_name}/{version_dir}/{exe_name}"
+    exe_s3_path = f"{repository_path}{package_name}/{version}/{exe_name}"
     logger.info(f"Downloading executables from {exe_s3_path}")
     storage_svc = S3StorageService(s3_region)
     storage_svc.copy(exe_s3_path, exe_local_path)
@@ -136,10 +138,10 @@ def main():
     s = schema.Schema(
         {
             "<package_name>": str,
-            "--cmd": schema.Or(None, schema.And(str, len)),
+            "--version": str,
             "--repository_path": schema.Or(None, schema.And(str, len)),
             "--exe_path": schema.Or(None, schema.And(str, len)),
-            "--version": schema.Or(None, schema.And(str, len)),
+            "--exe_args": schema.Or(None, schema.Use(str, len)),
             "--timeout": schema.Or(None, schema.Use(int)),
             "--log_path": schema.Or(None, schema.Use(Path)),
             "--verbose": bool,
@@ -177,8 +179,8 @@ def main():
             exe_path=exe_path,
             package_name=arguments["<package_name>"],
             version=arguments["--version"],
-            cmd=arguments["--cmd"],
             timeout=timeout,
+            exe_args=arguments["--exe_args"],
         )
     except subprocess.TimeoutExpired:
         logger.error(f"{timeout} seconds have passed. Now exiting the program....")
