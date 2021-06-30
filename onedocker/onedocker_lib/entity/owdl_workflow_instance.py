@@ -20,6 +20,7 @@ class Status(Enum):
     STARTED = "STARTED"
     FAILED = "FAILED"
     COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 
 @dataclass
@@ -28,10 +29,10 @@ class OWDLWorkflowInstance(DataClassJsonMixin):
     state_instances: List[OWDLStateInstance]
     status: Status = Status.CREATED
 
-    def get_current_state_inst(self) -> OWDLStateInstance:
+    def get_current_state_instance(self) -> OWDLStateInstance:
         return self.state_instances[-1]
 
-    def add_next_state_inst(self, state_inst: OWDLStateInstance) -> None:
+    def add_next_state_instance(self, state_inst: OWDLStateInstance) -> None:
         self.state_instances.append(state_inst)
 
     def __str__(self) -> str:

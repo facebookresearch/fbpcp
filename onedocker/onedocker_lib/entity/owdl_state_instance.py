@@ -20,6 +20,7 @@ class Status(Enum):
     STARTED = "STARTED"
     FAILED = "FAILED"
     COMPLETED = "COMPLETED"
+    CANCELLED = "CANCELLED"
 
 
 @dataclass
