@@ -28,7 +28,9 @@ class TestOneDockerService(unittest.TestCase):
             return_value=[mocked_container_info]
         )
         returned_container_info = self.onedocker_svc.start_container(
-            "task_def", "project/exe_name", "cmd_args"
+            container_definition="task_def",
+            package_name="project/exe_name",
+            cmd_args="cmd_args",
         )
         self.assertEqual(returned_container_info, mocked_container_info)
 
@@ -49,7 +51,9 @@ class TestOneDockerService(unittest.TestCase):
             return_value=mocked_container_info
         )
         returned_container_info = self.onedocker_svc.start_containers(
-            "task_def", "project/exe_name", ["--k1=v1", "--k2=v2"]
+            container_definition="task_def",
+            package_name="project/exe_name",
+            cmd_args_list=["--k1=v1", "--k2=v2"],
         )
         self.assertEqual(returned_container_info, mocked_container_info)
 
@@ -57,12 +61,17 @@ class TestOneDockerService(unittest.TestCase):
         package_name = "project/exe_name"
         cmd_args = "--k1=v1 --k2=v2"
         timeout = 3600
-        expected_cmd_without_timeout = "python3.8 -m onedocker.script.runner project/exe_name --cmd='/root/onedocker/package/exe_name --k1=v1 --k2=v2'"
-        expected_cmd_with_timeout = expected_cmd_without_timeout + " --timeout=3600"
-        cmd_without_timeout = self.onedocker_svc._get_cmd(package_name, cmd_args)
-        cmd_with_timeout = self.onedocker_svc._get_cmd(package_name, cmd_args, timeout)
-        self.assertEqual(expected_cmd_without_timeout, cmd_without_timeout)
-        self.assertEqual(expected_cmd_with_timeout, cmd_with_timeout)
+        version = "0.1.0"
+        expected_cmd_without_arguments = (
+            "python3.8 -m onedocker.script.runner project/exe_name --version=latest"
+        )
+        expected_cmd_with_arguments = f"python3.8 -m onedocker.script.runner project/exe_name --exe_args='{cmd_args}' --version={version} --timeout={timeout}"
+        cmd_without_arguments = self.onedocker_svc._get_cmd(package_name)
+        cmd_with_arguments = self.onedocker_svc._get_cmd(
+            package_name, version, cmd_args, timeout
+        )
+        self.assertEqual(expected_cmd_without_arguments, cmd_without_arguments)
+        self.assertEqual(expected_cmd_with_arguments, cmd_with_arguments)
 
     def test_stop_containers(self):
         containers = [

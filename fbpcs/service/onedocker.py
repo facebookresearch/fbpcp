@@ -8,6 +8,7 @@
 
 import asyncio
 import logging
+from shlex import quote
 from typing import List, Optional
 
 from fbpcs.entity.container_instance import ContainerInstance
@@ -17,8 +18,10 @@ from fbpcs.service.container import ContainerService
 
 ONEDOCKER_CMD_PREFIX = (
     # patternlint-disable-next-line f-string-may-be-missing-leading-f
-    "python3.8 -m onedocker.script.runner {package_name} --cmd='/root/onedocker/package/"
+    "python3.8 -m onedocker.script.runner {package_name} {runner_args}"
 )
+
+DEFAULT_BINARY_VERSION = "latest"
 
 
 class OneDockerService:
@@ -39,13 +42,18 @@ class OneDockerService:
         self,
         container_definition: str,
         package_name: str,
-        cmd_args: str,
+        version: str = DEFAULT_BINARY_VERSION,
+        cmd_args: str = "",
         timeout: Optional[int] = None,
     ) -> ContainerInstance:
         # TODO: ContainerInstance mapper
         return asyncio.run(
             self.start_containers_async(
-                container_definition, package_name, [cmd_args], timeout
+                container_definition,
+                package_name,
+                version,
+                [cmd_args] if cmd_args else None,
+                timeout,
             )
         )[0]
 
@@ -53,12 +61,13 @@ class OneDockerService:
         self,
         container_definition: str,
         package_name: str,
-        cmd_args_list: List[str],
+        version: str = DEFAULT_BINARY_VERSION,
+        cmd_args_list: Optional[List[str]] = None,
         timeout: Optional[int] = None,
     ) -> List[ContainerInstance]:
         return asyncio.run(
             self.start_containers_async(
-                container_definition, package_name, cmd_args_list, timeout
+                container_definition, package_name, version, cmd_args_list, timeout
             )
         )
 
@@ -66,12 +75,16 @@ class OneDockerService:
         self,
         container_definition: str,
         package_name: str,
-        cmd_args_list: List[str],
+        version: str = DEFAULT_BINARY_VERSION,
+        cmd_args_list: Optional[List[str]] = None,
         timeout: Optional[int] = None,
     ) -> List[ContainerInstance]:
         """Asynchronously spin up one container per element in input command list."""
+        if not cmd_args_list:
+            raise ValueError("Command Argument List shouldn't be None or Empty")
         cmds = [
-            self._get_cmd(package_name, cmd_args, timeout) for cmd_args in cmd_args_list
+            self._get_cmd(package_name, version, cmd_args, timeout)
+            for cmd_args in cmd_args_list
         ]
         self.logger.info("Spinning up container instances")
         container_ids = await self.container_svc.create_instances_async(
@@ -89,14 +102,27 @@ class OneDockerService:
         return package_name.split("/")[1]
 
     def _get_cmd(
-        self, package_name: str, cmd_args: str, timeout: Optional[int] = None
+        self,
+        package_name: str,
+        version: str = DEFAULT_BINARY_VERSION,
+        cmd_args: Optional[str] = None,
+        timeout: Optional[int] = None,
     ) -> str:
-        cmd_timeout = ""
-        """
-        If we passed --timeout=None, the schema module will raise error,
-        since f-string converts None to "None" and schema treats None
-        in --timeout=None as a string
-        """
-        if timeout is not None:
-            cmd_timeout = f" --timeout={timeout}"
-        return f"{ONEDOCKER_CMD_PREFIX.format(package_name=package_name)}{self._get_exe_name(package_name)} {cmd_args}'{cmd_timeout}"
+        runner_args = self._build_cmd_args(
+            exe_args=cmd_args,
+            version=version,
+            timeout=timeout,
+        )
+        return ONEDOCKER_CMD_PREFIX.format(
+            package_name=package_name,
+            runner_args=runner_args,
+        ).strip()
+
+    # TODO make this a utility for both mpc_game service and onedocker service
+    def _build_cmd_args(
+        self,
+        **kwargs: object,
+    ) -> str:
+        return " ".join(
+            [f"--{key}={quote(str(value))}" for key, value in kwargs.items() if value]
+        )

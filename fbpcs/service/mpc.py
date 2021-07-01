@@ -262,7 +262,10 @@ class MPCService:
         cmd_args_list = [cmd_args for (package_name, cmd_args) in cmd_tuple_list]
 
         return await self.onedocker_svc.start_containers_async(
-            self.task_definition, cmd_tuple_list[0][0], cmd_args_list, timeout
+            container_definition=self.task_definition,
+            package_name=cmd_tuple_list[0][0],
+            cmd_args_list=cmd_args_list,
+            timeout=timeout,
         )
 
     def _update_container_instances(
