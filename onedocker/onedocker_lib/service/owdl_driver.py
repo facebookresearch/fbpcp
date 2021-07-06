@@ -7,8 +7,12 @@
 # pyre-strict
 
 import logging
-from typing import Optional
+from typing import List, Optional
 
+from fbpcs.entity.container_instance import (
+    ContainerInstance,
+    ContainerInstanceStatus,
+)
 from fbpcs.service.onedocker import OneDockerService
 from onedocker.onedocker_lib.entity.owdl_state import OWDLState
 from onedocker.onedocker_lib.entity.owdl_state_instance import OWDLStateInstance
@@ -99,6 +103,33 @@ class OWDLDriver:
 
             self._run_state(curr_state)
 
+    def get_status(self) -> OWDLWorkflowInstance:
+        if self.owdl_workflow_instance.status in [
+            WorkflowStatus.CREATED,
+            WorkflowStatus.COMPLETED,
+        ]:
+            return self.owdl_workflow_instance
+
+        curr_state_instance = self.owdl_workflow_instance.get_current_state_instance()
+        if curr_state_instance.status is StateStatus.CANCELLED:
+            return self.owdl_workflow_instance
+
+        instance_ids = [
+            container.instance_id
+            for container in self.owdl_workflow_instance.get_current_state_instance().containers
+        ]
+
+        self.owdl_workflow_instance.get_current_state_instance().containers = (
+            self.onedocker.get_containers(instance_ids)
+        )
+
+        status = self._get_state_status(curr_state_instance.containers)
+        self.owdl_workflow_instance.get_current_state_instance().status = status
+
+        self.owdl_workflow_instance.status = self._get_workflow_status(status)
+
+        return self.owdl_workflow_instance
+
     def cancel_state(self) -> None:
         curr_state_instance = self.owdl_workflow_instance.get_current_state_instance()
         if curr_state_instance.status is StateStatus.STARTED:
@@ -113,6 +144,7 @@ class OWDLDriver:
     def retry(self) -> None:
         curr_state_instance = self.owdl_workflow_instance.get_current_state_instance()
         if curr_state_instance.status in [StateStatus.FAILED, StateStatus.CANCELLED]:
+            curr_state_instance.status = StateStatus.STARTED
             curr_state = curr_state_instance.owdl_state
             self._run_state(curr_state)
 
@@ -122,3 +154,25 @@ class OWDLDriver:
     def cancel_workflow(self) -> None:
         self.cancel_state()
         self.owdl_workflow_instance.status = WorkflowStatus.CANCELLED
+
+    def _get_state_status(self, containers: List[ContainerInstance]) -> StateStatus:
+        has_started = False
+        for container in containers:
+            if container.status in [
+                ContainerInstanceStatus.STARTED,
+                ContainerInstanceStatus.UNKNOWN,
+            ]:
+                has_started = True
+            elif container.status is ContainerInstanceStatus.FAILED:
+                return StateStatus.FAILED
+        if has_started:
+            return StateStatus.STARTED
+        return StateStatus.COMPLETED
+
+    def _get_workflow_status(self, status: StateStatus) -> WorkflowStatus:
+        if status is StateStatus.FAILED:
+            return WorkflowStatus.FAILED
+        elif status is StateStatus.CANCELLED:
+            return WorkflowStatus.CANCELLED
+        else:
+            return self.owdl_workflow_instance.status
