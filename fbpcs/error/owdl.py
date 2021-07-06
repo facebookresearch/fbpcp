@@ -13,3 +13,7 @@ class OWDLError(Exception):
 
 class OWDLParsingError(OWDLError):
     pass
+
+
+class OWDLRuntimeError(OWDLError):
+    pass
