@@ -29,11 +29,5 @@ class OWDLWorkflowInstance(DataClassJsonMixin):
     state_instances: List[OWDLStateInstance]
     status: Status = Status.CREATED
 
-    def get_current_state_instance(self) -> OWDLStateInstance:
-        return self.state_instances[-1]
-
-    def add_next_state_instance(self, state_inst: OWDLStateInstance) -> None:
-        self.state_instances.append(state_inst)
-
     def __str__(self) -> str:
         return self.to_json()
