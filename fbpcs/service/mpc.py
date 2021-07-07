@@ -19,6 +19,8 @@ from fbpcs.service.onedocker import OneDockerService
 from fbpcs.service.storage import StorageService
 from fbpcs.util.typing import checked_cast
 
+DEFAULT_BINARY_VERSION = "latest"
+
 
 class MPCService:
     """MPCService is responsible for distributing a larger MPC game to multiple
@@ -131,9 +133,12 @@ class MPCService:
         output_files: Optional[List[str]] = None,
         server_ips: Optional[List[str]] = None,
         timeout: Optional[int] = None,
+        version: str = DEFAULT_BINARY_VERSION,
     ) -> MPCInstance:
         return asyncio.run(
-            self.start_instance_async(instance_id, output_files, server_ips, timeout)
+            self.start_instance_async(
+                instance_id, output_files, server_ips, timeout, version
+            )
         )
 
     async def start_instance_async(
@@ -142,6 +147,7 @@ class MPCService:
         output_files: Optional[List[str]] = None,
         server_ips: Optional[List[str]] = None,
         timeout: Optional[int] = None,
+        version: str = DEFAULT_BINARY_VERSION,
     ) -> MPCInstance:
         """To run a distributed MPC game
         Keyword arguments:
@@ -163,6 +169,7 @@ class MPCService:
             game_args,
             server_ips,
             timeout,
+            version,
         )
 
         if len(instance.containers) != instance.num_workers:
@@ -238,6 +245,7 @@ class MPCService:
         game_args: Optional[List[Dict[str, Any]]] = None,
         ip_addresses: Optional[List[str]] = None,
         timeout: Optional[int] = None,
+        version: str = DEFAULT_BINARY_VERSION,
     ) -> List[ContainerInstance]:
         if game_args is not None and len(game_args) != num_containers:
             raise ValueError(
@@ -264,6 +272,7 @@ class MPCService:
         return await self.onedocker_svc.start_containers_async(
             container_definition=self.task_definition,
             package_name=cmd_tuple_list[0][0],
+            version=version,
             cmd_args_list=cmd_args_list,
             timeout=timeout,
         )
