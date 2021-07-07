@@ -8,12 +8,12 @@
 
 import asyncio
 import logging
-from shlex import quote
 from typing import List, Optional
 
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.error.pcs import PcsError
 from fbpcs.service.container import ContainerService
+from fbpcs.util.arg_builder import build_cmd_args
 
 
 ONEDOCKER_CMD_PREFIX = (
@@ -108,7 +108,7 @@ class OneDockerService:
         cmd_args: Optional[str] = None,
         timeout: Optional[int] = None,
     ) -> str:
-        runner_args = self._build_cmd_args(
+        runner_args = build_cmd_args(
             exe_args=cmd_args,
             version=version,
             timeout=timeout,
@@ -117,12 +117,3 @@ class OneDockerService:
             package_name=package_name,
             runner_args=runner_args,
         ).strip()
-
-    # TODO make this a utility for both mpc_game service and onedocker service
-    def _build_cmd_args(
-        self,
-        **kwargs: object,
-    ) -> str:
-        return " ".join(
-            [f"--{key}={quote(str(value))}" for key, value in kwargs.items() if value]
-        )
