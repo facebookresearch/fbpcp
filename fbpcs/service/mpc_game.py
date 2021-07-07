@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional, Tuple
 from fbpcs.entity.mpc_game_config import MPCGameConfig
 from fbpcs.entity.mpc_instance import MPCRole
 from fbpcs.repository.mpc_game_repository import MPCGameRepository
+from fbpcs.util.arg_builder import build_cmd_args
 
 LIFT_GAME_NAME = "lift"
 LIFT_AGGREGATOR_GAME_NAME = "aggregator"
@@ -59,8 +60,7 @@ class MPCGameService:
             port=port,
             **kwargs,
         )
-        # patternlint-disable-next-line f-string-may-be-missing-leading-f
-        return " ".join([f"--{key}={value}" for (key, value) in args.items()])
+        return build_cmd_args(**args)
 
     def _prepare_args(
         self,
