@@ -11,6 +11,7 @@ from enum import Enum
 from typing import List
 
 from dataclasses_json import DataClassJsonMixin
+from fbpcs.entity.instance_base import InstanceBase
 from onedocker.onedocker_lib.entity.owdl_state_instance import OWDLStateInstance
 from onedocker.onedocker_lib.entity.owdl_workflow import OWDLWorkflow
 
@@ -24,10 +25,11 @@ class Status(Enum):
 
 
 @dataclass
-class OWDLWorkflowInstance(DataClassJsonMixin):
+class OWDLWorkflowInstance(InstanceBase):
+    instance_id: str
     owdl_workflow: OWDLWorkflow
     state_instances: List[OWDLStateInstance]
     status: Status = Status.CREATED
 
-    def __str__(self) -> str:
-        return self.to_json()
+    def get_instance_id(self) -> str:
+        return self.instance_id
