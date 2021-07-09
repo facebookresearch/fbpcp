@@ -23,8 +23,13 @@ from onedocker.onedocker_lib.entity.owdl_workflow_instance import OWDLWorkflowIn
 from onedocker.onedocker_lib.entity.owdl_workflow_instance import (
     Status as WorkflowStatus,
 )
+from onedocker.onedocker_lib.repository.owdl_workflow_instance_local import (
+    LocalOWDLWorkflowInstanceRepository,
+)
+from onedocker.onedocker_lib.util.enforce_types import enforce_types
 
 
+@enforce_types
 class OWDLDriver:
     """OWDLDrivingService is responsible for executing OWDLWorkflows"""
 
@@ -32,6 +37,7 @@ class OWDLDriver:
         self,
         onedocker: OneDockerService,
         instance_id: str,
+        repo: LocalOWDLWorkflowInstanceRepository,
         owdl_workflow: Optional[OWDLWorkflow] = None,
     ) -> None:
         """Constructor of OWDLDriverService"""
@@ -40,14 +46,26 @@ class OWDLDriver:
         self.onedocker = onedocker
 
         if owdl_workflow is None:
-            # TODO Pull from repo via instance_id
+            # if repo is not None:
+            #     self.owdl_workflow_instance: OWDLWorkflowInstance = (
+            #         OWDLWorkflowInstance.loads_schema(
+            #             json.dumps(repo.read(instance_id))
+            #         )
+            #     )
+            #     self.owdl_workflow: OWDLWorkflow = (
+            #         self.owdl_workflow_instance.owdl_workflow
+            #     )
+            # else:
+            #     self.logger.error("Need either a workflow or a repo")
+            #     return
             return
-
-        self.owdl_workflow: OWDLWorkflow = owdl_workflow
-        state_instances = []
-        self.owdl_workflow_instance = OWDLWorkflowInstance(
-            self.owdl_workflow, state_instances, WorkflowStatus.CREATED
-        )
+        else:
+            self.owdl_workflow: OWDLWorkflow = owdl_workflow
+            state_instances = []
+            self.owdl_workflow_instance: OWDLWorkflowInstance = OWDLWorkflowInstance(
+                instance_id, self.owdl_workflow, state_instances, WorkflowStatus.CREATED
+            )
+            repo.create(self.owdl_workflow_instance)
 
     def _run_state(self, curr_state: OWDLState) -> None:
         container_definition = curr_state.container_definition
