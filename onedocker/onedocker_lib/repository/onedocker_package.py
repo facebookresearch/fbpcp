@@ -8,6 +8,7 @@
 from typing import List
 
 from fbpcs.service.storage import StorageService
+from onedocker.onedocker_lib.entity.package_info import PackageInfo
 
 
 class OneDockerPackageRepository:
@@ -27,5 +28,5 @@ class OneDockerPackageRepository:
     ) -> List[str]:
         return []
 
-    def get_package_info(self, package_name: str, version: str) -> str:
-        return ""
+    def get_package_info(self, package_name: str, version: str) -> PackageInfo:
+        raise NotImplementedError
