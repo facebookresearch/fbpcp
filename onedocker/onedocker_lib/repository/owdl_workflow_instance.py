@@ -17,7 +17,7 @@ class OWDLWorkflowInstanceRepository(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def read(self, instance_id: str) -> str:
+    def read(self, instance_id: str) -> OWDLWorkflowInstance:
         pass
 
     @abc.abstractmethod

@@ -26,18 +26,16 @@ from onedocker.onedocker_lib.entity.owdl_workflow_instance import (
 from onedocker.onedocker_lib.repository.owdl_workflow_instance_local import (
     LocalOWDLWorkflowInstanceRepository,
 )
-from onedocker.onedocker_lib.util.enforce_types import enforce_types
 
 
-@enforce_types
 class OWDLDriver:
     """OWDLDrivingService is responsible for executing OWDLWorkflows"""
 
     def __init__(
         self,
         onedocker: OneDockerService,
-        instance_id: str,
         repo: LocalOWDLWorkflowInstanceRepository,
+        instance_id: str,
         owdl_workflow: Optional[OWDLWorkflow] = None,
     ) -> None:
         """Constructor of OWDLDriverService"""
@@ -45,26 +43,21 @@ class OWDLDriver:
 
         self.onedocker = onedocker
 
+        if repo is None:
+            self.logger.error("Need to attach a valid repo")
+            raise OWDLRuntimeError("No repo provided")
+
         if owdl_workflow is None:
-            # if repo is not None:
-            #     self.owdl_workflow_instance: OWDLWorkflowInstance = (
-            #         OWDLWorkflowInstance.loads_schema(
-            #             json.dumps(repo.read(instance_id))
-            #         )
-            #     )
-            #     self.owdl_workflow: OWDLWorkflow = (
-            #         self.owdl_workflow_instance.owdl_workflow
-            #     )
-            # else:
-            #     self.logger.error("Need either a workflow or a repo")
-            #     return
-            return
+            self.owdl_workflow_instance: OWDLWorkflowInstance = repo.read(instance_id)
+
+            self.owdl_workflow: OWDLWorkflow = self.owdl_workflow_instance.owdl_workflow
         else:
             self.owdl_workflow: OWDLWorkflow = owdl_workflow
             state_instances = []
             self.owdl_workflow_instance: OWDLWorkflowInstance = OWDLWorkflowInstance(
                 instance_id, self.owdl_workflow, state_instances, WorkflowStatus.CREATED
             )
+
             repo.create(self.owdl_workflow_instance)
 
     def _run_state(self, curr_state: OWDLState) -> None:
