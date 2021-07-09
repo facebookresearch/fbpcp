@@ -20,8 +20,8 @@ class LocalOWDLWorkflowInstanceRepository(OWDLWorkflowInstanceRepository):
     def create(self, instance: OWDLWorkflowInstance) -> None:
         self.repo.create(instance)
 
-    def read(self, instance_id: str) -> str:
-        return self.repo.read(instance_id)
+    def read(self, instance_id: str) -> OWDLWorkflowInstance:
+        return OWDLWorkflowInstance.loads_schema(self.repo.read(instance_id))
 
     def update(self, instance: OWDLWorkflowInstance) -> None:
         self.repo.update(instance)
