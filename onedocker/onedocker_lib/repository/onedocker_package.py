@@ -13,11 +13,15 @@ from onedocker.onedocker_lib.entity.package_info import PackageInfo
 
 class OneDockerPackageRepository:
     def __init__(self, storage_svc: StorageService, repository_path: str) -> None:
-        self.storage_svc = storage_svc
+        self.storage = storage_svc
         self.repository_path = repository_path
 
+    def _build_package_path(self, package_name: str, version: str) -> str:
+        return f"{self.repository_path}{package_name}/{version}/{package_name.split('/')[-1]}"
+
     def upload(self, package_name: str, version: str, source: str) -> None:
-        pass
+        package_path = self._build_package_path(package_name, version)
+        self.storage.copy(source, package_path)
 
     def download(self, package_name: str, version: str, destination: str) -> None:
         pass
