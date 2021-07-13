@@ -96,7 +96,7 @@ class OWDLDriver:
 
     # TODO Add support for extra params
     def next(self) -> None:
-        curr_state_instance = self._get_current_state_instance()
+        curr_state_instance = self.get_current_state_instance()
         curr_state = curr_state_instance.owdl_state
         if (
             self.owdl_workflow_instance.status is not WorkflowStatus.STARTED
@@ -126,21 +126,21 @@ class OWDLDriver:
         ]:
             return self.owdl_workflow_instance
 
-        curr_state_instance = self._get_current_state_instance()
+        curr_state_instance = self.get_current_state_instance()
         if curr_state_instance.status is StateStatus.CANCELLED:
             return self.owdl_workflow_instance
 
         instance_ids = [
             container.instance_id
-            for container in self._get_current_state_instance().containers
+            for container in self.get_current_state_instance().containers
         ]
 
-        self._get_current_state_instance().containers = self.onedocker.get_containers(
+        self.get_current_state_instance().containers = self.onedocker.get_containers(
             instance_ids
         )
 
         status = self._get_state_status(curr_state_instance.containers)
-        self._get_current_state_instance().status = status
+        self.get_current_state_instance().status = status
 
         self.owdl_workflow_instance.status = self._get_workflow_status(status)
 
@@ -153,7 +153,7 @@ class OWDLDriver:
             )
             raise OWDLRuntimeError("Invalid Workflow status for cancelling State")
 
-        curr_state_instance = self._get_current_state_instance()
+        curr_state_instance = self.get_current_state_instance()
         if curr_state_instance.status is not StateStatus.STARTED:
             self.logger.error(
                 f"Cannot cancel a State that is not STARTED; the current status is {curr_state_instance.status}"
@@ -177,14 +177,14 @@ class OWDLDriver:
             )
             raise OWDLRuntimeError("Invalid Workflow status for retry")
         if (
-            self._get_current_state_instance().retry_num
-            >= self._get_current_state_instance().owdl_state.retry_count
+            self.get_current_state_instance().retry_num
+            >= self.get_current_state_instance().owdl_state.retry_count
         ):
             self.logger.error(
-                f"Cannot retry this state more than {self._get_current_state_instance().owdl_state.retry_count} times"
+                f"Cannot retry this state more than {self.get_current_state_instance().owdl_state.retry_count} times"
             )
             raise OWDLRuntimeError("Retry limit reached")
-        curr_state_instance = self._get_current_state_instance()
+        curr_state_instance = self.get_current_state_instance()
         if curr_state_instance.status in [StateStatus.FAILED, StateStatus.CANCELLED]:
             curr_state_instance.status = StateStatus.STARTED
             curr_state = curr_state_instance.owdl_state
@@ -219,12 +219,15 @@ class OWDLDriver:
         else:
             return self.owdl_workflow_instance.status
 
-    def _get_current_state_instance(self) -> OWDLStateInstance:
+    def get_current_state_instance(self) -> OWDLStateInstance:
         if not self.owdl_workflow_instance.state_instances:
             raise OWDLRuntimeError(
                 "Cannot get state instance of a Workflow that has not started any state instances"
             )
         return self.owdl_workflow_instance.state_instances[-1]
+
+    def get_current_retry_num(self) -> int:
+        return self.get_current_state_instance().retry_num
 
     def _add_next_state_instance(self, state_inst: OWDLStateInstance) -> None:
         self.owdl_workflow_instance.state_instances.append(state_inst)
