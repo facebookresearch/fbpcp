@@ -60,11 +60,26 @@ class OWDLDriver:
 
             repo.create(self.owdl_workflow_instance)
 
-    def _run_state(self, curr_state: OWDLState) -> None:
+    def _run_state(
+        self,
+        curr_state: OWDLState,
+        args: Optional[List[str]] = None,
+    ) -> None:
         container_definition = curr_state.container_definition
         package_name = curr_state.package_name
         cmd_args_list = curr_state.cmd_args_list
         timeout = curr_state.timeout
+
+        if args:
+            if len(args) != len(cmd_args_list):
+                self.logger.error(
+                    f"Incorrect number or args, required {len(cmd_args_list)}, received {len(args)}"
+                )
+                raise OWDLRuntimeError("Incorrect number of args provided")
+
+            cmd_args_list = [
+                f"{old_arg} {new_arg}" for old_arg, new_arg in zip(cmd_args_list, args)
+            ]
 
         # TODO Add versioning support to start_containers()
         container_list = self.onedocker.start_containers(
@@ -95,7 +110,7 @@ class OWDLDriver:
             self.owdl_workflow_instance.status = WorkflowStatus.STARTED
 
     # TODO Add support for extra params
-    def next(self) -> None:
+    def next(self, args: Optional[List[str]] = None) -> None:
         curr_state_instance = self.get_current_state_instance()
         curr_state = curr_state_instance.owdl_state
         if (
@@ -117,7 +132,7 @@ class OWDLDriver:
         if next_ is not None:
             curr_state = self.owdl_workflow.states[next_]
 
-        self._run_state(curr_state)
+        self._run_state(curr_state, args)
 
     def get_status(self) -> OWDLWorkflowInstance:
         if self.owdl_workflow_instance.status in [
@@ -166,7 +181,7 @@ class OWDLDriver:
             ]
             self.onedocker.stop_containers(instance_ids)
 
-    def retry(self) -> None:
+    def retry(self, args: Optional[List[str]] = None) -> None:
         if self.owdl_workflow_instance.status in [
             WorkflowStatus.CREATED,
             WorkflowStatus.CANCELLED,
@@ -188,7 +203,7 @@ class OWDLDriver:
         if curr_state_instance.status in [StateStatus.FAILED, StateStatus.CANCELLED]:
             curr_state_instance.status = StateStatus.STARTED
             curr_state = curr_state_instance.owdl_state
-            self._run_state(curr_state)
+            self._run_state(curr_state, args)
 
     def is_completed(self) -> bool:
         return self.owdl_workflow_instance.status is WorkflowStatus.COMPLETED
