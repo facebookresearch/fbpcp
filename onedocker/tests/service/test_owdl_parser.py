@@ -325,6 +325,7 @@ class ParserTestUtil(unittest.TestCase):
                     "CmdArgsList": ["aa", "bb", "cc"],
                     "Timeout": 100,
                     "Next": "Aggregate",
+                    "RetryCount": 0,
                 },
                 "Aggregate": {
                     "Type": "Task",
@@ -333,6 +334,7 @@ class ParserTestUtil(unittest.TestCase):
                     "CmdArgsList": ["aa", "bb", "cc"],
                     "Timeout": 0,
                     "End": True,
+                    "RetryCount": 0,
                 },
             },
         }
