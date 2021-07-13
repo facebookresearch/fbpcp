@@ -21,12 +21,5 @@ class OWDLWorkflow(DataClassJsonMixin):
     states: Dict[str, OWDLState] = field(metadata=config(field_name="States"))
     version: Optional[str] = field(metadata=config(field_name="Version"), default=None)
 
-    def __init__(
-        self, starts_at: str, states: Dict[str, OWDLState], version: Optional[str]
-    ) -> None:
-        self.starts_at = starts_at
-        self.states = states
-        self.version = version
-
     def __str__(self) -> str:
         return self.to_json()

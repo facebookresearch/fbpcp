@@ -24,26 +24,7 @@ class OWDLState(DataClassJsonMixin):
     next_: Optional[str] = field(metadata=config(field_name="Next"), default=None)
     end: Optional[bool] = field(metadata=config(field_name="End"), default=None)
     version: Optional[str] = field(metadata=config(field_name="Version"), default=None)
-
-    def __init__(
-        self,
-        type_: str,
-        container_definition: str,
-        package_name: str,
-        cmd_args_list: List[str],
-        timeout: Optional[int] = None,
-        next_: Optional[str] = None,
-        end: Optional[bool] = False,
-        version: Optional[str] = None,
-    ) -> None:
-        self.type_ = type_
-        self.container_definition = container_definition
-        self.package_name = package_name
-        self.cmd_args_list = cmd_args_list
-        self.timeout = timeout
-        self.next_ = next_
-        self.end = end
-        self.version = version
+    retry_count: int = field(metadata=config(field_name="RetryCount"), default=0)
 
     def __str__(self) -> str:
         return self.to_json()
