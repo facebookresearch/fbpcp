@@ -9,12 +9,12 @@ import unittest
 from typing import Any, Dict
 
 from fbpcs.error.owdl import OWDLParsingError
-from onedocker.onedocker_lib.service.owdl_parser import OWDLParserService
+from onedocker.onedocker_lib.service.owdl_parser import OWDLParser
 
 
 class ParserTestUtil(unittest.TestCase):
     def setUp(self):
-        self.parser = OWDLParserService()
+        self.parser = OWDLParser()
 
     @staticmethod
     def _remove_none_json(input_dict: Dict[str, Any]) -> Dict[str, Any]:
