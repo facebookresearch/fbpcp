@@ -12,11 +12,11 @@ from fbpcs.error.owdl import OWDLParsingError
 from onedocker.onedocker_lib.entity.owdl_workflow import OWDLWorkflow
 
 
-class OWDLParserService:
-    """OWDLParserService is responsible for parsing JSON files into OWDLWorkflows"""
+class OWDLParser:
+    """OWDLParser is responsible for parsing JSON files into OWDLWorkflows"""
 
     def __init__(self) -> None:
-        """Constructor of OWDLParserService"""
+        """Constructor of OWDLParser"""
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def parse(
