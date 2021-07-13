@@ -28,6 +28,7 @@ class OWDLStateInstance(DataClassJsonMixin):
     owdl_state: OWDLState
     containers: List[ContainerInstance]
     status: Status = Status.CREATED
+    retry_num: int = 0
 
     def __str__(self) -> str:
         return self.to_json()

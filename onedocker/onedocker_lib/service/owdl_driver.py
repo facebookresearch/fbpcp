@@ -73,8 +73,12 @@ class OWDLDriver:
             cmd_args_list=cmd_args_list,
             timeout=timeout,
         )
+
         curr_state_instance = OWDLStateInstance(
-            curr_state, container_list, StateStatus.STARTED
+            curr_state,
+            container_list,
+            StateStatus.STARTED,
+            self._get_retry_num(curr_state),
         )
 
         self._add_next_state_instance(curr_state_instance)
@@ -163,11 +167,23 @@ class OWDLDriver:
             self.onedocker.stop_containers(instance_ids)
 
     def retry(self) -> None:
-        if self.owdl_workflow_instance.status is WorkflowStatus.CREATED:
+        if self.owdl_workflow_instance.status in [
+            WorkflowStatus.CREATED,
+            WorkflowStatus.CANCELLED,
+            WorkflowStatus.COMPLETED,
+        ]:
             self.logger.error(
                 f"Cannot retry a State in a Workflow that has not STARTED; the current Workflow status is {self.owdl_workflow_instance.status}"
             )
             raise OWDLRuntimeError("Invalid Workflow status for retry")
+        if (
+            self._get_current_state_instance().retry_num
+            >= self._get_current_state_instance().owdl_state.retry_count
+        ):
+            self.logger.error(
+                f"Cannot retry this state more than {self._get_current_state_instance().owdl_state.retry_count} times"
+            )
+            raise OWDLRuntimeError("Retry limit reached")
         curr_state_instance = self._get_current_state_instance()
         if curr_state_instance.status in [StateStatus.FAILED, StateStatus.CANCELLED]:
             curr_state_instance.status = StateStatus.STARTED
@@ -212,3 +228,9 @@ class OWDLDriver:
 
     def _add_next_state_instance(self, state_inst: OWDLStateInstance) -> None:
         self.owdl_workflow_instance.state_instances.append(state_inst)
+
+    def _get_retry_num(self, curr_state: OWDLState) -> int:
+        return sum(
+            state_inst.owdl_state == curr_state
+            for state_inst in self.owdl_workflow_instance.state_instances
+        )
