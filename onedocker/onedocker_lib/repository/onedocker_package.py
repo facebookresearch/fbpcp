@@ -26,7 +26,8 @@ class OneDockerPackageRepository:
         self.storage_svc.copy(source, package_path)
 
     def download(self, package_name: str, version: str, destination: str) -> None:
-        pass
+        package_path = self._build_package_path(package_name, version)
+        self.storage_svc.copy(package_path, destination)
 
     def get_versions(
         self,
