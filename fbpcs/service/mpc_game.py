@@ -73,11 +73,8 @@ class MPCGameService:
         all_arguments: Dict[str, Any] = {}
 
         # push MPC required arguments to dict all_arguments
-        is_lift_game = (
-            mpc_game_config.game_name == LIFT_AGGREGATOR_GAME_NAME
-            or mpc_game_config.game_name == LIFT_GAME_NAME
-        )  # TODO: T88044929 remove "role" and only support "party" for lift games
-        role_or_party_key = "role" if is_lift_game else "party"
+        is_lift_compute_game = mpc_game_config.game_name == LIFT_GAME_NAME
+        role_or_party_key = "role" if is_lift_compute_game else "party"
         all_arguments[role_or_party_key] = 1 if mpc_role == MPCRole.SERVER else 2
 
         if mpc_role == MPCRole.CLIENT:
