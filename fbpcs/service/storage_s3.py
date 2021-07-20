@@ -189,7 +189,7 @@ class S3StorageService(StorageService):
         else:
             raise ValueError(f"File {filename} is not an S3 filepath")
 
-    def ls_file(self, filename: str) -> Dict[str, Any]:
+    def get_file_info(self, filename: str) -> Dict[str, Any]:
         """Show file information (last modified time, type and size)
         Keyword arguments:
         filename -- the s3 file to be shown
