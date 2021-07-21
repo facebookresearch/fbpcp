@@ -8,6 +8,7 @@
 
 import abc
 from enum import Enum
+from typing import Any, Dict
 
 
 class PathType(Enum):
@@ -41,4 +42,8 @@ class StorageService(abc.ABC):
 
     @abc.abstractmethod
     def get_file_size(self, filename: str) -> int:
+        pass
+
+    @abc.abstractmethod
+    def get_file_info(self, filename: str) -> Dict[str, Any]:
         pass
