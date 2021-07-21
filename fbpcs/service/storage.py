@@ -8,7 +8,8 @@
 
 import abc
 from enum import Enum
-from typing import Any, Dict
+
+from fbpcs.entity.file_information import FileInfo
 
 
 class PathType(Enum):
@@ -45,5 +46,5 @@ class StorageService(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_file_info(self, filename: str) -> Dict[str, Any]:
+    def get_file_info(self, filename: str) -> FileInfo:
         pass
