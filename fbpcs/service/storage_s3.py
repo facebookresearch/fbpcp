@@ -11,6 +11,7 @@ from os import path
 from os.path import join, normpath, relpath
 from typing import Any, Dict, Optional
 
+from fbpcs.entity.file_information import FileInfo
 from fbpcs.gateway.s3 import S3Gateway
 from fbpcs.service.storage import PathType, StorageService
 from fbpcs.util.s3path import S3Path
@@ -189,13 +190,19 @@ class S3StorageService(StorageService):
         else:
             raise ValueError(f"File {filename} is not an S3 filepath")
 
-    def get_file_info(self, filename: str) -> Dict[str, Any]:
+    def get_file_info(self, filename: str) -> FileInfo:
         """Show file information (last modified time, type and size)
         Keyword arguments:
         filename -- the s3 file to be shown
         """
         s3_path = S3Path(filename)
-        return self.s3_gateway.get_object_info(s3_path.bucket, s3_path.key)
+        file_info_dict = self.s3_gateway.get_object_info(s3_path.bucket, s3_path.key)
+        return FileInfo(
+            file_name=filename,
+            last_modified=file_info_dict.get("LastModified").ctime(),
+            content_type=file_info_dict.get("ContentType"),
+            file_size=file_info_dict.get("ContentLength"),
+        )
 
     def get_file_size(self, filename: str) -> int:
         s3_path = S3Path(filename)
