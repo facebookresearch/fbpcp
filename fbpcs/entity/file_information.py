@@ -12,5 +12,4 @@ from dataclasses import dataclass
 class FileInfo:
     file_name: str
     last_modified: str
-    content_type: str
     file_size: int

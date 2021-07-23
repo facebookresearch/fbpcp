@@ -200,7 +200,6 @@ class S3StorageService(StorageService):
         return FileInfo(
             file_name=filename,
             last_modified=file_info_dict.get("LastModified").ctime(),
-            content_type=file_info_dict.get("ContentType"),
             file_size=file_info_dict.get("ContentLength"),
         )
 
