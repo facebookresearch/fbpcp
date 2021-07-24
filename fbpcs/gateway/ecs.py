@@ -49,7 +49,14 @@ class ECSGateway:
         cmd: str,
         cluster: str,
         subnets: List[str],
+        env_vars: Optional[Dict[str, str]] = None,
     ) -> ContainerInstance:
+        environment = []
+        if env_vars:
+            environment = [
+                {"name": env_name, "value": env_value}
+                for env_name, env_value in env_vars.items()
+            ]
         response = self.client.run_task(
             taskDefinition=task_definition,
             cluster=cluster,
@@ -59,7 +66,15 @@ class ECSGateway:
                     "assignPublicIp": "ENABLED",
                 }
             },
-            overrides={"containerOverrides": [{"name": container, "command": [cmd]}]},
+            overrides={
+                "containerOverrides": [
+                    {
+                        "name": container,
+                        "command": [cmd],
+                        "environment": environment,
+                    }
+                ]
+            },
         )
 
         if not response["tasks"]:
