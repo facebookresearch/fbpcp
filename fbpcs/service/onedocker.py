@@ -25,12 +25,11 @@ DEFAULT_BINARY_VERSION = "latest"
 
 
 class OneDockerService:
-    """OneDockerService is responsible for executing executable(s) in a Fargate container"""
+    """OneDockerService is responsible for executing a package(binary) in a container on Cloud"""
 
     def __init__(self, container_svc: ContainerService) -> None:
         """Constructor of OneDockerService
         container_svc -- service to spawn container instances
-        TODO: log_svc -- service to read cloudwatch logs
         """
         if container_svc is None:
             raise ValueError(f"Dependency is missing. container_svc={container_svc}, ")
