@@ -7,7 +7,7 @@
 # pyre-strict
 
 import abc
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.error.pcs import PcsError
@@ -15,18 +15,29 @@ from fbpcs.error.pcs import PcsError
 
 class ContainerService(abc.ABC):
     @abc.abstractmethod
-    def create_instance(self, container_definition: str, cmd: str) -> ContainerInstance:
+    def create_instance(
+        self,
+        container_definition: str,
+        cmd: str,
+        env_vars: Optional[Dict[str, str]] = None,
+    ) -> ContainerInstance:
         pass
 
     @abc.abstractmethod
     def create_instances(
-        self, container_definition: str, cmds: List[str]
+        self,
+        container_definition: str,
+        cmds: List[str],
+        env_vars: Optional[Dict[str, str]] = None,
     ) -> List[ContainerInstance]:
         pass
 
     @abc.abstractmethod
     async def create_instances_async(
-        self, container_definition: str, cmds: List[str]
+        self,
+        container_definition: str,
+        cmds: List[str],
+        env_vars: Optional[Dict[str, str]] = None,
     ) -> List[ContainerInstance]:
         pass
 

@@ -8,7 +8,7 @@
 
 import asyncio
 import logging
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.error.pcs import PcsError
@@ -44,6 +44,7 @@ class OneDockerService:
         package_name: str,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args: str = "",
+        env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
     ) -> ContainerInstance:
         # TODO: ContainerInstance mapper
@@ -53,6 +54,7 @@ class OneDockerService:
                 package_name,
                 version,
                 [cmd_args] if cmd_args else None,
+                env_vars,
                 timeout,
             )
         )[0]
@@ -63,11 +65,17 @@ class OneDockerService:
         package_name: str,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args_list: Optional[List[str]] = None,
+        env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
     ) -> List[ContainerInstance]:
         return asyncio.run(
             self.start_containers_async(
-                container_definition, package_name, version, cmd_args_list, timeout
+                container_definition,
+                package_name,
+                version,
+                cmd_args_list,
+                env_vars,
+                timeout,
             )
         )
 
@@ -77,6 +85,7 @@ class OneDockerService:
         package_name: str,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args_list: Optional[List[str]] = None,
+        env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
     ) -> List[ContainerInstance]:
         """Asynchronously spin up one container per element in input command list."""
@@ -88,7 +97,7 @@ class OneDockerService:
         ]
         self.logger.info("Spinning up container instances")
         container_ids = await self.container_svc.create_instances_async(
-            container_definition, cmds
+            container_definition, cmds, env_vars
         )
         return container_ids
 
