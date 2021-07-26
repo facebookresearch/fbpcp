@@ -13,6 +13,11 @@ from fbpcs.entity.file_information import FileInfo
 
 
 class PathType(Enum):
+    # create a test diff
+    # another line of change
+    # yet another line of change
+    # omg one more line of change
+    # one more line
     Local = 1
     S3 = 2
 
