@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 
 from fbpcs.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcs.entity.subnet import Subnet
 from fbpcs.entity.vpc_instance import Vpc, VpcState
 
 
@@ -65,6 +66,17 @@ def map_ec2vpc_to_vpcinstance(vpc: Dict[str, Any]) -> Vpc:
     )
 
     return Vpc(vpc_id, state, tags)
+
+
+def map_ec2subnet_to_subnet(subnet: Dict[str, Any]) -> Subnet:
+    availability_zone = subnet["AvailabilityZone"]
+    subnet_id = subnet["SubnetId"]
+    tags = (
+        _convert_aws_tags_to_dict(subnet["Tags"], "Key", "Value")
+        if "Tags" in subnet
+        else {}
+    )
+    return Subnet(subnet_id, availability_zone, tags)
 
 
 def _convert_aws_tags_to_dict(

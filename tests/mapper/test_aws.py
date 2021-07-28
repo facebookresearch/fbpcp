@@ -8,9 +8,11 @@ import unittest
 
 from fbpcs.entity.cluster_instance import ClusterStatus, Cluster
 from fbpcs.entity.container_instance import ContainerInstanceStatus, ContainerInstance
+from fbpcs.entity.subnet import Subnet
 from fbpcs.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
+    map_ec2subnet_to_subnet,
 )
 
 
@@ -177,3 +179,19 @@ class TestAWSMapper(unittest.TestCase):
         ]
 
         self.assertEqual(cluster_list, expected_cluster_list)
+
+    def test_map_es2subnet_to_subnet(self):
+        test_subnet_id = "subnet-a0b1c3d4e5"
+        test_az = "us-west-2a"
+        test_tag_key = "Name"
+        test_tag_value = "test_value"
+        ec2_client_response = {
+            "AvailabilityZone": test_az,
+            "SubnetId": test_subnet_id,
+            "Tags": [{"Key": test_tag_key, "Value": test_tag_value}],
+        }
+        expected_subnet = Subnet(
+            test_subnet_id, test_az, {test_tag_key: test_tag_value}
+        )
+
+        self.assertEqual(map_ec2subnet_to_subnet(ec2_client_response), expected_subnet)
