@@ -10,8 +10,9 @@ from typing import Any, Dict, List, Optional
 
 import boto3
 from fbpcs.decorator.error_handler import error_handler
+from fbpcs.entity.subnet import Subnet
 from fbpcs.entity.vpc_instance import Vpc
-from fbpcs.mapper.aws import map_ec2vpc_to_vpcinstance
+from fbpcs.mapper.aws import map_ec2vpc_to_vpcinstance, map_ec2subnet_to_subnet
 
 
 class EC2Gateway:
@@ -47,3 +48,12 @@ class EC2Gateway:
     def list_vpcs(self) -> List[str]:
         all_vpcs = self.client.describe_vpcs()
         return [vpc["VpcId"] for vpc in all_vpcs["Vpcs"]]
+
+    @error_handler
+    def describe_subnets(
+        self,
+        vpc_id: Optional[str] = None,
+    ) -> List[Subnet]:
+        filters = [{"Name": "vpc-id", "Values": [vpc_id]}] if vpc_id else []
+        response = self.client.describe_subnets(Filters=filters)
+        return [map_ec2subnet_to_subnet(subnet) for subnet in response["Subnets"]]

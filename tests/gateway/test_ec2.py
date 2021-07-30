@@ -7,6 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from fbpcs.entity.subnet import Subnet
 from fbpcs.entity.vpc_instance import Vpc, VpcState
 from fbpcs.gateway.ec2 import EC2Gateway
 
@@ -63,3 +64,25 @@ class TestEC2Gateway(unittest.TestCase):
         expected_vpcs = [TEST_VPC_ID]
         self.assertEqual(vpcs, expected_vpcs)
         self.gw.client.describe_vpcs.assert_called()
+
+    def test_describe_subnets(self):
+        test_subnet_id = "subnet-a0b1c3d4e5"
+        test_az = "us-west-2a"
+        test_tag_key = "Name"
+        test_tag_value = "test_value"
+        client_return_response = {
+            "Subnets": [
+                {
+                    "AvailabilityZone": test_az,
+                    "SubnetId": test_subnet_id,
+                    "Tags": [{"Key": test_tag_key, "Value": test_tag_value}],
+                }
+            ]
+        }
+        self.gw.client.describe_subnets = MagicMock(return_value=client_return_response)
+        subnets = self.gw.describe_subnets()
+        expected_subnets = [
+            Subnet(test_subnet_id, test_az, {test_tag_key: test_tag_value}),
+        ]
+        self.assertEqual(subnets, expected_subnets)
+        self.gw.client.describe_subnets.assert_called()
