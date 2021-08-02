@@ -8,10 +8,11 @@
 
 import asyncio
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Final
 
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.error.pcs import PcsError
+from fbpcs.metrics.emitter import MetricsEmitter
 from fbpcs.service.container import ContainerService
 from fbpcs.util.arg_builder import build_cmd_args
 
@@ -23,18 +24,24 @@ ONEDOCKER_CMD_PREFIX = (
 
 DEFAULT_BINARY_VERSION = "latest"
 
+METRICS_CONTAINER_COUNT = "onedocker.container.count"
+
 
 class OneDockerService:
     """OneDockerService is responsible for executing a package(binary) in a container on Cloud"""
 
-    def __init__(self, container_svc: ContainerService) -> None:
+    def __init__(
+        self, container_svc: ContainerService, metrics: Optional[MetricsEmitter] = None
+    ) -> None:
         """Constructor of OneDockerService
         container_svc -- service to spawn container instances
+        metrics -- metrics emitter to emit metrics
         """
         if container_svc is None:
             raise ValueError(f"Dependency is missing. container_svc={container_svc}, ")
 
         self.container_svc = container_svc
+        self.metrics: Final[Optional[MetricsEmitter]] = metrics
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def start_container(
@@ -45,6 +52,7 @@ class OneDockerService:
         cmd_args: str = "",
         env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
+        tag: Optional[str] = None,
     ) -> ContainerInstance:
         # TODO: ContainerInstance mapper
         return asyncio.run(
@@ -55,6 +63,7 @@ class OneDockerService:
                 [cmd_args] if cmd_args else None,
                 env_vars,
                 timeout,
+                tag,
             )
         )[0]
 
@@ -66,6 +75,7 @@ class OneDockerService:
         cmd_args_list: Optional[List[str]] = None,
         env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
+        tag: Optional[str] = None,
     ) -> List[ContainerInstance]:
         return asyncio.run(
             self.start_containers_async(
@@ -75,6 +85,7 @@ class OneDockerService:
                 cmd_args_list,
                 env_vars,
                 timeout,
+                tag,
             )
         )
 
@@ -86,18 +97,26 @@ class OneDockerService:
         cmd_args_list: Optional[List[str]] = None,
         env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
+        tag: Optional[str] = None,
     ) -> List[ContainerInstance]:
         """Asynchronously spin up one container per element in input command list."""
         if not cmd_args_list:
             raise ValueError("Command Argument List shouldn't be None or Empty")
+
         cmds = [
             self._get_cmd(package_name, version, cmd_args, timeout)
             for cmd_args in cmd_args_list
         ]
+
         self.logger.info("Spinning up container instances")
+
         container_ids = await self.container_svc.create_instances_async(
             container_definition, cmds, env_vars
         )
+
+        if self.metrics:
+            self.metrics.count(f"{METRICS_CONTAINER_COUNT}.{tag}", len(cmds))
+
         return container_ids
 
     def stop_containers(self, containers: List[str]) -> List[Optional[PcsError]]:
