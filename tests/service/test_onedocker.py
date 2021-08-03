@@ -16,7 +16,7 @@ class TestOneDockerService(unittest.TestCase):
     @patch("fbpcs.service.container.ContainerService")
     def setUp(self, MockContainerService):
         container_svc = MockContainerService()
-        self.onedocker_svc = OneDockerService(container_svc)
+        self.onedocker_svc = OneDockerService(container_svc, "task_def")
 
     def test_start_container(self):
         mocked_container_info = ContainerInstance(
@@ -28,7 +28,7 @@ class TestOneDockerService(unittest.TestCase):
             return_value=[mocked_container_info]
         )
         returned_container_info = self.onedocker_svc.start_container(
-            container_definition="task_def",
+            task_definition="task_def",
             package_name="project/exe_name",
             cmd_args="cmd_args",
         )
@@ -51,7 +51,7 @@ class TestOneDockerService(unittest.TestCase):
             return_value=mocked_container_info
         )
         returned_container_info = self.onedocker_svc.start_containers(
-            container_definition="task_def",
+            task_definition="task_def",
             package_name="project/exe_name",
             cmd_args_list=["--k1=v1", "--k2=v2"],
         )
