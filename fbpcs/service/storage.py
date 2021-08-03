@@ -8,6 +8,7 @@
 
 import abc
 from enum import Enum
+from typing import List
 
 from fbpcs.entity.file_information import FileInfo
 
@@ -47,4 +48,8 @@ class StorageService(abc.ABC):
 
     @abc.abstractmethod
     def get_file_info(self, filename: str) -> FileInfo:
+        pass
+
+    @abc.abstractmethod
+    def list_folders(self, filename: str) -> List[str]:
         pass

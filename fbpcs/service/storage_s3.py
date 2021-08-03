@@ -9,7 +9,7 @@
 import os
 from os import path
 from os.path import join, normpath, relpath
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from fbpcs.entity.file_information import FileInfo
 from fbpcs.gateway.s3 import S3Gateway
@@ -206,3 +206,7 @@ class S3StorageService(StorageService):
     def get_file_size(self, filename: str) -> int:
         s3_path = S3Path(filename)
         return self.s3_gateway.get_object_size(s3_path.bucket, s3_path.key)
+
+    def list_folders(self, filename: str) -> List[str]:
+        s3_path = S3Path(filename)
+        return self.s3_gateway.list_folders(s3_path.bucket, s3_path.key)
