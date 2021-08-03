@@ -61,7 +61,7 @@ class MPCService:
         self.mpc_game_svc: MPCGameService = mpc_game_svc
         self.logger: logging.Logger = logging.getLogger(__name__)
 
-        self.onedocker_svc = OneDockerService(self.container_svc)
+        self.onedocker_svc = OneDockerService(self.container_svc, self.task_definition)
 
     """
     The game_args should be consistent with the game_config, which should be
@@ -270,7 +270,7 @@ class MPCService:
         cmd_args_list = [cmd_args for (package_name, cmd_args) in cmd_tuple_list]
 
         return await self.onedocker_svc.start_containers_async(
-            container_definition=self.task_definition,
+            task_definition=self.task_definition,
             package_name=cmd_tuple_list[0][0],
             version=version,
             cmd_args_list=cmd_args_list,

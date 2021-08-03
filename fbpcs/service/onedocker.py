@@ -31,23 +31,29 @@ class OneDockerService:
     """OneDockerService is responsible for executing a package(binary) in a container on Cloud"""
 
     def __init__(
-        self, container_svc: ContainerService, metrics: Optional[MetricsEmitter] = None
+        self,
+        container_svc: ContainerService,
+        task_definition: Optional[str] = None,
+        metrics: Optional[MetricsEmitter] = None,
     ) -> None:
         """Constructor of OneDockerService
         container_svc -- service to spawn container instances
+        task_definition -- container definition to spawn container instances
         metrics -- metrics emitter to emit metrics
         """
         if container_svc is None:
             raise ValueError(f"Dependency is missing. container_svc={container_svc}, ")
 
         self.container_svc = container_svc
+        self.task_definition = task_definition
         self.metrics: Final[Optional[MetricsEmitter]] = metrics
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def start_container(
         self,
-        container_definition: str,
         package_name: str,
+        container_definition: Optional[str] = None,
+        task_definition: Optional[str] = None,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args: str = "",
         env_vars: Optional[Dict[str, str]] = None,
@@ -57,8 +63,9 @@ class OneDockerService:
         # TODO: ContainerInstance mapper
         return asyncio.run(
             self.start_containers_async(
-                container_definition,
                 package_name,
+                container_definition,
+                task_definition,
                 version,
                 [cmd_args] if cmd_args else None,
                 env_vars,
@@ -69,8 +76,9 @@ class OneDockerService:
 
     def start_containers(
         self,
-        container_definition: str,
         package_name: str,
+        container_definition: Optional[str] = None,
+        task_definition: Optional[str] = None,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args_list: Optional[List[str]] = None,
         env_vars: Optional[Dict[str, str]] = None,
@@ -79,8 +87,9 @@ class OneDockerService:
     ) -> List[ContainerInstance]:
         return asyncio.run(
             self.start_containers_async(
-                container_definition,
                 package_name,
+                container_definition,
+                task_definition,
                 version,
                 cmd_args_list,
                 env_vars,
@@ -91,15 +100,19 @@ class OneDockerService:
 
     async def start_containers_async(
         self,
-        container_definition: str,
         package_name: str,
+        container_definition: Optional[str] = None,
+        task_definition: Optional[str] = None,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args_list: Optional[List[str]] = None,
         env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
     ) -> List[ContainerInstance]:
-        """Asynchronously spin up one container per element in input command list."""
+        """Asynchronostrusly spin up one container per element in input command list.
+        task_definition -- if specified, overrides OneDockerService's task definition
+                           when starting this container
+        """
         if not cmd_args_list:
             raise ValueError("Command Argument List shouldn't be None or Empty")
 
@@ -110,8 +123,18 @@ class OneDockerService:
 
         self.logger.info("Spinning up container instances")
 
+        task_definition = (
+            task_definition or container_definition or self.task_definition
+        )
+        if task_definition is None:
+            raise ValueError(
+                "task_definition should not be None if self.task_definition is None"
+            )
         container_ids = await self.container_svc.create_instances_async(
-            container_definition, cmds, env_vars
+            # type: ignore
+            task_definition,
+            cmds,
+            env_vars,
         )
 
         if self.metrics:
