@@ -52,6 +52,7 @@ class OneDockerService:
     def start_container(
         self,
         package_name: str,
+        container_definition: Optional[str] = None,
         task_definition: Optional[str] = None,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args: str = "",
@@ -63,6 +64,7 @@ class OneDockerService:
         return asyncio.run(
             self.start_containers_async(
                 package_name,
+                container_definition,
                 task_definition,
                 version,
                 [cmd_args] if cmd_args else None,
@@ -75,6 +77,7 @@ class OneDockerService:
     def start_containers(
         self,
         package_name: str,
+        container_definition: Optional[str] = None,
         task_definition: Optional[str] = None,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args_list: Optional[List[str]] = None,
@@ -85,6 +88,7 @@ class OneDockerService:
         return asyncio.run(
             self.start_containers_async(
                 package_name,
+                container_definition,
                 task_definition,
                 version,
                 cmd_args_list,
@@ -97,6 +101,7 @@ class OneDockerService:
     async def start_containers_async(
         self,
         package_name: str,
+        container_definition: Optional[str] = None,
         task_definition: Optional[str] = None,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args_list: Optional[List[str]] = None,
@@ -118,10 +123,12 @@ class OneDockerService:
 
         self.logger.info("Spinning up container instances")
 
-        task_definition = task_definition or self.task_definition
-        if not task_definition:
+        task_definition = (
+            task_definition or container_definition or self.task_definition
+        )
+        if task_definition is None:
             raise ValueError(
-                "task definition should be specified when spinning up containers"
+                "task_definition should not be None if self.task_definition is None"
             )
         container_ids = await self.container_svc.create_instances_async(
             # type: ignore
