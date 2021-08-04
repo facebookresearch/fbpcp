@@ -95,6 +95,15 @@ class S3Gateway:
         return key_list
 
     @error_handler
+    def list_folders(self, bucket: str, key: str) -> List[str]:
+        key = key + "/"
+        response = self.client.list_objects_v2(Bucket=bucket, Prefix=key, Delimiter="/")
+        return [
+            prefix_dict["Prefix"][len(key) : -1]
+            for prefix_dict in response.get("CommonPrefixes")
+        ]
+
+    @error_handler
     def delete_object(self, bucket: str, key: str) -> None:
         self.client.delete_object(Bucket=bucket, Key=key)
 
