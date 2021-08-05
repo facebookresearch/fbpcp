@@ -124,7 +124,6 @@ class OneDockerService:
                 "task definition should be specified when spinning up containers"
             )
         container_ids = await self.container_svc.create_instances_async(
-            # type: ignore
             task_definition,
             cmds,
             env_vars,
