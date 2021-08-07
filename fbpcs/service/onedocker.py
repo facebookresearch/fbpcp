@@ -130,9 +130,8 @@ class OneDockerService:
         )
 
         if self.metrics:
-            name = (
-                f"{METRICS_CONTAINER_COUNT}.{tag}" if tag else METRICS_CONTAINER_COUNT
-            )
+            name = f"{METRICS_CONTAINER_COUNT}.{self.container_svc.get_region()}.{self.container_svc.get_cluster()}"
+            name = f"{METRICS_CONTAINER_COUNT}.{tag}" if tag else name
             self.metrics.count(name, len(container_ids))
 
         return container_ids
