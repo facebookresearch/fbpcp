@@ -33,6 +33,16 @@ class AWSContainerService(ContainerService):
         self.subnets = subnets
         self.ecs_gateway = ECSGateway(region, access_key_id, access_key_data, config)
 
+    def get_region(
+        self,
+    ) -> str:
+        return self.region
+
+    def get_cluster(
+        self,
+    ) -> str:
+        return self.cluster
+
     def create_instance(
         self,
         container_definition: str,

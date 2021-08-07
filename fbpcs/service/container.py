@@ -15,6 +15,18 @@ from fbpcs.error.pcs import PcsError
 
 class ContainerService(abc.ABC):
     @abc.abstractmethod
+    def get_region(
+        self,
+    ) -> str:
+        pass
+
+    @abc.abstractmethod
+    def get_cluster(
+        self,
+    ) -> str:
+        pass
+
+    @abc.abstractmethod
     def create_instance(
         self,
         container_definition: str,
