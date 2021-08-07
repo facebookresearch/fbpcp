@@ -6,40 +6,32 @@
 
 # pyre-strict
 
-import logging
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 import boto3
 from fbpcs.decorator.error_handler import error_handler
 from fbpcs.entity.cluster_instance import Cluster
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.error.pcs import PcsError
+from fbpcs.gateway.aws import AWSGateway
 from fbpcs.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
 )
 
 
-class ECSGateway:
+class ECSGateway(AWSGateway):
     def __init__(
         self,
         region: str,
-        access_key_id: Optional[str],
-        access_key_data: Optional[str],
+        access_key_id: Optional[str] = None,
+        access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        self.logger: logging.Logger = logging.getLogger(__name__)
-        self.region = region
-        config = config or {}
-
-        if access_key_id is not None:
-            config["aws_access_key_id"] = access_key_id
-
-        if access_key_data is not None:
-            config["aws_secret_access_key"] = access_key_data
+        super().__init__(region, access_key_id, access_key_data, config)
 
         # pyre-ignore
-        self.client = boto3.client("ecs", region_name=self.region, **config)
+        self.client = boto3.client("ecs", region_name=self.region, **self.config)
 
     @error_handler
     def run_task(

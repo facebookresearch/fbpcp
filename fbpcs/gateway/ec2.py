@@ -6,34 +6,27 @@
 
 # pyre-strict
 
-from typing import Any, Dict, List, Optional
+from typing import List, Optional, Dict, Any
 
 import boto3
 from fbpcs.decorator.error_handler import error_handler
 from fbpcs.entity.subnet import Subnet
 from fbpcs.entity.vpc_instance import Vpc
+from fbpcs.gateway.aws import AWSGateway
 from fbpcs.mapper.aws import map_ec2vpc_to_vpcinstance, map_ec2subnet_to_subnet
 
 
-class EC2Gateway:
+class EC2Gateway(AWSGateway):
     def __init__(
         self,
         region: str,
-        access_key_id: Optional[str],
-        access_key_data: Optional[str],
+        access_key_id: Optional[str] = None,
+        access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        self.region = region
-        config = config or {}
-
-        if access_key_id is not None:
-            config["aws_access_key_id"] = access_key_id
-
-        if access_key_data is not None:
-            config["aws_secret_access_key"] = access_key_data
-
+        super().__init__(region, access_key_id, access_key_data, config)
         # pyre-ignore
-        self.client = boto3.client("ec2", region_name=self.region, **config)
+        self.client = boto3.client("ec2", region_name=self.region, **self.config)
 
     @error_handler
     def describe_vpcs(self, vpc_ids: List[str]) -> List[Vpc]:
