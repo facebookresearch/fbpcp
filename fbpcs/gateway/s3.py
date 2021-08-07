@@ -11,28 +11,21 @@ from typing import Any, Dict, List, Optional
 
 import boto3
 from fbpcs.decorator.error_handler import error_handler
+from fbpcs.gateway.aws import AWSGateway
 from tqdm.auto import tqdm
 
 
-class S3Gateway:
+class S3Gateway(AWSGateway):
     def __init__(
         self,
-        region: str = "us-west-1",
+        region: str,
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        self.region = region
-        config = config or {}
-
-        if access_key_id:
-            config["aws_access_key_id"] = access_key_id
-
-        if access_key_data:
-            config["aws_secret_access_key"] = access_key_data
-
+        super().__init__(region, access_key_id, access_key_data, config)
         # pyre-ignore
-        self.client = boto3.client("s3", region_name=self.region, **config)
+        self.client = boto3.client("s3", region_name=self.region, **self.config)
 
     @error_handler
     def create_bucket(self, bucket: str, region: Optional[str] = None) -> None:
