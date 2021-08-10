@@ -10,7 +10,7 @@ import asyncio
 import logging
 from typing import Dict, List, Optional, Final
 
-from fbpcs.decorator.metrics import request_counter, duration_time
+from fbpcs.decorator.metrics import request_counter, duration_time, error_counter
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.error.pcs import PcsError
 from fbpcs.metrics.emitter import MetricsEmitter
@@ -27,6 +27,7 @@ DEFAULT_BINARY_VERSION = "latest"
 
 METRICS_CONTAINER_COUNT = "onedocker.container.count"
 METRICS_START_CONTAINERS_COUNT = "onedocker.start_containers.count"
+METRICS_START_CONTAINERS_ERROR_COUNT = "onedocker.start_containers.error.count"
 METRICS_START_CONTAINERS_DURATION = "onedocker.start_containers.duration"
 
 
@@ -97,8 +98,9 @@ class OneDockerService:
             )
         )
 
-    @duration_time(METRICS_START_CONTAINERS_DURATION)
+    @error_counter(METRICS_START_CONTAINERS_ERROR_COUNT)
     @request_counter(METRICS_START_CONTAINERS_COUNT)
+    @duration_time(METRICS_START_CONTAINERS_DURATION)
     async def start_containers_async(
         self,
         package_name: str,
