@@ -6,17 +6,11 @@
 
 # pyre-strict
 
-from enum import Enum
 from typing import Optional, Dict, Any
 
 import boto3
 from fbpcs.decorator.error_handler import error_handler
 from fbpcs.entity.cloud_cost import CloudCost
-
-
-class ServiceName(Enum):
-    MACIE = "Amazon Macie"
-    # TODO will add more service name
 
 
 class CostExplorerGateway:
@@ -45,6 +39,6 @@ class CostExplorerGateway:
         get_cost_and_usage() referece: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_cost_and_usage
         :param start: start date for cost, required format "yyyy-mm-dd" (e.g "2020-12-01")
         :param end: end date for cycle, required format "yyyy-mm-dd" (e.g "2020-12-01")
-        :return: CloudCost object that has the total cost and a list of CloudCostItem objects with granular cost information
+        :return: CloudCost object that has the total cost and a list of CloudCostItem objects with granular cost information. unit of cost_amount is US Cent
         """
         raise NotImplementedError
