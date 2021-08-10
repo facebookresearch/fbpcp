@@ -8,7 +8,7 @@ import unittest
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch, ANY
 
-from fbpcs.decorator.metrics import request_counter, duration_time
+from fbpcs.decorator.metrics import request_counter, duration_time, error_counter
 
 
 METRICS_NAME = "test_metrics"
@@ -28,6 +28,14 @@ class TestMetrics:
     async def test_async(self):
         pass
 
+    @error_counter(METRICS_NAME)
+    def test_error_sync(self):
+        raise ValueError("test")
+
+    @error_counter(METRICS_NAME)
+    async def test_error_async(self):
+        raise ValueError("test")
+
 
 class TestMetricsDecoratorSync(unittest.TestCase):
     @patch("fbpcs.metrics.emitter.MetricsEmitter")
@@ -37,6 +45,9 @@ class TestMetricsDecoratorSync(unittest.TestCase):
         test_metrics.test_sync()
         metrics.count.assert_called_with(METRICS_NAME, 1)
         metrics.gauge.assert_called_with(METRICS_NAME, ANY)
+        with self.assertRaises(ValueError):
+            test_metrics.test_error_sync()
+        metrics.count.assert_called_with(METRICS_NAME, 1)
 
 
 class TestMetricsDecoratorAsync(IsolatedAsyncioTestCase):
@@ -47,3 +58,6 @@ class TestMetricsDecoratorAsync(IsolatedAsyncioTestCase):
         await test_metrics.test_async()
         metrics.count.assert_called_with(METRICS_NAME, 1)
         metrics.gauge.assert_called_with(METRICS_NAME, ANY)
+        with self.assertRaises(ValueError):
+            await test_metrics.test_error_async()
+        metrics.count.assert_called_with(METRICS_NAME, 1)

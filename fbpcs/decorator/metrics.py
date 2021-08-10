@@ -4,6 +4,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+"""Metrics Decorators
+
+The decorators in this file are designed to deocrate class methods.
+They require the class has a named property "metrics" which is typed as MetricsEmitter.
+"""
+
 import asyncio
 import functools
 import time
@@ -24,16 +30,34 @@ def request_counter(metrics_name: str) -> Callable:
                 self.metrics.count(metrics_name, 1)
             return await f(self, *args, **kwargs)
 
-        if asyncio.iscoroutinefunction(f):
-            return wrapper_async
-        else:
-            return wrapper_sync
+        return wrapper_async if asyncio.iscoroutinefunction(f) else wrapper_sync
 
     return wrap
 
 
-# def error_counter(metrics_name: str) -> Callable:
-#     pass
+def error_counter(metrics_name: str) -> Callable:
+    def wrap(f: Callable):
+        @functools.wraps(f)
+        def wrapper_sync(self, *args, **kwargs):
+            try:
+                return f(self, *args, **kwargs)
+            except Exception as err:
+                if self.metrics:
+                    self.metrics.count(metrics_name, 1)
+                raise err
+
+        @functools.wraps(f)
+        async def wrapper_async(self, *args, **kwargs):
+            try:
+                return await f(self, *args, **kwargs)
+            except Exception as err:
+                if self.metrics:
+                    self.metrics.count(metrics_name, 1)
+                raise err
+
+        return wrapper_async if asyncio.iscoroutinefunction(f) else wrapper_sync
+
+    return wrap
 
 
 def duration_time(metrics_name: str) -> Callable:
@@ -60,9 +84,6 @@ def duration_time(metrics_name: str) -> Callable:
 
             return res
 
-        if asyncio.iscoroutinefunction(f):
-            return wrapper_async
-        else:
-            return wrapper_sync
+        return wrapper_async if asyncio.iscoroutinefunction(f) else wrapper_sync
 
     return wrap
