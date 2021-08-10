@@ -6,9 +6,20 @@
 
 # pyre-strict
 from dataclasses import dataclass
+from typing import List
+
+from fbpcs.cloud.region import RegionName
+from fbpcs.cloud.service import ServiceName
+
+
+@dataclass
+class CloudCostItem:
+    region: RegionName
+    service: ServiceName
+    cost_amount: int
 
 
 @dataclass
 class CloudCost:
-    # TODO this class will be implemented in later diff
-    dummy: str
+    total_cost_amount: int
+    details: List[CloudCostItem]
