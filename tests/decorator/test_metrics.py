@@ -9,14 +9,20 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch, ANY
 
 from fbpcs.decorator.metrics import request_counter, duration_time, error_counter
-
+from fbpcs.metrics.getter import MetricsGetter
 
 METRICS_NAME = "test_metrics"
 
 
-class TestMetrics:
+class TestMetrics(MetricsGetter):
     def __init__(self, metrics):
         self.metrics = metrics
+
+    def has_metrics(self):
+        return True
+
+    def get_metrics(self):
+        return self.metrics
 
     @duration_time(METRICS_NAME)
     @request_counter(METRICS_NAME)
