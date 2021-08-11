@@ -6,8 +6,7 @@
 
 """Metrics Decorators
 
-The decorators in this file are designed to deocrate class methods.
-They require the class has a named property "metrics" which is typed as MetricsEmitter.
+The decorators in this file are designed to deocrate classes that implement MetricsGetter.
 """
 
 import asyncio
@@ -15,19 +14,21 @@ import functools
 import time
 from typing import Callable
 
+from fbpcs.metrics.getter import MetricsGetter
+
 
 def request_counter(metrics_name: str) -> Callable:
     def wrap(f: Callable):
         @functools.wraps(f)
-        def wrapper_sync(self, *args, **kwargs):
-            if self.metrics:
-                self.metrics.count(metrics_name, 1)
+        def wrapper_sync(self: MetricsGetter, *args, **kwargs):
+            if self.has_metrics():
+                self.get_metrics().count(metrics_name, 1)
             return f(self, *args, **kwargs)
 
         @functools.wraps(f)
-        async def wrapper_async(self, *args, **kwargs):
-            if self.metrics:
-                self.metrics.count(metrics_name, 1)
+        async def wrapper_async(self: MetricsGetter, *args, **kwargs):
+            if self.has_metrics():
+                self.get_metrics().count(metrics_name, 1)
             return await f(self, *args, **kwargs)
 
         return wrapper_async if asyncio.iscoroutinefunction(f) else wrapper_sync
@@ -38,21 +39,21 @@ def request_counter(metrics_name: str) -> Callable:
 def error_counter(metrics_name: str) -> Callable:
     def wrap(f: Callable):
         @functools.wraps(f)
-        def wrapper_sync(self, *args, **kwargs):
+        def wrapper_sync(self: MetricsGetter, *args, **kwargs):
             try:
                 return f(self, *args, **kwargs)
             except Exception as err:
-                if self.metrics:
-                    self.metrics.count(metrics_name, 1)
+                if self.has_metrics():
+                    self.get_metrics().count(metrics_name, 1)
                 raise err
 
         @functools.wraps(f)
-        async def wrapper_async(self, *args, **kwargs):
+        async def wrapper_async(self: MetricsGetter, *args, **kwargs):
             try:
                 return await f(self, *args, **kwargs)
             except Exception as err:
-                if self.metrics:
-                    self.metrics.count(metrics_name, 1)
+                if self.has_metrics():
+                    self.get_metrics().count(metrics_name, 1)
                 raise err
 
         return wrapper_async if asyncio.iscoroutinefunction(f) else wrapper_sync
@@ -63,24 +64,24 @@ def error_counter(metrics_name: str) -> Callable:
 def duration_time(metrics_name: str) -> Callable:
     def wrap(f: Callable):
         @functools.wraps(f)
-        def wrapper_sync(self, *args, **kwargs):
+        def wrapper_sync(self: MetricsGetter, *args, **kwargs):
             start = time.perf_counter_ns()
             res = f(self, *args, **kwargs)
             end = time.perf_counter_ns()
 
-            if self.metrics:
-                self.metrics.gauge(metrics_name, (end - start) / 1e6)
+            if self.has_metrics():
+                self.get_metrics().gauge(metrics_name, int((end - start) / 1e6))
 
             return res
 
         @functools.wraps(f)
-        async def wrapper_async(self, *args, **kwargs):
+        async def wrapper_async(self: MetricsGetter, *args, **kwargs):
             start = time.perf_counter_ns()
             res = await f(self, *args, **kwargs)
             end = time.perf_counter_ns()
 
-            if self.metrics:
-                self.metrics.gauge(metrics_name, (end - start) / 1e6)
+            if self.has_metrics():
+                self.get_metrics().gauge(metrics_name, int((end - start) / 1e6))
 
             return res
 

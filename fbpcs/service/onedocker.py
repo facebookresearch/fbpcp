@@ -14,6 +14,7 @@ from fbpcs.decorator.metrics import request_counter, duration_time, error_counte
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.error.pcs import PcsError
 from fbpcs.metrics.emitter import MetricsEmitter
+from fbpcs.metrics.getter import MetricsGetter
 from fbpcs.service.container import ContainerService
 from fbpcs.util.arg_builder import build_cmd_args
 
@@ -31,7 +32,7 @@ METRICS_START_CONTAINERS_ERROR_COUNT = "onedocker.start_containers.error.count"
 METRICS_START_CONTAINERS_DURATION = "onedocker.start_containers.duration"
 
 
-class OneDockerService:
+class OneDockerService(MetricsGetter):
     """OneDockerService is responsible for executing a package(binary) in a container on Cloud"""
 
     def __init__(
@@ -52,6 +53,15 @@ class OneDockerService:
         self.task_definition = task_definition
         self.metrics: Final[Optional[MetricsEmitter]] = metrics
         self.logger: logging.Logger = logging.getLogger(__name__)
+
+    def has_metrics(self) -> bool:
+        return self.metrics is not None
+
+    def get_metrics(self) -> MetricsEmitter:
+        if not self.metrics:
+            raise PcsError("OneDocker doesn't have metrics emitter")
+
+        return self.metrics
 
     def start_container(
         self,
