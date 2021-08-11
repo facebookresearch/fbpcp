@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcs.error.pcs import PcsError
 from fbpcs.gateway.ecs import ECSGateway
+from fbpcs.metrics.emitter import MetricsEmitter
 from fbpcs.service.container import ContainerService
 from fbpcs.util.typing import checked_cast
 
@@ -26,12 +27,15 @@ class AWSContainerService(ContainerService):
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
+        metrics: Optional[MetricsEmitter] = None,
     ) -> None:
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.region = region
         self.cluster = cluster
         self.subnets = subnets
-        self.ecs_gateway = ECSGateway(region, access_key_id, access_key_data, config)
+        self.ecs_gateway = ECSGateway(
+            region, access_key_id, access_key_data, config, metrics
+        )
 
     def get_region(
         self,

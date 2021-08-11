@@ -6,10 +6,11 @@
 
 # pyre-strict
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Final
 
 import boto3
 from fbpcs.decorator.error_handler import error_handler
+from fbpcs.decorator.metrics import request_counter, duration_time, error_counter
 from fbpcs.entity.cluster_instance import Cluster
 from fbpcs.entity.container_instance import ContainerInstance
 from fbpcs.error.pcs import PcsError
@@ -18,21 +19,41 @@ from fbpcs.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
 )
+from fbpcs.metrics.emitter import MetricsEmitter
+from fbpcs.metrics.getter import MetricsGetter
+
+METRICS_RUN_TASK_COUNT = "aws.ecs.run_task.count"
+METRICS_RUN_TASK_ERROR_COUNT = "aws.ecs.run_task.error.count"
+METRICS_RUN_TASK_DURATION = "aws.ecs.run_task.duration"
 
 
-class ECSGateway(AWSGateway):
+class ECSGateway(AWSGateway, MetricsGetter):
     def __init__(
         self,
         region: str,
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
+        metrics: Optional[MetricsEmitter] = None,
     ) -> None:
         super().__init__(region, access_key_id, access_key_data, config)
 
         # pyre-ignore
         self.client = boto3.client("ecs", region_name=self.region, **self.config)
+        self.metrics: Final[Optional[MetricsEmitter]] = metrics
 
+    def has_metrics(self) -> bool:
+        return self.metrics is not None
+
+    def get_metrics(self) -> MetricsEmitter:
+        if not self.metrics:
+            raise PcsError("ECSGateway doesn't have metrics emitter")
+
+        return self.metrics
+
+    @error_counter(METRICS_RUN_TASK_ERROR_COUNT)
+    @request_counter(METRICS_RUN_TASK_COUNT)
+    @duration_time(METRICS_RUN_TASK_DURATION)
     @error_handler
     def run_task(
         self,
