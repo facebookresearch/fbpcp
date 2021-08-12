@@ -6,6 +6,7 @@
 
 # pyre-strict
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import List
 
 from fbpcs.cloud.region import RegionName
@@ -16,10 +17,10 @@ from fbpcs.cloud.service import ServiceName
 class CloudCostItem:
     region: RegionName
     service: ServiceName
-    cost_amount: int
+    cost_amount: Decimal
 
 
 @dataclass
 class CloudCost:
-    total_cost_amount: int
+    total_cost_amount: Decimal
     details: List[CloudCostItem]

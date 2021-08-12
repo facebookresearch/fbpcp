@@ -6,9 +6,11 @@
 
 # pyre-strict
 
+from decimal import Decimal
 from functools import reduce
 from typing import Any, Dict, List
 
+from fbpcs.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcs.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcs.entity.subnet import Subnet
@@ -83,3 +85,23 @@ def _convert_aws_tags_to_dict(
     tag_list: List[Dict[str, str]], tag_key: str, tag_value: str
 ) -> Dict[str, str]:
     return reduce(lambda x, y: {**x, **{y[tag_key]: y[tag_value]}}, tag_list, {})
+
+
+def map_cecost_to_cloud_cost(cost: List[Dict[str, Any]], cost_metric: str) -> CloudCost:
+    total_cost_amount = Decimal(0)
+    cost_items = {}
+    for daily_result in cost:
+        for group_result in daily_result.get("Groups"):
+            region, service = group_result["Keys"]
+            key = (region, service)
+            amount = Decimal(group_result["Metrics"][cost_metric]["Amount"])
+            total_cost_amount += amount
+            cost_items[key] = cost_items.get(key, 0) + amount
+
+    return CloudCost(
+        total_cost_amount=total_cost_amount,
+        details=[
+            CloudCostItem(region=region, service=service, cost_amount=amount)
+            for (region, service), amount in cost_items.items()
+        ],
+    )
