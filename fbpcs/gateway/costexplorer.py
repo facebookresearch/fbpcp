@@ -11,9 +11,14 @@ from typing import Optional, Dict, Any
 import boto3
 from fbpcs.decorator.error_handler import error_handler
 from fbpcs.entity.cloud_cost import CloudCost
+from fbpcs.gateway.aws import AWSGateway
+from fbpcs.mapper.aws import map_cecost_to_cloud_cost
 
 
-class CostExplorerGateway:
+COST_GRANULARITY = "DAILY"
+
+
+class CostExplorerGateway(AWSGateway):
     def __init__(
         self,
         region: str,
@@ -21,24 +26,39 @@ class CostExplorerGateway:
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        self.region = region
-        config = config or {}
-        if access_key_id:
-            config["aws_access_key_id"] = access_key_id
-
-        if access_key_data:
-            config["aws_secret_access_key"] = access_key_data
-
+        super().__init__(region, access_key_id, access_key_data, config)
         # pyre-ignore
-        self.client = boto3.client("ce", region_name=self.region, **config)
+        self.client = boto3.client("ce", region_name=self.region, **self.config)
 
     @error_handler
-    def get_cost(self, start: str, end: str) -> CloudCost:
+    def get_cost(self, start_date: str, end_date: str) -> CloudCost:
         """
-        Get cost between start and end from CostExplorer API using get_cost_and_usage()
+        Get cost between start_date and end_date from CostExplorer API using get_cost_and_usage()
         get_cost_and_usage() referece: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_cost_and_usage
-        :param start: start date for cost, required format "yyyy-mm-dd" (e.g "2020-12-01")
-        :param end: end date for cycle, required format "yyyy-mm-dd" (e.g "2020-12-01")
-        :return: CloudCost object that has the total cost and a list of CloudCostItem objects with granular cost information. unit of cost_amount is US Cent
+        :param start_date: start date for cost, required format "yyyy-mm-dd" (e.g "2020-12-01")
+        :param end_date: end date for cycle, required format "yyyy-mm-dd" (e.g "2020-12-01")
+        :return: CloudCost object that has the total cost and a list of CloudCostItem objects group by region and service. Unit of cost_amount is USD
         """
-        raise NotImplementedError
+
+        cost_metric = "UnblendedCost"
+        page_token = None
+        results_by_time = []
+
+        while True:
+            additional_kwargs = {"NextPageToken": page_token} if page_token else {}
+            client_response = self.client.get_cost_and_usage(
+                TimePeriod={"Start": start_date, "End": end_date},
+                Granularity=COST_GRANULARITY,
+                Metrics=[cost_metric],
+                GroupBy=[
+                    {"Type": "DIMENSION", "Key": "REGION"},
+                    {"Type": "DIMENSION", "Key": "SERVICE"},
+                ],
+                **additional_kwargs,
+            )
+            results_by_time.extend(client_response.get("ResultsByTime"))
+            page_token = client_response.get("NextPageToken")
+            if not page_token:
+                break
+
+        return map_cecost_to_cloud_cost(results_by_time, cost_metric)
