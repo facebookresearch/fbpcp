@@ -5,18 +5,23 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest import IsolatedAsyncioTestCase
+from unittest.mock import AsyncMock, MagicMock, patch, ANY
 
 from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcs.error.pcs import PcsError
-from fbpcs.service.onedocker import OneDockerService
+from fbpcs.service.onedocker import (
+    OneDockerService,
+    METRICS_START_CONTAINERS_COUNT,
+    METRICS_START_CONTAINERS_DURATION,
+)
 
 
-class TestOneDockerService(unittest.TestCase):
+class TestOneDockerServiceSync(unittest.TestCase):
     @patch("fbpcs.service.container.ContainerService")
     def setUp(self, MockContainerService):
-        container_svc = MockContainerService()
-        self.onedocker_svc = OneDockerService(container_svc, "task_def")
+        self.container_svc = MockContainerService()
+        self.onedocker_svc = OneDockerService(self.container_svc, "task_def")
 
     def test_start_container(self):
         mocked_container_info = ContainerInstance(
@@ -24,7 +29,7 @@ class TestOneDockerService(unittest.TestCase):
             "192.0.2.0",
             ContainerInstanceStatus.STARTED,
         )
-        self.onedocker_svc.container_svc.create_instances_async = AsyncMock(
+        self.container_svc.create_instances_async = AsyncMock(
             return_value=[mocked_container_info]
         )
         returned_container_info = self.onedocker_svc.start_container(
@@ -47,7 +52,7 @@ class TestOneDockerService(unittest.TestCase):
                 ContainerInstanceStatus.STARTED,
             ),
         ]
-        self.onedocker_svc.container_svc.create_instances_async = AsyncMock(
+        self.container_svc.create_instances_async = AsyncMock(
             return_value=mocked_container_info
         )
         returned_container_info = self.onedocker_svc.start_containers(
@@ -79,10 +84,38 @@ class TestOneDockerService(unittest.TestCase):
             "6b809ef6-c67e-4467-921f-ee261c15a0a2",
         ]
         expected_results = [None, PcsError("instance id not found")]
-        self.onedocker_svc.container_svc.cancel_instances = MagicMock(
-            return_value=expected_results
-        )
+        self.container_svc.cancel_instances = MagicMock(return_value=expected_results)
         self.assertEqual(
             self.onedocker_svc.stop_containers(containers), expected_results
         )
-        self.onedocker_svc.container_svc.cancel_instances.assert_called_with(containers)
+        self.container_svc.cancel_instances.assert_called_with(containers)
+
+
+class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
+    @patch("fbpcs.service.container.ContainerService")
+    def setUp(self, MockContainerService):
+        self.container_svc = MockContainerService()
+        self.onedocker_svc = OneDockerService(self.container_svc, "task_def")
+
+    @patch("fbpcs.metrics.emitter.MetricsEmitter")
+    async def test_metrics(self, MockMetricsEmitter):
+        metrics = MockMetricsEmitter()
+        one_docker = OneDockerService(container_svc=self.container_svc, metrics=metrics)
+        mocked_container_info = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id",
+            "192.0.2.0",
+            ContainerInstanceStatus.STARTED,
+        )
+        self.container_svc.create_instances_async = AsyncMock(
+            return_value=[mocked_container_info]
+        )
+
+        await one_docker.start_containers_async(
+            package_name="project/exe_name",
+            task_definition="task_def",
+            cmd_args_list=["cmd_args"],
+        )
+
+        metrics.count.assert_any_call(ANY, 1)
+        metrics.count.assert_any_call(METRICS_START_CONTAINERS_COUNT, 1)
+        metrics.gauge.assert_called_with(METRICS_START_CONTAINERS_DURATION, ANY)
