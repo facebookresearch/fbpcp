@@ -7,9 +7,9 @@
 import unittest
 
 from botocore.exceptions import ClientError
-from fbpcs.error.mapper.aws import map_aws_error
-from fbpcs.error.pcs import PcsError
-from fbpcs.error.pcs import ThrottlingError
+from fbpcp.error.mapper.aws import map_aws_error
+from fbpcp.error.pcp import PcpError
+from fbpcp.error.pcp import ThrottlingError
 
 
 class TestMapAwsError(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestMapAwsError(unittest.TestCase):
         )
         err = map_aws_error(err)
 
-        self.assertIsInstance(err, PcsError)
+        self.assertIsInstance(err, PcpError)
 
     def test_throttling_error(self):
         err = ClientError(

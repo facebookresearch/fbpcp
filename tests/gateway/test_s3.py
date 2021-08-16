@@ -7,7 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from fbpcs.gateway.s3 import S3Gateway
+from fbpcp.gateway.s3 import S3Gateway
 
 
 class TestS3Gateway(unittest.TestCase):

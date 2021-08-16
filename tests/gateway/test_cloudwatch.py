@@ -7,8 +7,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from fbpcs.entity.log_event import LogEvent
-from fbpcs.gateway.cloudwatch import CloudWatchGateway
+from fbpcp.entity.log_event import LogEvent
+from fbpcp.gateway.cloudwatch import CloudWatchGateway
 
 
 class TestCloudWatchGateway(unittest.TestCase):

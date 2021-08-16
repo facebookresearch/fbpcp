@@ -8,9 +8,9 @@ import unittest
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock, patch, ANY
 
-from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from fbpcs.error.pcs import PcsError
-from fbpcs.service.onedocker import (
+from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.error.pcp import PcpError
+from fbpcp.service.onedocker import (
     OneDockerService,
     METRICS_START_CONTAINERS_COUNT,
     METRICS_START_CONTAINERS_DURATION,
@@ -18,7 +18,7 @@ from fbpcs.service.onedocker import (
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
-    @patch("fbpcs.service.container.ContainerService")
+    @patch("fbpcp.service.container.ContainerService")
     def setUp(self, MockContainerService):
         self.container_svc = MockContainerService()
         self.onedocker_svc = OneDockerService(self.container_svc, "task_def")
@@ -83,7 +83,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             "0cc43cdb-3bee-4407-9c26-c0e6ea5bee84",
             "6b809ef6-c67e-4467-921f-ee261c15a0a2",
         ]
-        expected_results = [None, PcsError("instance id not found")]
+        expected_results = [None, PcpError("instance id not found")]
         self.container_svc.cancel_instances = MagicMock(return_value=expected_results)
         self.assertEqual(
             self.onedocker_svc.stop_containers(containers), expected_results
@@ -92,12 +92,12 @@ class TestOneDockerServiceSync(unittest.TestCase):
 
 
 class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
-    @patch("fbpcs.service.container.ContainerService")
+    @patch("fbpcp.service.container.ContainerService")
     def setUp(self, MockContainerService):
         self.container_svc = MockContainerService()
         self.onedocker_svc = OneDockerService(self.container_svc, "task_def")
 
-    @patch("fbpcs.metrics.emitter.MetricsEmitter")
+    @patch("fbpcp.metrics.emitter.MetricsEmitter")
     async def test_metrics(self, MockMetricsEmitter):
         metrics = MockMetricsEmitter()
         one_docker = OneDockerService(container_svc=self.container_svc, metrics=metrics)

@@ -24,7 +24,7 @@ setup(
     author="Facebook",
     author_email="researchtool-help@fb.com",
     # TODO refactor this once repo renaming is done
-    url="https://github.com/facebookresearch/FBPCS",
+    url="https://github.com/facebookresearch/fbpcp",
     install_requires=install_requires,
     packages=find_packages(),
     long_description_content_type="text/markdown",

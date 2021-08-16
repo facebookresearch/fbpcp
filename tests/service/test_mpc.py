@@ -7,9 +7,9 @@
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from fbpcs.entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from fbpcs.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
-from fbpcs.service.mpc import MPCService
+from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcp.service.mpc import MPCService
 
 
 TEST_INSTANCE_ID = "123"
@@ -38,12 +38,12 @@ GAME_ARGS = [
 
 class TestMPCService(unittest.TestCase):
     def setUp(self):
-        cspatcher = patch("fbpcs.service.container_aws.AWSContainerService")
-        sspatcher = patch("fbpcs.service.storage_s3.S3StorageService")
+        cspatcher = patch("fbpcp.service.container_aws.AWSContainerService")
+        sspatcher = patch("fbpcp.service.storage_s3.S3StorageService")
         irpatcher = patch(
-            "fbpcs.repository.mpc_instance_local.LocalMPCInstanceRepository"
+            "fbpcp.repository.mpc_instance_local.LocalMPCInstanceRepository"
         )
-        gspatcher = patch("fbpcs.service.mpc_game.MPCGameService")
+        gspatcher = patch("fbpcp.service.mpc_game.MPCGameService")
         container_svc = cspatcher.start()
         storage_svc = sspatcher.start()
         instance_repository = irpatcher.start()

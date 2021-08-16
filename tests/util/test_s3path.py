@@ -6,7 +6,7 @@
 
 import unittest
 
-from fbpcs.util.s3path import S3Path
+from fbpcp.util.s3path import S3Path
 
 
 class TestS3Path(unittest.TestCase):

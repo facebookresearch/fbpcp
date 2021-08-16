@@ -28,7 +28,7 @@ RUN ["bash", "install_emp.sh"]
 CMD ["/bin/bash"]
 
 # installing fbpcs
-RUN python3.8 -m pip install 'git+https://github.com/facebookresearch/FBPCS.git'
+RUN python3.8 -m pip install 'git+https://github.com/facebookresearch/fbpcp.git'
 
 # installing pip requirements
 RUN mkdir -p /root/src/

@@ -9,7 +9,7 @@
 
 ## Steps
 1. Clone the github repository
-  * `git clone https://github.com/facebookresearch/FBPCS.git`
+  * `git clone https://github.com/facebookresearch/fbpcp.git`
 2. Change directory to onedocker
   * `cd FBPCS/onedocker`
 3. Build docker image

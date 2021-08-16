@@ -7,9 +7,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from fbpcs.entity.subnet import Subnet
-from fbpcs.entity.vpc_instance import Vpc, VpcState
-from fbpcs.gateway.ec2 import EC2Gateway
+from fbpcp.entity.subnet import Subnet
+from fbpcp.entity.vpc_instance import Vpc, VpcState
+from fbpcp.gateway.ec2 import EC2Gateway
 
 TEST_VPC_ID = "test-vpc-id"
 TEST_ACCESS_KEY_ID = "test-access-key-id"

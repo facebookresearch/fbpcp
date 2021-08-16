@@ -8,9 +8,9 @@ import unittest
 import uuid
 from unittest.mock import MagicMock
 
-from fbpcs.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
-from fbpcs.repository.instance_s3 import S3InstanceRepository
-from fbpcs.service.storage_s3 import S3StorageService
+from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcp.repository.instance_s3 import S3InstanceRepository
+from fbpcp.service.storage_s3 import S3StorageService
 
 
 class TestS3InstanceRepository(unittest.TestCase):

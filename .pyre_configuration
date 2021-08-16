@@ -16,11 +16,11 @@
       "site-package": "pyyaml"
     },
     {
-      "site-package": "fbpcs"
+      "site-package": "fbpcp"
     }
   ],
   "source_directories": [
-    "fbpcs"
+    "fbpcp"
   ],
   "version": "0.0.101612872667"
 }

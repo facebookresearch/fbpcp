@@ -5,14 +5,19 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
+from decimal import Decimal
 
-from fbpcs.entity.cluster_instance import ClusterStatus, Cluster
-from fbpcs.entity.container_instance import ContainerInstanceStatus, ContainerInstance
-from fbpcs.entity.subnet import Subnet
-from fbpcs.mapper.aws import (
+from fbpcp.cloud.region import RegionName
+from fbpcp.cloud.service import ServiceName
+from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
+from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
+from fbpcp.entity.container_instance import ContainerInstanceStatus, ContainerInstance
+from fbpcp.entity.subnet import Subnet
+from fbpcp.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
     map_ec2subnet_to_subnet,
+    map_cecost_to_cloud_cost,
 )
 
 
@@ -195,3 +200,48 @@ class TestAWSMapper(unittest.TestCase):
         )
 
         self.assertEqual(map_ec2subnet_to_subnet(ec2_client_response), expected_subnet)
+
+    def test_map_cecost_to_cloud_cost(self):
+        test_region = RegionName.AWS_US_EAST_1
+        test_service = ServiceName.AWS_MACIE
+        test_amount_1 = "0.0049312"
+        test_amount_2 = "0.051"
+        test_amount_expected = Decimal(test_amount_1) + Decimal(test_amount_2)
+        ce_client_response = [
+            {
+                "TimePeriod": {"Start": "2021-08-01", "End": "2021-08-02"},
+                "Groups": [
+                    {
+                        "Keys": [test_region, test_service],
+                        "Metrics": {
+                            "UnblendedCost": {"Amount": test_amount_1, "Unit": "USD"}
+                        },
+                    },
+                ],
+            },
+            {
+                "TimePeriod": {"Start": "2021-08-02", "End": "2021-08-03"},
+                "Groups": [
+                    {
+                        "Keys": [test_region, test_service],
+                        "Metrics": {
+                            "UnblendedCost": {"Amount": test_amount_2, "Unit": "USD"}
+                        },
+                    },
+                ],
+            },
+        ]
+        expected_cloud_cost = CloudCost(
+            total_cost_amount=test_amount_expected,
+            details=[
+                CloudCostItem(
+                    region=test_region,
+                    service=test_service,
+                    cost_amount=test_amount_expected,
+                )
+            ],
+        )
+        self.assertEqual(
+            map_cecost_to_cloud_cost(ce_client_response),
+            expected_cloud_cost,
+        )

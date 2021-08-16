@@ -6,10 +6,10 @@
 
 import unittest
 
-from fbpcs.util.reflect import get_class
-from fbpcs.util.s3path import S3Path
+from fbpcp.util.reflect import get_class
+from fbpcp.util.s3path import S3Path
 
-TEST_CLASS_PATH = "fbpcs.util.s3path.S3Path"
+TEST_CLASS_PATH = "fbpcp.util.s3path.S3Path"
 
 
 class TestReflect(unittest.TestCase):

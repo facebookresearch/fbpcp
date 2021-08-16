@@ -8,7 +8,7 @@ import os
 import unittest
 from unittest.mock import call, MagicMock, patch
 
-from fbpcs.service.storage_s3 import S3StorageService
+from fbpcp.service.storage_s3 import S3StorageService
 
 
 class TestS3StorageService(unittest.TestCase):
@@ -41,7 +41,7 @@ class TestS3StorageService(unittest.TestCase):
         "test_folder/baz/b",
     ]
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_local_to_s3(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
@@ -58,7 +58,7 @@ class TestS3StorageService(unittest.TestCase):
                 ValueError, service.copy, self.LOCAL_FOLDER, self.S3_FOLDER, False
             )
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_local_dir_to_s3_recursive_true(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
@@ -81,7 +81,7 @@ class TestS3StorageService(unittest.TestCase):
                     any_order=True,
                 )
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_s3_to_local(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
@@ -97,7 +97,7 @@ class TestS3StorageService(unittest.TestCase):
             ValueError, service.copy, self.S3_FOLDER, self.LOCAL_FOLDER, False
         )
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_s3_dir_to_local_source_does_not_exist(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
@@ -107,7 +107,7 @@ class TestS3StorageService(unittest.TestCase):
         )
 
     @patch("os.makedirs")
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_s3_dir_to_local_ok(self, MockS3Gateway, os_makedirs):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
@@ -133,13 +133,13 @@ class TestS3StorageService(unittest.TestCase):
             any_order=True,
         )
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_local_to_local(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
         self.assertRaises(ValueError, service.copy, self.LOCAL_FILE, self.LOCAL_FILE)
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_s3_to_s3(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
@@ -160,7 +160,7 @@ class TestS3StorageService(unittest.TestCase):
             ValueError, service.copy, self.S3_FOLDER, self.S3_FOLDER, True
         )
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_s3_dir_to_s3_source_does_not_exist(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
@@ -170,7 +170,7 @@ class TestS3StorageService(unittest.TestCase):
         )
 
     @patch("os.makedirs")
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_copy_s3_dir_to_s3_ok(self, MockS3Gateway, os_makedirs):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
@@ -197,14 +197,14 @@ class TestS3StorageService(unittest.TestCase):
             any_order=True,
         )
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_delete_s3(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
         service.s3_gateway = MockS3Gateway()
         service.delete(self.S3_FILE)
         service.s3_gateway.delete_object.assert_called_with("bucket", "test_file")
 
-    @patch("fbpcs.gateway.s3.S3Gateway")
+    @patch("fbpcp.gateway.s3.S3Gateway")
     def test_file_exists(self, MockS3Gateway):
         service = S3StorageService("us-west-1")
 

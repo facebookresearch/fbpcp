@@ -7,9 +7,9 @@
 import unittest
 
 from botocore.exceptions import ClientError
-from fbpcs.decorator.error_handler import error_handler
-from fbpcs.error.pcs import PcsError
-from fbpcs.error.pcs import ThrottlingError
+from fbpcp.decorator.error_handler import error_handler
+from fbpcp.error.pcp import PcpError
+from fbpcp.error.pcp import ThrottlingError
 
 
 class TestErrorHandler(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestErrorHandler(unittest.TestCase):
         def foo():
             raise ValueError("just a test")
 
-        self.assertRaises(PcsError, foo)
+        self.assertRaises(PcpError, foo)
 
     def test_throttling_error(self):
         @error_handler
@@ -46,11 +46,11 @@ class TestErrorHandler(unittest.TestCase):
             "error_type1": "error_msg1",
             "error_type2": "error_msg2",
         }
-        self.assertRaises(PcsError, foo, error_msgs)
+        self.assertRaises(PcpError, foo, error_msgs)
 
     def test_wrapped_function_kwargs(self):
         @error_handler
         def foo(*args):
             raise ValueError("just a test")
 
-        self.assertRaises(PcsError, foo, "error1", "error2")
+        self.assertRaises(PcpError, foo, "error1", "error2")

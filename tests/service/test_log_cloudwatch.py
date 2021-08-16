@@ -7,7 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from fbpcs.service.log_cloudwatch import CloudWatchLogService
+from fbpcp.service.log_cloudwatch import CloudWatchLogService
 
 REGION = "us-west-1"
 LOG_GROUP = "test-group-name"
@@ -15,7 +15,7 @@ LOG_PATH = "test-log-path"
 
 
 class TestCloudWatchLogService(unittest.TestCase):
-    @patch("fbpcs.gateway.cloudwatch.CloudWatchGateway")
+    @patch("fbpcp.gateway.cloudwatch.CloudWatchGateway")
     def test_fetch(self, MockCloudWatchGateway):
         log_service = CloudWatchLogService(LOG_GROUP, REGION)
         mocked_log = {"test-events": [{"test-event-name": "test-event-data"}]}

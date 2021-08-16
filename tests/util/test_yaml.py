@@ -8,7 +8,7 @@ import json
 import unittest
 from unittest.mock import patch, mock_open
 
-from fbpcs.util.yaml import load, dump
+from fbpcp.util.yaml import load, dump
 
 TEST_FILENAME = "TEST_FILE"
 TEST_DICT = {

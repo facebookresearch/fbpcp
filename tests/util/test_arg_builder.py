@@ -6,7 +6,7 @@
 
 import unittest
 
-from fbpcs.util.arg_builder import build_cmd_args
+from fbpcp.util.arg_builder import build_cmd_args
 
 
 class TestArgBuilder(unittest.TestCase):

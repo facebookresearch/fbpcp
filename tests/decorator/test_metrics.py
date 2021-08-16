@@ -8,8 +8,8 @@ import unittest
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch, ANY
 
-from fbpcs.decorator.metrics import request_counter, duration_time, error_counter
-from fbpcs.metrics.getter import MetricsGetter
+from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
+from fbpcp.metrics.getter import MetricsGetter
 
 METRICS_NAME = "test_metrics"
 
@@ -44,7 +44,7 @@ class TestMetrics(MetricsGetter):
 
 
 class TestMetricsDecoratorSync(unittest.TestCase):
-    @patch("fbpcs.metrics.emitter.MetricsEmitter")
+    @patch("fbpcp.metrics.emitter.MetricsEmitter")
     def test_sync(self, MockMetricsEmitter):
         metrics = MockMetricsEmitter()
         test_metrics = TestMetrics(metrics)
@@ -57,7 +57,7 @@ class TestMetricsDecoratorSync(unittest.TestCase):
 
 
 class TestMetricsDecoratorAsync(IsolatedAsyncioTestCase):
-    @patch("fbpcs.metrics.emitter.MetricsEmitter")
+    @patch("fbpcp.metrics.emitter.MetricsEmitter")
     async def test_async(self, MockMetricsEmitter):
         metrics = MockMetricsEmitter()
         test_metrics = TestMetrics(metrics)

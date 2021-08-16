@@ -6,7 +6,7 @@
 
 import unittest
 
-from fbpcs.util.typing import checked_cast
+from fbpcp.util.typing import checked_cast
 
 TEST_STR = "test"
 TEST_NUM = 123
