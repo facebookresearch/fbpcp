@@ -8,14 +8,14 @@ import unittest
 import uuid
 from unittest.mock import MagicMock
 
-from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty
 from fbpcp.repository.mpc_instance_s3 import S3MPCInstanceRepository
 from fbpcp.service.storage_s3 import S3StorageService
 
 TEST_BASE_DIR = "./"
 TEST_INSTANCE_ID = str(uuid.uuid4())
 TEST_GAME_NAME = "lift"
-TEST_MPC_ROLE = MPCRole.SERVER
+TEST_MPC_PARTY = MPCParty.SERVER
 TEST_NUM_WORKERS = 1
 TEST_SERVER_IPS = ["192.0.2.0"]
 TEST_GAME_ARGS = [{}]
@@ -30,7 +30,7 @@ class TestS3InstanceRepository(unittest.TestCase):
         self.mpc_instance = MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
-            mpc_role=TEST_MPC_ROLE,
+            mpc_party=TEST_MPC_PARTY,
             num_workers=TEST_NUM_WORKERS,
             server_ips=TEST_SERVER_IPS,
             status=MPCInstanceStatus.CREATED,

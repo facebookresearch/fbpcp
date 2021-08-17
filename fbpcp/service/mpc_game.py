@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, Optional, Tuple
 
 from fbpcp.entity.mpc_game_config import MPCGameConfig
-from fbpcp.entity.mpc_instance import MPCRole
+from fbpcp.entity.mpc_instance import MPCParty
 from fbpcp.repository.mpc_game_repository import MPCGameRepository
 from fbpcp.util.arg_builder import build_cmd_args
 
@@ -27,7 +27,7 @@ class MPCGameService:
     def build_onedocker_args(
         self,
         game_name: str,
-        mpc_role: MPCRole,
+        mpc_party: MPCParty,
         server_ip: Optional[str] = None,
         port: Optional[int] = None,
         **kwargs: object,
@@ -37,7 +37,7 @@ class MPCGameService:
             mpc_game_config.onedocker_package_name,
             self._build_cmd(
                 mpc_game_config=mpc_game_config,
-                mpc_role=mpc_role,
+                mpc_party=mpc_party,
                 server_ip=server_ip,
                 port=port,
                 **kwargs,
@@ -48,14 +48,14 @@ class MPCGameService:
     def _build_cmd(
         self,
         mpc_game_config: MPCGameConfig,
-        mpc_role: MPCRole,
+        mpc_party: MPCParty,
         server_ip: Optional[str] = None,
         port: Optional[int] = None,
         **kwargs: object,
     ) -> str:
         args = self._prepare_args(
             mpc_game_config=mpc_game_config,
-            mpc_role=mpc_role,
+            mpc_party=mpc_party,
             server_ip=server_ip,
             port=port,
             **kwargs,
@@ -65,7 +65,7 @@ class MPCGameService:
     def _prepare_args(
         self,
         mpc_game_config: MPCGameConfig,
-        mpc_role: MPCRole,
+        mpc_party: MPCParty,
         server_ip: Optional[str] = None,
         port: Optional[int] = None,
         **kwargs: object,
@@ -73,14 +73,9 @@ class MPCGameService:
         all_arguments: Dict[str, Any] = {}
 
         # push MPC required arguments to dict all_arguments
-        is_lift_game = (
-            mpc_game_config.game_name == LIFT_AGGREGATOR_GAME_NAME
-            or mpc_game_config.game_name == LIFT_GAME_NAME
-        )  # TODO: T88044929 remove "role" and only support "party" for lift games
-        role_or_party_key = "role" if is_lift_game else "party"
-        all_arguments[role_or_party_key] = 1 if mpc_role == MPCRole.SERVER else 2
+        all_arguments["party"] = 1 if mpc_party == MPCParty.SERVER else 2
 
-        if mpc_role == MPCRole.CLIENT:
+        if mpc_party == MPCParty.CLIENT:
             if server_ip is None:
                 raise ValueError("Client must provide a server ip address.")
             all_arguments["server_ip"] = server_ip
