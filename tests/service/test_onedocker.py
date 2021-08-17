@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-from unittest import IsolatedAsyncioTestCase
+from unittest import mock, IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock, patch, ANY
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
@@ -119,3 +119,91 @@ class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
         metrics.count.assert_any_call(ANY, 1)
         metrics.count.assert_any_call(METRICS_START_CONTAINERS_COUNT, 1)
         metrics.gauge.assert_called_with(METRICS_START_CONTAINERS_DURATION, ANY)
+
+    @mock.patch("fbpcp.service.onedocker.OneDockerService.get_containers")
+    async def test_wait_for_containers_success(self, get_containers):
+        container_1_start = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id_1",
+            "192.0.2.0",
+            ContainerInstanceStatus.STARTED,
+        )
+        container_2_start = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id_2",
+            "192.0.2.1",
+            ContainerInstanceStatus.STARTED,
+        )
+
+        container_1_complete = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id_1",
+            "192.0.2.0",
+            ContainerInstanceStatus.COMPLETED,
+        )
+
+        container_2_complete = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id_2",
+            "192.0.2.1",
+            ContainerInstanceStatus.COMPLETED,
+        )
+
+        get_containers.side_effect = [
+            [container_1_start],
+            [container_1_complete],
+            [container_2_complete],
+        ]
+
+        containers = [
+            container_1_start,
+            container_2_start,
+        ]
+
+        wait_for_true = await self.onedocker_svc.wait_for_containers_async(
+            containers, poll=0
+        )
+
+        self.assertTrue(wait_for_true)
+        self.assertEqual(containers[0], container_1_complete)
+        self.assertEqual(containers[1], container_2_complete)
+
+    @mock.patch("fbpcp.service.onedocker.OneDockerService.get_containers")
+    async def test_wait_for_containers_fail(self, get_containers):
+        container_1_start = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id_1",
+            "192.0.2.0",
+            ContainerInstanceStatus.STARTED,
+        )
+        container_2_start = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id_2",
+            "192.0.2.1",
+            ContainerInstanceStatus.STARTED,
+        )
+
+        container_1_complete = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id_1",
+            "192.0.2.0",
+            ContainerInstanceStatus.COMPLETED,
+        )
+
+        container_2_fail = ContainerInstance(
+            "arn:aws:ecs:region:account_id:task/container_id_2",
+            "192.0.2.1",
+            ContainerInstanceStatus.FAILED,
+        )
+
+        get_containers.side_effect = [
+            [container_1_start],
+            [container_1_complete],
+            [container_2_fail],
+        ]
+
+        containers = [
+            container_1_start,
+            container_2_start,
+        ]
+
+        wait_for_false = await self.onedocker_svc.wait_for_containers_async(
+            containers, poll=0
+        )
+
+        self.assertFalse(wait_for_false)
+        self.assertEqual(containers[0], container_1_complete)
+        self.assertEqual(containers[1], container_2_fail)

@@ -11,7 +11,7 @@ import logging
 from typing import Dict, List, Optional, Final
 
 from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
-from fbpcp.entity.container_instance import ContainerInstance
+from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter
@@ -30,6 +30,8 @@ METRICS_CONTAINER_COUNT = "onedocker.container.count"
 METRICS_START_CONTAINERS_COUNT = "onedocker.start_containers.count"
 METRICS_START_CONTAINERS_ERROR_COUNT = "onedocker.start_containers.error.count"
 METRICS_START_CONTAINERS_DURATION = "onedocker.start_containers.duration"
+
+DEFAULT_WAIT_FOR_CONTAINER_POLL = 5
 
 
 class OneDockerService(MetricsGetter):
@@ -158,6 +160,31 @@ class OneDockerService(MetricsGetter):
 
     def get_containers(self, instance_ids: List[str]) -> List[ContainerInstance]:
         return self.container_svc.get_instances(instance_ids)
+
+    async def wait_for_containers_async(
+        self,
+        containers: List[ContainerInstance],
+        poll: int = DEFAULT_WAIT_FOR_CONTAINER_POLL,
+    ) -> bool:
+        end_states = {
+            ContainerInstanceStatus.COMPLETED,
+            ContainerInstanceStatus.FAILED,
+        }
+        for i, container in enumerate(containers):
+            instance_id = container.instance_id
+            self.logger.info(f"Waiting for container {instance_id} to complete")
+            status = container.status
+            while status not in end_states:
+                await asyncio.sleep(poll)
+                container = self.get_containers([instance_id])[0]
+                status = container.status
+                containers[i] = container
+            if status is not ContainerInstanceStatus.COMPLETED:
+                self.logger.warning(
+                    f"Container {instance_id} failed with status {status}"
+                )
+                return False
+        return True
 
     def _get_exe_name(self, package_name: str) -> str:
         return package_name.split("/")[1]
