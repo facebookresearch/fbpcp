@@ -19,3 +19,10 @@ Add optional task_definition member to OneDockerService and introduce task_defin
 
 ### Description of changes
 Deprecate container_version parameter for OneDockerService start_container functions
+
+## 0.4.0 -> 0.1.0
+### Types of changes
+* Breaking change
+
+### Description of changes
+To unblock GTM(Go To Market), we want to rename our project to fbpcp and re-release it to Github and Pypi, the original fbpcs will refer to [Facebook Private Computation Solutions](https://github.com/facebookresearch/fbpcs)
