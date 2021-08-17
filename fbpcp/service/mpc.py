@@ -11,7 +11,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty, MPCRole
+from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty
 from fbpcp.repository.mpc_instance import MPCInstanceRepository
 from fbpcp.service.container import ContainerService
 from fbpcp.service.mpc_game import MPCGameService
@@ -107,20 +107,17 @@ class MPCService:
         self,
         instance_id: str,
         game_name: str,
+        mpc_party: MPCParty,
         num_workers: int,
-        mpc_role: Optional[MPCRole] = None,
-        mpc_party: Optional[MPCParty] = None,
         server_ips: Optional[List[str]] = None,
         game_args: Optional[List[Dict[str, Any]]] = None,
     ) -> MPCInstance:
         self.logger.info(f"Creating MPC instance: {instance_id}")
 
-        # TODO: T96692057 will delete mpc_role and make mpc_party required
         instance = MPCInstance.create_instance(
             instance_id=instance_id,
             game_name=game_name,
             mpc_party=mpc_party,
-            mpc_role=mpc_role,
             num_workers=num_workers,
             server_ips=server_ips,
             status=MPCInstanceStatus.CREATED,

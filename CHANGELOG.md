@@ -33,3 +33,10 @@ To unblock GTM(Go To Market), we want to rename our project to fbpcp and re-rele
 
 ### Description of changes
 Pass in party instead of role to lift compute stage
+
+## 0.1.1 -> 0.1.2
+### Types of changes
+*  Breaking change
+
+### Description of changes
+Deprecate MPCRole

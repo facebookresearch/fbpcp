@@ -14,13 +14,6 @@ from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.entity.instance_base import InstanceBase
 
 
-# TODO: T96692057 will delete MPCRole, keeping for now so that code doesn't break
-# while fbpmp codebase expects it to exist
-class MPCRole(Enum):
-    SERVER = "SERVER"
-    CLIENT = "CLIENT"
-
-
 class MPCParty(Enum):
     SERVER = "SERVER"
     CLIENT = "CLIENT"
@@ -51,26 +44,17 @@ class MPCInstance(InstanceBase):
         cls,
         instance_id: str,
         game_name: str,
+        mpc_party: MPCParty,
         num_workers: int,
-        mpc_role: Optional[MPCRole] = None,
-        mpc_party: Optional[MPCParty] = None,
         server_ips: Optional[List[str]] = None,
         containers: Optional[List[ContainerInstance]] = None,
         status: MPCInstanceStatus = MPCInstanceStatus.UNKNOWN,
         game_args: Optional[List[Dict[str, Any]]] = None,
     ) -> "MPCInstance":
-        # TODO: T96692057 will delete mpc_role and make mpc_party required
-        if mpc_party:
-            party = mpc_party
-        elif mpc_role:
-            party = MPCParty.SERVER if mpc_role is MPCRole.SERVER else MPCParty.CLIENT
-        else:
-            raise ValueError("mpc_role or mpc_party should be specified")
-
         return cls(
             instance_id,
             game_name,
-            party,
+            mpc_party,
             num_workers,
             server_ips,
             containers or [],
