@@ -9,13 +9,13 @@ import unittest
 from pathlib import Path
 from unittest.mock import mock_open, MagicMock, patch
 
-from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty
 from fbpcp.repository.instance_local import LocalInstanceRepository
 
 TEST_BASE_DIR = Path("./")
 TEST_INSTANCE_ID = "test-instance-id"
 TEST_GAME_NAME = "lift"
-TEST_MPC_ROLE = MPCRole.SERVER
+TEST_MPC_PARTY = MPCParty.SERVER
 TEST_NUM_WORKERS = 1
 TEST_SERVER_IPS = ["192.0.2.0"]
 TEST_GAME_ARGS = [{}]
@@ -28,7 +28,7 @@ class TestLocalInstanceRepository(unittest.TestCase):
         self.mpc_instance = MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
-            mpc_role=TEST_MPC_ROLE,
+            mpc_party=TEST_MPC_PARTY,
             num_workers=TEST_NUM_WORKERS,
             server_ips=TEST_SERVER_IPS,
             status=MPCInstanceStatus.CREATED,

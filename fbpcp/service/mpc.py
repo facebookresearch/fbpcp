@@ -11,7 +11,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty, MPCRole
 from fbpcp.repository.mpc_instance import MPCInstanceRepository
 from fbpcp.service.container import ContainerService
 from fbpcp.service.mpc_game import MPCGameService
@@ -107,16 +107,19 @@ class MPCService:
         self,
         instance_id: str,
         game_name: str,
-        mpc_role: MPCRole,
         num_workers: int,
+        mpc_role: Optional[MPCRole] = None,
+        mpc_party: Optional[MPCParty] = None,
         server_ips: Optional[List[str]] = None,
         game_args: Optional[List[Dict[str, Any]]] = None,
     ) -> MPCInstance:
         self.logger.info(f"Creating MPC instance: {instance_id}")
 
+        # TODO: T96692057 will delete mpc_role and make mpc_party required
         instance = MPCInstance.create_instance(
             instance_id=instance_id,
             game_name=game_name,
+            mpc_party=mpc_party,
             mpc_role=mpc_role,
             num_workers=num_workers,
             server_ips=server_ips,
@@ -156,7 +159,7 @@ class MPCService:
         instance = self.instance_repository.read(instance_id)
         self.logger.info(f"Starting MPC instance: {instance_id}")
 
-        if instance.mpc_role is MPCRole.CLIENT and not server_ips:
+        if instance.mpc_party is MPCParty.CLIENT and not server_ips:
             raise ValueError("Missing server_ips")
 
         # spin up containers
@@ -164,7 +167,7 @@ class MPCService:
         game_args = instance.game_args
         instance.containers = await self._spin_up_containers_onedocker(
             instance.game_name,
-            instance.mpc_role,
+            instance.mpc_party,
             instance.num_workers,
             game_args,
             server_ips,
@@ -177,7 +180,7 @@ class MPCService:
                 f"Instance {instance_id} has {len(instance.containers)} containers spun up, but expecting {instance.num_workers} containers!"
             )
 
-        if instance.mpc_role is MPCRole.SERVER:
+        if instance.mpc_party is MPCParty.SERVER:
             ip_addresses = [
                 checked_cast(str, instance.ip_address)
                 for instance in instance.containers
@@ -240,7 +243,7 @@ class MPCService:
     async def _spin_up_containers_onedocker(
         self,
         game_name: str,
-        mpc_role: MPCRole,
+        mpc_party: MPCParty,
         num_containers: int,
         game_args: Optional[List[Dict[str, Any]]] = None,
         ip_addresses: Optional[List[str]] = None,
@@ -262,7 +265,7 @@ class MPCService:
             cmd_tuple_list.append(
                 self.mpc_game_svc.build_onedocker_args(
                     game_name=game_name,
-                    mpc_role=mpc_role,
+                    mpc_party=mpc_party,
                     server_ip=server_ip,
                     **game_arg,
                 )

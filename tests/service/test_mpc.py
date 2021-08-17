@@ -8,13 +8,13 @@ import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCRole
+from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty
 from fbpcp.service.mpc import MPCService
 
 
 TEST_INSTANCE_ID = "123"
 TEST_GAME_NAME = "lift"
-TEST_MPC_ROLE = MPCRole.SERVER
+TEST_MPC_ROLE = MPCParty.SERVER
 TEST_NUM_WORKERS = 1
 TEST_SERVER_IPS = ["192.0.2.0", "192.0.2.1"]
 TEST_INPUT_ARGS = "test_input_file"
@@ -63,7 +63,7 @@ class TestMPCService(unittest.TestCase):
         return MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
-            mpc_role=TEST_MPC_ROLE,
+            mpc_party=TEST_MPC_ROLE,
             num_workers=TEST_NUM_WORKERS,
             server_ips=TEST_SERVER_IPS,
             status=MPCInstanceStatus.CREATED,
@@ -75,7 +75,7 @@ class TestMPCService(unittest.TestCase):
         return MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
-            mpc_role=TEST_MPC_ROLE,
+            mpc_party=TEST_MPC_ROLE,
             num_workers=TEST_NUM_WORKERS,
             status=MPCInstanceStatus.CREATED,
             server_ips=TEST_SERVER_IPS,
@@ -87,7 +87,7 @@ class TestMPCService(unittest.TestCase):
         return MPCInstance.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
-            mpc_role=MPCRole.CLIENT,
+            mpc_party=MPCParty.CLIENT,
             num_workers=TEST_NUM_WORKERS,
             server_ips=TEST_SERVER_IPS,
             status=MPCInstanceStatus.CREATED,
@@ -101,7 +101,7 @@ class TestMPCService(unittest.TestCase):
         ):
             await self.mpc_service._spin_up_containers_onedocker(
                 game_name=TEST_GAME_NAME,
-                mpc_role=MPCRole.SERVER,
+                mpc_party=MPCParty.SERVER,
                 num_containers=TEST_NUM_WORKERS,
                 game_args=[],
             )
@@ -112,7 +112,7 @@ class TestMPCService(unittest.TestCase):
         ):
             await self.mpc_service._spin_up_containers_onedocker(
                 game_name=TEST_GAME_NAME,
-                mpc_role=MPCRole.CLIENT,
+                mpc_party=MPCParty.CLIENT,
                 num_containers=TEST_NUM_WORKERS,
                 ip_addresses=TEST_SERVER_IPS,
             )
@@ -121,7 +121,7 @@ class TestMPCService(unittest.TestCase):
         self.mpc_service.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
-            mpc_role=TEST_MPC_ROLE,
+            mpc_party=TEST_MPC_ROLE,
             num_workers=TEST_NUM_WORKERS,
             server_ips=TEST_SERVER_IPS,
             game_args=GAME_ARGS,
@@ -136,7 +136,7 @@ class TestMPCService(unittest.TestCase):
         self.mpc_service.create_instance(
             instance_id=TEST_INSTANCE_ID,
             game_name=TEST_GAME_NAME,
-            mpc_role=TEST_MPC_ROLE,
+            mpc_party=TEST_MPC_ROLE,
             num_workers=TEST_NUM_WORKERS,
             server_ips=TEST_SERVER_IPS,
             game_args=GAME_ARGS,

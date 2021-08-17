@@ -10,7 +10,7 @@ from unittest.mock import Mock, MagicMock
 
 from fbpcp.entity.mpc_game_config import MPCGameArgument
 from fbpcp.entity.mpc_game_config import MPCGameConfig
-from fbpcp.entity.mpc_instance import MPCRole
+from fbpcp.entity.mpc_instance import MPCParty
 from fbpcp.service.mpc_game import MPCGameService
 
 INPUT_DIRECTORY = "input_directory"
@@ -58,7 +58,7 @@ class TestMPCGameService(unittest.TestCase):
         self.assertEqual(
             self.mpc_game_svc._prepare_args(
                 mpc_game_config=self.mpc_game_config,
-                mpc_role=MPCRole.CLIENT,
+                mpc_party=MPCParty.CLIENT,
                 server_ip="192.0.2.0",
                 port=12345,
                 input_filenames=INPUT_PATH_1,
@@ -83,7 +83,7 @@ class TestMPCGameService(unittest.TestCase):
         self.assertEqual(
             self.mpc_game_svc._prepare_args(
                 mpc_game_config=self.mpc_game_config,
-                mpc_role=MPCRole.SERVER,
+                mpc_party=MPCParty.SERVER,
                 input_filenames=INPUT_PATH_1,
                 input_directory=INPUT_DIRECTORY,
                 output_filenames=OUTPUT_PATH_1,
@@ -106,7 +106,7 @@ class TestMPCGameService(unittest.TestCase):
         ):
             self.mpc_game_svc._prepare_args(
                 mpc_game_config=self.mpc_game_config,
-                mpc_role=MPCRole.SERVER,
+                mpc_party=MPCParty.SERVER,
                 output_file=OUTPUT_PATH_1,
             )
 
@@ -114,7 +114,7 @@ class TestMPCGameService(unittest.TestCase):
         self.assertEqual(
             self.mpc_game_svc._build_cmd(
                 mpc_game_config=self.mpc_game_config,
-                mpc_role=MPCRole.CLIENT,
+                mpc_party=MPCParty.CLIENT,
                 server_ip="192.0.2.0",
                 port=12345,
                 input_filenames=INPUT_PATH_1,
@@ -167,7 +167,7 @@ class TestMPCGameService(unittest.TestCase):
             self.assertEqual(
                 self.mpc_game_svc.build_onedocker_args(
                     game_name="game",
-                    mpc_role=MPCRole.SERVER,
+                    mpc_party=MPCParty.SERVER,
                     **game_arg,
                 ),
                 expected_argument,
