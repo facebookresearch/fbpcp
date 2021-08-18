@@ -1,0 +1,17 @@
+onedocker-cli:
+  dependency:
+    StorageService:
+      class: classpath.classname #TODO: change this to actual class name that derived from abstract class: fbpcp.service.storage.StorageService
+      constructor:
+        attribute_name: value #TODO: change this to actual construction attribute name and value
+    ContainerService:
+      class: classpath.classname #TODO: change this to actual class name that derived from abstract class: fbpcp.service.container.ContainerService
+      constructor:
+        attribute_name: value #TODO: change this to actual construction attribute name and value
+    LogService:
+      class: classpath.classname #TODO: change this to actual class name that derived from abstract class: fbpcp.service.log.LogService
+      constructor:
+        attribute_name: value #TODO: change this to actual construction attribute name and value
+  setting:
+    repository_path: repositorypath/ #TODO: change this to the path to your repository, example: https://PATH.s3.REGION.amazonaws.com/
+    task_definition: taskdefinition #TODO: change this to your task_definition
