@@ -40,3 +40,10 @@ Pass in party instead of role to lift compute stage
 
 ### Description of changes
 Deprecate MPCRole
+
+## 0.1.2 -> 0.1.3
+### Types of changes
+*  New feature (non-breaking change which adds functionality)
+
+### Description of changes
+Add onodocker_cli that can be used to upload/show onedocker repository package, as long as test/stop containers.
