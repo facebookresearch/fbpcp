@@ -40,7 +40,7 @@ class TestMPCService(unittest.TestCase):
     def setUp(self):
         cspatcher = patch("fbpcp.service.container.ContainerService")
         sspatcher = patch("fbpcp.service.storage.StorageService")
-        irpatcher = patch("fbpcp.repository.mpc_instance_local.MPCInstanceRepository")
+        irpatcher = patch("fbpcp.repository.mpc_instance.MPCInstanceRepository")
         gspatcher = patch("fbpcp.service.mpc_game.MPCGameService")
         container_svc = cspatcher.start()
         storage_svc = sspatcher.start()
