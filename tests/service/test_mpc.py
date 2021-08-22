@@ -58,38 +58,41 @@ class TestMPCService(unittest.TestCase):
 
     @staticmethod
     def _get_sample_mpcinstance():
-        return MPCInstance.create_instance(
-            instance_id=TEST_INSTANCE_ID,
-            game_name=TEST_GAME_NAME,
-            mpc_party=TEST_MPC_ROLE,
-            num_workers=TEST_NUM_WORKERS,
-            server_ips=TEST_SERVER_IPS,
-            status=MPCInstanceStatus.CREATED,
-            game_args=GAME_ARGS,
+        return MPCInstance(
+            TEST_INSTANCE_ID,
+            TEST_GAME_NAME,
+            TEST_MPC_ROLE,
+            TEST_NUM_WORKERS,
+            TEST_SERVER_IPS,
+            [],
+            MPCInstanceStatus.CREATED,
+            GAME_ARGS,
         )
 
     @staticmethod
     def _get_sample_mpcinstance_with_game_args():
-        return MPCInstance.create_instance(
-            instance_id=TEST_INSTANCE_ID,
-            game_name=TEST_GAME_NAME,
-            mpc_party=TEST_MPC_ROLE,
-            num_workers=TEST_NUM_WORKERS,
-            status=MPCInstanceStatus.CREATED,
-            server_ips=TEST_SERVER_IPS,
-            game_args=GAME_ARGS,
+        return MPCInstance(
+            TEST_INSTANCE_ID,
+            TEST_GAME_NAME,
+            TEST_MPC_ROLE,
+            TEST_NUM_WORKERS,
+            TEST_SERVER_IPS,
+            [],
+            MPCInstanceStatus.CREATED,
+            GAME_ARGS,
         )
 
     @staticmethod
     def _get_sample_mpcinstance_client():
-        return MPCInstance.create_instance(
-            instance_id=TEST_INSTANCE_ID,
-            game_name=TEST_GAME_NAME,
-            mpc_party=MPCParty.CLIENT,
-            num_workers=TEST_NUM_WORKERS,
-            server_ips=TEST_SERVER_IPS,
-            status=MPCInstanceStatus.CREATED,
-            game_args=GAME_ARGS,
+        return MPCInstance(
+            TEST_INSTANCE_ID,
+            TEST_GAME_NAME,
+            MPCParty.CLIENT,
+            TEST_NUM_WORKERS,
+            TEST_SERVER_IPS,
+            [],
+            MPCInstanceStatus.CREATED,
+            GAME_ARGS,
         )
 
     async def test_spin_up_containers_onedocker_inconsistent_arguments(self):

@@ -114,14 +114,15 @@ class MPCService:
     ) -> MPCInstance:
         self.logger.info(f"Creating MPC instance: {instance_id}")
 
-        instance = MPCInstance.create_instance(
-            instance_id=instance_id,
-            game_name=game_name,
-            mpc_party=mpc_party,
-            num_workers=num_workers,
-            server_ips=server_ips,
-            status=MPCInstanceStatus.CREATED,
-            game_args=game_args,
+        instance = MPCInstance(
+            instance_id,
+            game_name,
+            mpc_party,
+            num_workers,
+            server_ips,
+            [],
+            MPCInstanceStatus.CREATED,
+            game_args,
         )
 
         self.instance_repository.create(instance)
