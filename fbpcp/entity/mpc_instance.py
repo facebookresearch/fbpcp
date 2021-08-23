@@ -11,7 +11,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.container_instance import ContainerInstance
-from fbpcp.entity.instance_base import InstanceBase
 
 
 class MPCParty(Enum):
@@ -29,7 +28,7 @@ class MPCInstanceStatus(Enum):
 
 
 @dataclass
-class MPCInstance(InstanceBase):
+class MPCInstance:
     instance_id: str
     game_name: str
     mpc_party: MPCParty
@@ -38,29 +37,6 @@ class MPCInstance(InstanceBase):
     containers: List[ContainerInstance]
     status: MPCInstanceStatus
     game_args: Optional[List[Dict[str, Any]]]
-
-    @classmethod
-    def create_instance(
-        cls,
-        instance_id: str,
-        game_name: str,
-        mpc_party: MPCParty,
-        num_workers: int,
-        server_ips: Optional[List[str]] = None,
-        containers: Optional[List[ContainerInstance]] = None,
-        status: MPCInstanceStatus = MPCInstanceStatus.UNKNOWN,
-        game_args: Optional[List[Dict[str, Any]]] = None,
-    ) -> "MPCInstance":
-        return cls(
-            instance_id,
-            game_name,
-            mpc_party,
-            num_workers,
-            server_ips,
-            containers or [],
-            status,
-            game_args,
-        )
 
     def get_instance_id(self) -> str:
         return self.instance_id
