@@ -136,6 +136,7 @@ class TestECSGateway(unittest.TestCase):
         self.gw.client.list_tasks.assert_called()
 
     def test_describe_clusers(self):
+        test_tasks = 100
         client_return_response = {
             "clusters": [
                 {
@@ -148,6 +149,8 @@ class TestECSGateway(unittest.TestCase):
                         },
                     ],
                     "status": "ACTIVE",
+                    "pendingTasksCount": test_tasks,
+                    "runningTasksCount": test_tasks,
                 }
             ]
         }
@@ -161,7 +164,14 @@ class TestECSGateway(unittest.TestCase):
         )
         tags = {self.TEST_CLUSTER_TAG_KEY: self.TEST_CLUSTER_TAG_VALUE}
         expected_clusters = [
-            Cluster(self.TEST_CLUSTER, "cluster_1", ClusterStatus.ACTIVE, tags)
+            Cluster(
+                self.TEST_CLUSTER,
+                "cluster_1",
+                test_tasks,
+                test_tasks,
+                ClusterStatus.ACTIVE,
+                tags,
+            )
         ]
         self.assertEqual(expected_clusters, clusters)
         self.gw.client.describe_clusters.assert_called()
