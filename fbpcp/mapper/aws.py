@@ -49,7 +49,14 @@ def map_esccluster_to_clusterinstance(cluster: Dict[str, Any]) -> Cluster:
         status = ClusterStatus.UNKNOWN
 
     tags = _convert_aws_tags_to_dict(cluster["tags"], "key", "value")
-    return Cluster(cluster["clusterArn"], cluster["clusterName"], status, tags)
+    return Cluster(
+        cluster_arn=cluster["clusterArn"],
+        cluster_name=cluster["clusterName"],
+        pending_tasks=cluster["pendingTasksCount"],
+        running_tasks=cluster["runningTasksCount"],
+        status=status,
+        tags=tags,
+    )
 
 
 def map_ec2vpc_to_vpcinstance(vpc: Dict[str, Any]) -> Vpc:

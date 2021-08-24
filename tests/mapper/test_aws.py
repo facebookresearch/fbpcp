@@ -111,12 +111,16 @@ class TestAWSMapper(unittest.TestCase):
         tag_key_2 = "tag-key-2"
         tag_value_1 = "tag-value-1"
         tag_value_2 = "tag-value-2"
+        running_tasks = 100
+        pending_tasks = 1
         ecs_cluster_response = {
             "clusters": [
                 {
                     "clusterName": self.TEST_CLUSTER_NAME,
                     "clusterArn": self.TEST_CLUSTER_ARN,
                     "status": "ACTIVE",
+                    "runningTasksCount": running_tasks,
+                    "pendingTasksCount": pending_tasks,
                     "tags": [
                         {
                             "key": tag_key_1,
@@ -132,6 +136,8 @@ class TestAWSMapper(unittest.TestCase):
                     "clusterName": self.TEST_CLUSTER_NAME,
                     "clusterArn": self.TEST_CLUSTER_ARN,
                     "status": "INACTIVE",
+                    "runningTasksCount": running_tasks,
+                    "pendingTasksCount": pending_tasks,
                     "tags": [
                         {
                             "key": tag_key_1,
@@ -143,6 +149,8 @@ class TestAWSMapper(unittest.TestCase):
                     "clusterName": self.TEST_CLUSTER_NAME,
                     "clusterArn": self.TEST_CLUSTER_ARN,
                     "status": "UNKNOWN",
+                    "runningTasksCount": running_tasks,
+                    "pendingTasksCount": pending_tasks,
                     "tags": [
                         {
                             "key": tag_key_1,
@@ -162,18 +170,24 @@ class TestAWSMapper(unittest.TestCase):
             Cluster(
                 self.TEST_CLUSTER_ARN,
                 self.TEST_CLUSTER_NAME,
+                pending_tasks,
+                running_tasks,
                 ClusterStatus.ACTIVE,
                 multi_tag_value_pair,
             ),
             Cluster(
                 self.TEST_CLUSTER_ARN,
                 self.TEST_CLUSTER_NAME,
+                pending_tasks,
+                running_tasks,
                 ClusterStatus.INACTIVE,
                 single_tag_value_pair,
             ),
             Cluster(
                 self.TEST_CLUSTER_ARN,
                 self.TEST_CLUSTER_NAME,
+                pending_tasks,
+                running_tasks,
                 ClusterStatus.UNKNOWN,
                 single_tag_value_pair,
             ),

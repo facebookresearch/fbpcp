@@ -24,5 +24,7 @@ class ClusterStatus(Enum):
 class Cluster:
     cluster_arn: str
     cluster_name: str
+    pending_tasks: int
+    running_tasks: int
     status: ClusterStatus = ClusterStatus.UNKNOWN
     tags: Dict[str, str] = field(default_factory=lambda: {})
