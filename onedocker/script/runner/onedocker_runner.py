@@ -28,7 +28,7 @@ import subprocess
 import sys
 from pathlib import Path
 from shlex import join, split
-from typing import Tuple, Any, Optional
+from typing import Any, Optional
 
 import psutil
 import schema
@@ -67,7 +67,7 @@ def _run_package(
         logger.info("Local repository, skip download ...")
 
     # grant execute permission to the downloaded executable file
-    _, exe_name = _parse_package_name(package_name)
+    exe_name = _parse_package_name(package_name)
 
     executable = f"{exe_path}{exe_name}"
     os.chmod(executable, 0o755)
@@ -111,8 +111,10 @@ def _download_executables(
     storage_svc.copy(exe_s3_path, exe_local_path)
 
 
-def _parse_package_name(package_name: str) -> Tuple[str, str]:
-    return package_name.split("/")[0], package_name.split("/")[1]
+def _parse_package_name(package_name: str) -> str:
+    # Some existing packages are like private_lift/lift, so we have to split it by slash
+    package = package_name.split("/")
+    return package[len(package) - 1]
 
 
 def _read_config(
