@@ -7,7 +7,6 @@
 # pyre-strict
 
 from decimal import Decimal
-from functools import reduce
 from typing import Any, Dict, List
 
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
@@ -15,6 +14,7 @@ from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc, VpcState
+from fbpcp.util.aws import convert_list_to_dict
 
 
 def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
@@ -48,7 +48,7 @@ def map_esccluster_to_clusterinstance(cluster: Dict[str, Any]) -> Cluster:
     else:
         status = ClusterStatus.UNKNOWN
 
-    tags = _convert_aws_tags_to_dict(cluster["tags"], "key", "value")
+    tags = convert_list_to_dict(cluster["tags"], "key", "value")
     return Cluster(
         cluster_arn=cluster["clusterArn"],
         cluster_name=cluster["clusterName"],
@@ -70,9 +70,7 @@ def map_ec2vpc_to_vpcinstance(vpc: Dict[str, Any]) -> Vpc:
 
     vpc_id = vpc["VpcId"]
     # some vpc instances don't have any tags
-    tags = (
-        _convert_aws_tags_to_dict(vpc["Tags"], "Key", "Value") if "Tags" in vpc else {}
-    )
+    tags = convert_list_to_dict(vpc["Tags"], "Key", "Value") if "Tags" in vpc else {}
 
     return Vpc(vpc_id, state, tags)
 
@@ -81,17 +79,9 @@ def map_ec2subnet_to_subnet(subnet: Dict[str, Any]) -> Subnet:
     availability_zone = subnet["AvailabilityZone"]
     subnet_id = subnet["SubnetId"]
     tags = (
-        _convert_aws_tags_to_dict(subnet["Tags"], "Key", "Value")
-        if "Tags" in subnet
-        else {}
+        convert_list_to_dict(subnet["Tags"], "Key", "Value") if "Tags" in subnet else {}
     )
     return Subnet(subnet_id, availability_zone, tags)
-
-
-def _convert_aws_tags_to_dict(
-    tag_list: List[Dict[str, str]], tag_key: str, tag_value: str
-) -> Dict[str, str]:
-    return reduce(lambda x, y: {**x, **{y[tag_key]: y[tag_value]}}, tag_list, {})
 
 
 def map_cecost_to_cloud_cost(cost_by_date: List[Dict[str, Any]]) -> CloudCost:
