@@ -47,3 +47,10 @@ Deprecate MPCRole
 
 ### Description of changes
 Add onodocker_cli that can be used to upload/show onedocker repository package, as long as test/stop containers.
+
+## 0.1.3 -> 0.1.4
+### Types of changes
+*  New feature (non-breaking change which adds functionality)
+
+### Description of changes
+Add support for single-word OneDocker package in OneDocker Runner
