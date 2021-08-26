@@ -19,11 +19,10 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="fbpcp",
-    version="0.1.3",
+    version="0.1.4",
     description="Facebook Private Computation Platform",
     author="Facebook",
     author_email="researchtool-help@fb.com",
-    # TODO refactor this once repo renaming is done
     url="https://github.com/facebookresearch/fbpcp",
     install_requires=install_requires,
     packages=find_packages(),
