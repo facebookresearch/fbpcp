@@ -47,6 +47,7 @@ class TestEC2Gateway(unittest.TestCase):
             Vpc(
                 TEST_VPC_ID,
                 VpcState.UNKNOWN,
+                [],
                 tags,
             ),
         ]
