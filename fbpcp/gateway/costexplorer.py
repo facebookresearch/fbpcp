@@ -35,7 +35,7 @@ class CostExplorerGateway(AWSGateway):
         Get cost between start_date and end_date from CostExplorer API using get_cost_and_usage()
         get_cost_and_usage() referece: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_cost_and_usage
         :param start_date: start date for cost, required format "yyyy-mm-dd" (e.g "2020-12-01")
-        :param end_date: end date for cycle, required format "yyyy-mm-dd" (e.g "2020-12-01")
+        :param end_date: end date for cost, required format "yyyy-mm-dd" (e.g "2020-12-01")
         :return: CloudCost object that has the total cost and a list of CloudCostItem objects group by region and service. Unit of cost_amount is USD
         """
 
