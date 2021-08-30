@@ -5,25 +5,32 @@
 # LICENSE file in the root directory of this source tree.
 
 # pyre-strict
-
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List
 
-from dataclasses_json import dataclass_json
-from fbpcp.entity.firewall_ruleset import FirewallRuleset
+
+class RouteTargetType(Enum):
+    OTHER = "OTHER"
+    INTERNET = "INTERNET"
+    VPC_PEERING = "VPC_PEERING"
 
 
-class VpcState(Enum):
-    UNKNOWN = "UNKNOWN"
-    PENDING = "PENDING"
-    AVAILABLE = "AVAILABLE"
-
-
-@dataclass_json
 @dataclass
-class Vpc:
+class RouteTarget:
+    route_target_id: str
+    route_target_type: RouteTargetType
+
+
+@dataclass
+class Route:
+    destination_cidr_block: str
+    route_target: RouteTarget
+
+
+@dataclass
+class RouteTable:
+    id: str
+    routes: List[Route]
     vpc_id: str
-    state: VpcState = VpcState.UNKNOWN
-    firewall_rulesets: List[FirewallRuleset] = field(default_factory=lambda: [])
     tags: Dict[str, str] = field(default_factory=lambda: {})
