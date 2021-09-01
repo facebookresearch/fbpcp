@@ -27,4 +27,4 @@ class Cluster:
     pending_tasks: int
     running_tasks: int
     status: ClusterStatus = ClusterStatus.UNKNOWN
-    tags: Dict[str, str] = field(default_factory=lambda: {})
+    tags: Dict[str, str] = field(default_factory=dict)

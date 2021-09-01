@@ -25,5 +25,5 @@ class VpcState(Enum):
 class Vpc:
     vpc_id: str
     state: VpcState = VpcState.UNKNOWN
-    firewall_rulesets: List[FirewallRuleset] = field(default_factory=lambda: [])
-    tags: Dict[str, str] = field(default_factory=lambda: {})
+    firewall_rulesets: List[FirewallRuleset] = field(default_factory=list)
+    tags: Dict[str, str] = field(default_factory=dict)

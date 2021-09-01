@@ -27,4 +27,4 @@ class VpcPeering:
     role: VpcPeeringRole
     requester_vpc_id: str
     accepter_vpc_id: str
-    tags: Dict[str, str] = field(default_factory=lambda: {})
+    tags: Dict[str, str] = field(default_factory=dict)

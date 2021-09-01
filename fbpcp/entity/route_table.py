@@ -33,4 +33,4 @@ class RouteTable:
     id: str
     routes: List[Route]
     vpc_id: str
-    tags: Dict[str, str] = field(default_factory=lambda: {})
+    tags: Dict[str, str] = field(default_factory=dict)
