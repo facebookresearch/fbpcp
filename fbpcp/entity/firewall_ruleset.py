@@ -22,4 +22,4 @@ class FirewallRuleset:
     id: str
     ingress: List[FirewallRule]
     egress: List[FirewallRule]
-    tags: Dict[str, str] = field(default_factory=lambda: {})
+    tags: Dict[str, str] = field(default_factory=dict)

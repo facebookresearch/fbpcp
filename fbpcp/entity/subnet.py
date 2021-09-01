@@ -13,4 +13,4 @@ from typing import Dict
 class Subnet:
     id: str
     availability_zone: str
-    tags: Dict[str, str] = field(default_factory=lambda: {})
+    tags: Dict[str, str] = field(default_factory=dict)
