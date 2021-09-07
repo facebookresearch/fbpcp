@@ -69,11 +69,12 @@ def map_ec2vpc_to_vpcinstance(vpc: Dict[str, Any]) -> Vpc:
         state = VpcState.UNKNOWN
 
     vpc_id = vpc["VpcId"]
+    cidr_block = vpc["CidrBlock"]
     # some vpc instances don't have any tags
     tags = convert_list_to_dict(vpc["Tags"], "Key", "Value") if "Tags" in vpc else {}
 
     # TODO add implementation to get the firewall_ruleset
-    return Vpc(vpc_id, state, [], tags)
+    return Vpc(vpc_id, cidr_block, state, [], tags)
 
 
 def map_ec2subnet_to_subnet(subnet: Dict[str, Any]) -> Subnet:
