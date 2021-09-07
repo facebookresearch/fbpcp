@@ -25,6 +25,7 @@ class TestAWSUtil(unittest.TestCase):
         self.assertEqual(
             expected_list, convert_dict_to_list(TEST_DICT, "Name", "Values")
         )
+        self.assertEqual([], convert_dict_to_list({}, "Name", "Values"))
 
     def test_convert_list_dict(self):
         self.assertEqual(TEST_DICT, convert_list_to_dict(TEST_LIST, "Name", "Value"))

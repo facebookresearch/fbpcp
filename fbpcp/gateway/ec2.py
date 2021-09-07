@@ -30,8 +30,16 @@ class EC2Gateway(AWSGateway):
         self.client = boto3.client("ec2", region_name=self.region, **self.config)
 
     @error_handler
-    def describe_vpcs(self, vpc_ids: List[str]) -> List[Vpc]:
-        response = self.client.describe_vpcs(VpcIds=vpc_ids)
+    def describe_vpcs(
+        self,
+        vpc_ids: Optional[List[str]] = None,
+        tags: Optional[Dict[str, str]] = None,
+    ) -> List[Vpc]:
+        if vpc_ids is None:
+            vpc_ids = []
+        tags_dict = prepare_tags(tags) if tags else {}
+        filters = convert_dict_to_list(tags_dict, "Name", "Values")
+        response = self.client.describe_vpcs(VpcIds=vpc_ids, Filters=filters)
         return [map_ec2vpc_to_vpcinstance(vpc) for vpc in response["Vpcs"]]
 
     @error_handler
