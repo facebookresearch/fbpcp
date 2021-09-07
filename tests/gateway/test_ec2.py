@@ -16,6 +16,7 @@ TEST_ACCESS_KEY_ID = "test-access-key-id"
 TEST_ACCESS_KEY_DATA = "test-access-key-data"
 TEST_VPC_TAG_KEY = "test-vpc-tag-key"
 TEST_VPC_TAG_VALUE = "test-vpc-tag-value"
+TEST_CIDR_BLOCK = "10.1.0.0/16"
 REGION = "us-west-2"
 
 
@@ -30,6 +31,7 @@ class TestEC2Gateway(unittest.TestCase):
             "Vpcs": [
                 {
                     "State": "UNKNOWN",
+                    "CidrBlock": TEST_CIDR_BLOCK,
                     "VpcId": TEST_VPC_ID,
                     "Tags": [
                         {
@@ -46,6 +48,7 @@ class TestEC2Gateway(unittest.TestCase):
         expected_vpcs = [
             Vpc(
                 TEST_VPC_ID,
+                TEST_CIDR_BLOCK,
                 VpcState.UNKNOWN,
                 [],
                 tags,
