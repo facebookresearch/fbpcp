@@ -12,6 +12,13 @@ from typing import Any, Dict, List
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.route_table import (
+    RouteTable,
+    Route,
+    RouteTarget,
+    RouteTargetType,
+    RouteState,
+)
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc, VpcState
 from fbpcp.util.aws import convert_list_to_dict
@@ -104,3 +111,32 @@ def map_cecost_to_cloud_cost(cost_by_date: List[Dict[str, Any]]) -> CloudCost:
             for (region, service), amount in cost_items.items()
         ],
     )
+
+
+def map_ec2route_to_route(route: Dict[str, Any]) -> Route:
+    destination_cidr = route["DestinationCidrBlock"]
+    route_target_type = RouteTargetType.OTHER
+    route_target_id = ""
+    if "VpcPeeringConnectionId" in route:
+        route_target_type = RouteTargetType.VPC_PEERING
+        route_target_id = route["VpcPeeringConnectionId"]
+    elif "GatewayId" in route:
+        route_target_type = RouteTargetType.INTERNET
+        route_target_id = route["GatewayId"]
+    state = RouteState.UNKNOWN
+    if route["State"] == "active":
+        state = RouteState.ACTIVE
+    route_target = RouteTarget(route_target_id, route_target_type)
+    return Route(destination_cidr, route_target, state)
+
+
+def map_ec2routetable_to_routetable(route_table: Dict[str, Any]) -> RouteTable:
+    route_table_id = route_table["RouteTableId"]
+    routes = [map_ec2route_to_route(route) for route in route_table["Routes"]]
+    vpc_id = route_table["VpcId"]
+    tags = (
+        convert_list_to_dict(route_table["Tags"], "Key", "Value")
+        if "Tags" in route_table
+        else {}
+    )
+    return RouteTable(route_table_id, routes, vpc_id, tags)
