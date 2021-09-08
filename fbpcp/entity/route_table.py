@@ -16,6 +16,11 @@ class RouteTargetType(Enum):
     VPC_PEERING = "VPC_PEERING"
 
 
+class RouteState(Enum):
+    UNKNOWN = "UNKNOWN"
+    ACTIVE = "ACTIVE"
+
+
 @dataclass
 class RouteTarget:
     route_target_id: str
@@ -26,6 +31,7 @@ class RouteTarget:
 class Route:
     destination_cidr_block: str
     route_target: RouteTarget
+    state: RouteState
 
 
 @dataclass
