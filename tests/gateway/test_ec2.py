@@ -7,6 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from fbpcp.entity.firewall_ruleset import FirewallRuleset, FirewallRule
 from fbpcp.entity.route_table import (
     RouteTable,
     Route,
@@ -57,7 +58,6 @@ class TestEC2Gateway(unittest.TestCase):
                 TEST_VPC_ID,
                 TEST_CIDR_BLOCK,
                 VpcState.UNKNOWN,
-                [],
                 tags,
             ),
         ]
@@ -144,3 +144,64 @@ class TestEC2Gateway(unittest.TestCase):
         ]
         self.assertEqual(route_tables, expected_route_tables)
         self.gw.client.describe_route_tables.assert_called()
+
+    def test_describe_security_groups(self):
+        test_security_group_id = "sg-a0b1c3d4e5"
+        test_from_port = 5000
+        test_to_port = 15500
+        test_no_port = -1
+        client_return_response = {
+            "SecurityGroups": [
+                {
+                    "IpPermissions": [
+                        {
+                            "IpProtocol": "-1",
+                            "IpRanges": [
+                                {
+                                    "CidrIp": TEST_CIDR_BLOCK,
+                                }
+                            ],
+                        },
+                        {
+                            "FromPort": test_from_port,
+                            "IpProtocol": "tcp",
+                            "IpRanges": [
+                                {
+                                    "CidrIp": TEST_CIDR_BLOCK,
+                                }
+                            ],
+                            "ToPort": test_to_port,
+                        },
+                    ],
+                    "GroupId": test_security_group_id,
+                    "IpPermissionsEgress": [
+                        {
+                            "IpProtocol": "-1",
+                            "IpRanges": [{"CidrIp": TEST_CIDR_BLOCK}],
+                        }
+                    ],
+                    "VpcId": TEST_VPC_ID,
+                }
+            ],
+        }
+        self.gw.client.describe_security_groups = MagicMock(
+            return_value=client_return_response
+        )
+        firewall_rulesets = self.gw.describe_security_groups()
+        expected_ingress_rules = [
+            FirewallRule(test_no_port, test_no_port, "-1", TEST_CIDR_BLOCK),
+            FirewallRule(test_from_port, test_to_port, "tcp", TEST_CIDR_BLOCK),
+        ]
+        expected_egress_rules = [
+            FirewallRule(test_no_port, test_no_port, "-1", TEST_CIDR_BLOCK)
+        ]
+        expected_firewall_rulesets = [
+            FirewallRuleset(
+                test_security_group_id,
+                TEST_VPC_ID,
+                expected_ingress_rules,
+                expected_egress_rules,
+            )
+        ]
+        self.assertEqual(firewall_rulesets, expected_firewall_rulesets)
+        self.gw.client.describe_security_groups.assert_called()

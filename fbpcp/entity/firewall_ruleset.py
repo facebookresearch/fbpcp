@@ -20,6 +20,7 @@ class FirewallRule:
 @dataclass
 class FirewallRuleset:
     id: str
+    vpc_id: str
     ingress: List[FirewallRule]
     egress: List[FirewallRule]
     tags: Dict[str, str] = field(default_factory=dict)
