@@ -17,6 +17,7 @@ from fbpcp.entity.route_table import (
 )
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc, VpcState
+from fbpcp.entity.vpc_peering import VpcPeering, VpcPeeringRole, VpcPeeringState
 from fbpcp.gateway.ec2 import EC2Gateway
 
 TEST_VPC_ID = "test-vpc-id"
@@ -205,3 +206,39 @@ class TestEC2Gateway(unittest.TestCase):
         ]
         self.assertEqual(firewall_rulesets, expected_firewall_rulesets)
         self.gw.client.describe_security_groups.assert_called()
+
+    def test_describe_vpc_peerings(self):
+        test_vpc_peering_id = "pcx-a0b1c3d4e5"
+        test_requester_vpc_id = "vpc-a0b1c2d3e4"
+        test_accepter_vpc_id = "vpc-f5g6h7i8j9"
+        client_return_response = {
+            "VpcPeeringConnections": [
+                {
+                    "AccepterVpcInfo": {
+                        "CidrBlock": TEST_CIDR_BLOCK,
+                        "VpcId": test_accepter_vpc_id,
+                    },
+                    "RequesterVpcInfo": {
+                        "CidrBlock": TEST_CIDR_BLOCK,
+                        "VpcId": test_requester_vpc_id,
+                    },
+                    "Status": {"Code": "active"},
+                    "VpcPeeringConnectionId": test_vpc_peering_id,
+                }
+            ]
+        }
+        self.gw.client.describe_vpc_peering_connections = MagicMock(
+            return_value=client_return_response
+        )
+        vpc_peerings = self.gw.describe_vpc_peerings(vpc_id=test_requester_vpc_id)
+        expected_vpc_peerings = [
+            VpcPeering(
+                test_vpc_peering_id,
+                VpcPeeringState.ACTIVE,
+                VpcPeeringRole.REQUESTER,
+                test_requester_vpc_id,
+                test_accepter_vpc_id,
+            ),
+        ]
+        self.assertEqual(vpc_peerings, expected_vpc_peerings)
+        self.gw.client.describe_vpc_peering_connections.assert_called()
