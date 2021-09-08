@@ -12,6 +12,7 @@ from typing import Any, Dict, List
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.firewall_ruleset import FirewallRule, FirewallRuleset
 from fbpcp.entity.route_table import (
     RouteTable,
     Route,
@@ -81,7 +82,7 @@ def map_ec2vpc_to_vpcinstance(vpc: Dict[str, Any]) -> Vpc:
     tags = convert_list_to_dict(vpc["Tags"], "Key", "Value") if "Tags" in vpc else {}
 
     # TODO add implementation to get the firewall_ruleset
-    return Vpc(vpc_id, cidr_block, state, [], tags)
+    return Vpc(vpc_id, cidr_block, state, tags)
 
 
 def map_ec2subnet_to_subnet(subnet: Dict[str, Any]) -> Subnet:
@@ -140,3 +141,33 @@ def map_ec2routetable_to_routetable(route_table: Dict[str, Any]) -> RouteTable:
         else {}
     )
     return RouteTable(route_table_id, routes, vpc_id, tags)
+
+
+def map_ec2ippermission_to_firewallrule(ip_permission: Dict[str, Any]) -> FirewallRule:
+    ip_protocol = ip_permission["IpProtocol"]
+    from_port = ip_permission["FromPort"] if "FromPort" in ip_permission else -1
+    to_port = ip_permission["ToPort"] if "ToPort" in ip_permission else -1
+    ip_range = ip_permission["IpRanges"][0]
+    cidr = ip_range["CidrIp"]
+    return FirewallRule(from_port, to_port, ip_protocol, cidr)
+
+
+def map_ec2securitygroup_to_firewallruleset(
+    security_group: Dict[str, Any]
+) -> FirewallRuleset:
+    id = security_group["GroupId"]
+    vpc_id = security_group["VpcId"]
+    tags = (
+        convert_list_to_dict(security_group["Tags"], "Key", "Value")
+        if "Tags" in security_group
+        else {}
+    )
+    ingress = [
+        map_ec2ippermission_to_firewallrule(ip_permission)
+        for ip_permission in security_group["IpPermissions"]
+    ]
+    egress = [
+        map_ec2ippermission_to_firewallrule(ip_permission)
+        for ip_permission in security_group["IpPermissionsEgress"]
+    ]
+    return FirewallRuleset(id, vpc_id, ingress, egress, tags)
