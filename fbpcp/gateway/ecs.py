@@ -12,12 +12,14 @@ import boto3
 from fbpcp.decorator.error_handler import error_handler
 from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
 from fbpcp.entity.cluster_instance import Cluster
+from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.error.pcp import PcpError
 from fbpcp.gateway.aws import AWSGateway
 from fbpcp.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
+    map_ecstaskdefinition_to_containerdefinition,
 )
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter
@@ -133,3 +135,12 @@ class ECSGateway(AWSGateway, MetricsGetter):
     @error_handler
     def list_clusters(self) -> List[str]:
         return self.client.list_clusters()["clusterArns"]
+
+    @error_handler
+    def describe_task_definition(self, task_defination: str) -> ContainerDefinition:
+        response = self.client.describe_task_definition(
+            taskDefinition=task_defination, include=["TAGS"]
+        )
+        return map_ecstaskdefinition_to_containerdefinition(
+            response["taskDefinition"], response["tags"]
+        )
