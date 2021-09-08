@@ -8,10 +8,9 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List
+from typing import Dict
 
 from dataclasses_json import dataclass_json
-from fbpcp.entity.firewall_ruleset import FirewallRuleset
 
 
 class VpcState(Enum):
@@ -26,5 +25,4 @@ class Vpc:
     vpc_id: str
     cidr: str
     state: VpcState = VpcState.UNKNOWN
-    firewall_rulesets: List[FirewallRuleset] = field(default_factory=list)
     tags: Dict[str, str] = field(default_factory=dict)
