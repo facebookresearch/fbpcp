@@ -22,6 +22,7 @@ from fbpcp.entity.route_table import (
 )
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc, VpcState
+from fbpcp.entity.vpc_peering import VpcPeering, VpcPeeringRole, VpcPeeringState
 from fbpcp.util.aws import convert_list_to_dict
 
 
@@ -171,3 +172,30 @@ def map_ec2securitygroup_to_firewallruleset(
         for ip_permission in security_group["IpPermissionsEgress"]
     ]
     return FirewallRuleset(id, vpc_id, ingress, egress, tags)
+
+
+def map_ec2vpcpeering_to_vpcpeering(
+    vpc_peering: Dict[str, Any], vpc_id: str
+) -> VpcPeering:
+    id = vpc_peering["VpcPeeringConnectionId"]
+    status = VpcPeeringState.NOT_READY
+    status_code = vpc_peering["Status"]["Code"]
+    if status_code == "active":
+        status = VpcPeeringState.ACTIVE
+    elif status_code == "pending-acceptance":
+        status = VpcPeeringState.PENDING_ACCEPTANCE
+    elif status_code == "rejected":
+        status = VpcPeeringState.REJECTED
+    requester_vpc_id = vpc_peering["RequesterVpcInfo"]["VpcId"]
+    accepter_vpc_id = vpc_peering["AccepterVpcInfo"]["VpcId"]
+    role = (
+        VpcPeeringRole.REQUESTER
+        if requester_vpc_id == vpc_id
+        else VpcPeeringRole.ACCEPTER
+    )
+    tags = (
+        convert_list_to_dict(vpc_peering["Tags"], "Key", "Value")
+        if "Tags" in vpc_peering
+        else {}
+    )
+    return VpcPeering(id, status, role, requester_vpc_id, accepter_vpc_id, tags)

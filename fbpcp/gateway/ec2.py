@@ -14,12 +14,14 @@ from fbpcp.entity.firewall_ruleset import FirewallRuleset
 from fbpcp.entity.route_table import RouteTable
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc
+from fbpcp.entity.vpc_peering import VpcPeering
 from fbpcp.gateway.aws import AWSGateway
 from fbpcp.mapper.aws import (
     map_ec2vpc_to_vpcinstance,
     map_ec2subnet_to_subnet,
     map_ec2routetable_to_routetable,
     map_ec2securitygroup_to_firewallruleset,
+    map_ec2vpcpeering_to_vpcpeering,
 )
 from fbpcp.util.aws import convert_dict_to_list, prepare_tags
 
@@ -107,4 +109,21 @@ class EC2Gateway(AWSGateway):
         return [
             map_ec2securitygroup_to_firewallruleset(security_group)
             for security_group in response["SecurityGroups"]
+        ]
+
+    @error_handler
+    def describe_vpc_peerings(
+        self,
+        vpc_id: str,
+        tags: Optional[Dict[str, str]] = None,
+    ) -> List[VpcPeering]:
+        tags_dict = prepare_tags(tags) if tags else {}
+        filter_dict = {**tags_dict}
+        filters = (
+            convert_dict_to_list(filter_dict, "Name", "Values") if filter_dict else []
+        )
+        response = self.client.describe_vpc_peering_connections(Filters=filters)
+        return [
+            map_ec2vpcpeering_to_vpcpeering(vpc_peering, vpc_id)
+            for vpc_peering in response["VpcPeeringConnections"]
         ]
