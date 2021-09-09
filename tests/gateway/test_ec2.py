@@ -7,6 +7,13 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from fbpcp.entity.route_table import (
+    RouteTable,
+    Route,
+    RouteTarget,
+    RouteTargetType,
+    RouteState,
+)
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc, VpcState
 from fbpcp.gateway.ec2 import EC2Gateway
@@ -90,3 +97,50 @@ class TestEC2Gateway(unittest.TestCase):
         ]
         self.assertEqual(subnets, expected_subnets)
         self.gw.client.describe_subnets.assert_called()
+
+    def test_describe_route_tables(self):
+        test_route_table_id = "rtb-a0b1c3d4e5"
+        vpc_peering_id = "pcx-a0b1c3d4e5"
+        gateway_id = "igw-a0b1c3d4e5"
+
+        client_return_response = {
+            "RouteTables": [
+                {
+                    "RouteTableId": test_route_table_id,
+                    "VpcId": TEST_VPC_ID,
+                    "Routes": [
+                        {
+                            "DestinationCidrBlock": TEST_CIDR_BLOCK,
+                            "State": "blackhole",
+                            "VpcPeeringConnectionId": vpc_peering_id,
+                        },
+                        {
+                            "DestinationCidrBlock": TEST_CIDR_BLOCK,
+                            "GatewayId": gateway_id,
+                            "State": "active",
+                        },
+                    ],
+                }
+            ]
+        }
+        self.gw.client.describe_route_tables = MagicMock(
+            return_value=client_return_response
+        )
+        route_tables = self.gw.describe_route_tables()
+        vpc_peering_route = Route(
+            TEST_CIDR_BLOCK,
+            RouteTarget(vpc_peering_id, RouteTargetType.VPC_PEERING),
+            RouteState.UNKNOWN,
+        )
+        internet_route = Route(
+            TEST_CIDR_BLOCK,
+            RouteTarget(gateway_id, RouteTargetType.INTERNET),
+            RouteState.ACTIVE,
+        )
+        expected_route_tables = [
+            RouteTable(
+                test_route_table_id, [vpc_peering_route, internet_route], TEST_VPC_ID
+            ),
+        ]
+        self.assertEqual(route_tables, expected_route_tables)
+        self.gw.client.describe_route_tables.assert_called()
