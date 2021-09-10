@@ -8,13 +8,16 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
+from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstanceStatus, ContainerInstance
 from fbpcp.gateway.ecs import ECSGateway
+from fbpcp.util.aws import convert_list_to_dict
 
 
 class TestECSGateway(unittest.TestCase):
     TEST_TASK_ARN = "test-task-arn"
     TEST_TASK_DEFINITION = "test-task-definition"
+    TEST_TASK_DEFINITION_ARN = "test-task-definition-arn"
     TEST_CONTAINER = "test-container"
     TEST_CLUSTER = "test-cluster"
     TEST_CMD = "test-cmd"
@@ -175,3 +178,56 @@ class TestECSGateway(unittest.TestCase):
         ]
         self.assertEqual(expected_clusters, clusters)
         self.gw.client.describe_clusters.assert_called()
+
+    def test_describe_task_definition(self):
+        task_definition_name = "onedocker-task_pce_id"
+        test_image = "test_image"
+        test_cpu = 4096
+        test_memory = 30720
+        test_entry_point = ["sh", "-c"]
+        test_environment = [{"name": "USER", "value": "ubuntu"}]
+        test_task_role = "test-task-role"
+        test_tags = [{"key": "pce-id", "value": "zehuali_test"}]
+        client_return_response = {
+            "taskDefinition": {
+                "taskDefinitionArn": self.TEST_TASK_DEFINITION_ARN,
+                "containerDefinitions": [
+                    {
+                        "image": test_image,
+                        "cpu": test_cpu,
+                        "memory": test_memory,
+                        "entryPoint": test_entry_point,
+                        "environment": test_environment,
+                    }
+                ],
+                "taskRoleArn": test_task_role,
+            },
+            "tags": test_tags,
+        }
+        self.gw.client.describe_task_definition = MagicMock(
+            return_value=client_return_response
+        )
+        self.gw.client.list_task_definitions = MagicMock(
+            return_value={"taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN]}
+        )
+        test_tags_dict = convert_list_to_dict(test_tags, "key", "value")
+        test_environment_dict = convert_list_to_dict(test_environment, "name", "value")
+        container_definition = self.gw.describe_task_definition(task_definition_name)
+        container_definition_by_tag = self.gw.describe_task_definitions_by_tags(
+            test_tags_dict
+        )
+        expected_container_definition = ContainerDefinition(
+            self.TEST_TASK_DEFINITION_ARN,
+            test_image,
+            test_cpu,
+            test_memory,
+            test_entry_point,
+            test_environment_dict,
+            test_task_role,
+            test_tags_dict,
+        )
+        self.assertEqual(expected_container_definition, container_definition)
+        self.assertEqual([expected_container_definition], container_definition_by_tag)
+
+        self.gw.client.describe_task_definition.assert_called()
+        self.gw.client.list_task_definitions.assert_called()
