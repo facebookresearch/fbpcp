@@ -137,6 +137,14 @@ class ECSGateway(AWSGateway, MetricsGetter):
         return self.client.list_clusters()["clusterArns"]
 
     @error_handler
+    def describe_clusters_by_tags(self, tags: Dict[str, str]) -> List[Cluster]:
+        arns = self.list_clusters()
+        clusters = self.describe_clusters(arns)
+        return list(
+            filter(lambda cluster: tags.items() <= cluster.tags.items(), clusters)
+        )
+
+    @error_handler
     def describe_task_definition(self, task_defination: str) -> ContainerDefinition:
         response = self.client.describe_task_definition(
             taskDefinition=task_defination, include=["TAGS"]
