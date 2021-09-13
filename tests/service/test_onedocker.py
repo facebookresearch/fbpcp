@@ -6,7 +6,7 @@
 
 import unittest
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
+from unittest.mock import MagicMock, patch, ANY
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
@@ -29,7 +29,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             "192.0.2.0",
             ContainerInstanceStatus.STARTED,
         )
-        self.container_svc.create_instances_async = AsyncMock(
+        self.container_svc.create_instances = MagicMock(
             return_value=[mocked_container_info]
         )
         returned_container_info = self.onedocker_svc.start_container(
@@ -52,7 +52,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
                 ContainerInstanceStatus.STARTED,
             ),
         ]
-        self.container_svc.create_instances_async = AsyncMock(
+        self.container_svc.create_instances = MagicMock(
             return_value=mocked_container_info
         )
         returned_container_info = self.onedocker_svc.start_containers(
@@ -106,7 +106,7 @@ class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
             "192.0.2.0",
             ContainerInstanceStatus.STARTED,
         )
-        self.container_svc.create_instances_async = AsyncMock(
+        self.container_svc.create_instances_async = MagicMock(
             return_value=[mocked_container_info]
         )
 

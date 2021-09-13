@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty
@@ -167,7 +167,7 @@ class TestMPCService(unittest.TestCase):
                 ContainerInstanceStatus.STARTED,
             )
         ]
-        self.mpc_service.container_svc.create_instances_async = AsyncMock(
+        self.mpc_service.container_svc.create_instances = MagicMock(
             return_value=created_instances
         )
         built_onedocker_args = ("private_lift/lift", "test one docker arguments")

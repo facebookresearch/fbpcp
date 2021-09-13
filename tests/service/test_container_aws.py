@@ -7,12 +7,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
-from fbpcp.service.container_aws import (
-    ContainerInstance,
-    ContainerInstanceStatus,
-    AWSContainerService,
-)
+from fbpcp.service.container_aws import AWSContainerService
 
 TEST_INSTANCE_ID_1 = "test-instance-id-1"
 TEST_INSTANCE_ID_2 = "test-instance-id-2"
@@ -53,33 +50,6 @@ class TestAWSContainerService(unittest.TestCase):
 
         cmd_list = ["test_cmd", "test_cmd-1"]
         container_instances = self.container_svc.create_instances(
-            TEST_CONTAINER_DEFNITION, cmd_list
-        )
-        self.assertEqual(container_instances, created_instances)
-        self.assertEqual(
-            self.container_svc.ecs_gateway.run_task.call_count, len(created_instances)
-        )
-
-    async def test_create_instances_async(self):
-        created_instances = [
-            ContainerInstance(
-                TEST_INSTANCE_ID_1,
-                TEST_IP_ADDRESS,
-                ContainerInstanceStatus.STARTED,
-            ),
-            ContainerInstance(
-                TEST_INSTANCE_ID_2,
-                TEST_IP_ADDRESS,
-                ContainerInstanceStatus.STARTED,
-            ),
-        ]
-
-        self.container_svc.ecs_gateway.run_task = MagicMock(
-            side_effect=created_instances
-        )
-
-        cmd_list = ["test_cmd", "test_cmd-1"]
-        container_instances = await self.container_svc.create_instances_async(
             TEST_CONTAINER_DEFNITION, cmd_list
         )
         self.assertEqual(container_instances, created_instances)

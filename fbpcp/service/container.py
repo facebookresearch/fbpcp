@@ -45,15 +45,6 @@ class ContainerService(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def create_instances_async(
-        self,
-        container_definition: str,
-        cmds: List[str],
-        env_vars: Optional[Dict[str, str]] = None,
-    ) -> List[ContainerInstance]:
-        pass
-
-    @abc.abstractmethod
     def get_instance(self, instance_id: str) -> ContainerInstance:
         pass
 
