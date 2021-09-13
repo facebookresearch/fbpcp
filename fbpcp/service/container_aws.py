@@ -6,16 +6,14 @@
 
 # pyre-strict
 
-import asyncio
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.error.pcp import PcpError
 from fbpcp.gateway.ecs import ECSGateway
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.service.container import ContainerService
-from fbpcp.util.typing import checked_cast
 
 
 class AWSContainerService(ContainerService):
@@ -53,8 +51,17 @@ class AWSContainerService(ContainerService):
         cmd: str,
         env_vars: Optional[Dict[str, str]] = None,
     ) -> ContainerInstance:
-        return asyncio.run(
-            self._create_instance_async(container_definition, cmd, env_vars)
+        task_definition, container = self._split_container_definition(
+            container_definition
+        )
+
+        if not self.subnets:
+            raise PcpError(
+                "No subnets specified. It's required to create container instances."
+            )
+
+        return self.ecs_gateway.run_task(
+            task_definition, container, cmd, self.cluster, self.subnets, env_vars
         )
 
     def create_instances(
@@ -63,17 +70,13 @@ class AWSContainerService(ContainerService):
         cmds: List[str],
         env_vars: Optional[Dict[str, str]] = None,
     ) -> List[ContainerInstance]:
-        return asyncio.run(
-            self._create_instances_async(container_definition, cmds, env_vars)
+        instances = [
+            self.create_instance(container_definition, cmd, env_vars) for cmd in cmds
+        ]
+        self.logger.info(
+            f"AWSContainerService created {len(instances)} containers successfully"
         )
-
-    async def create_instances_async(
-        self,
-        container_definition: str,
-        cmds: List[str],
-        env_vars: Optional[Dict[str, str]] = None,
-    ) -> List[ContainerInstance]:
-        return await self._create_instances_async(container_definition, cmds, env_vars)
+        return instances
 
     def get_instance(self, instance_id: str) -> ContainerInstance:
         return self.ecs_gateway.describe_task(self.cluster, instance_id)
@@ -103,47 +106,3 @@ class AWSContainerService(ContainerService):
         """
         s = container_definition.split("#")
         return (s[0], s[1])
-
-    async def _create_instance_async(
-        self,
-        container_definition: str,
-        cmd: str,
-        env_vars: Optional[Dict[str, str]] = None,
-    ) -> ContainerInstance:
-        task_definition, container = self._split_container_definition(
-            container_definition
-        )
-
-        if not self.subnets:
-            raise PcpError(
-                "No subnets specified. It's required to create container instances."
-            )
-
-        instance = self.ecs_gateway.run_task(
-            task_definition, container, cmd, self.cluster, self.subnets, env_vars
-        )
-
-        # wait until the container is in running state
-        while instance.status is ContainerInstanceStatus.UNKNOWN:
-            await asyncio.sleep(1)
-            instance = self.get_instance(instance.instance_id)
-
-        return instance
-
-    async def _create_instances_async(
-        self,
-        container_definition: str,
-        cmds: List[str],
-        env_vars: Optional[Dict[str, str]] = None,
-    ) -> List[ContainerInstance]:
-        tasks = [
-            asyncio.create_task(
-                self._create_instance_async(container_definition, cmd, env_vars)
-            )
-            for cmd in cmds
-        ]
-        res = await asyncio.gather(*tasks)
-        self.logger.info(
-            f"AWSContainerService created {len(res)} containers successfully"
-        )
-        return [checked_cast(ContainerInstance, instance) for instance in res]

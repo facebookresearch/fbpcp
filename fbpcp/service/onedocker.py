@@ -7,16 +7,18 @@
 # pyre-strict
 
 import asyncio
+import copy
 import logging
 from typing import Dict, List, Optional, Final
 
 from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
-from fbpcp.entity.container_instance import ContainerInstance
+from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter
 from fbpcp.service.container import ContainerService
 from fbpcp.util.arg_builder import build_cmd_args
+from fbpcp.util.typing import checked_cast
 
 
 ONEDOCKER_CMD_PREFIX = (
@@ -73,19 +75,19 @@ class OneDockerService(MetricsGetter):
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
     ) -> ContainerInstance:
-        # TODO: ContainerInstance mapper
-        return asyncio.run(
-            self.start_containers_async(
-                package_name,
-                task_definition,
-                version,
-                [cmd_args] if cmd_args else None,
-                env_vars,
-                timeout,
-                tag,
-            )
+        return self.start_containers(
+            package_name,
+            task_definition,
+            version,
+            [cmd_args] if cmd_args else None,
+            env_vars,
+            timeout,
+            tag,
         )[0]
 
+    @error_counter(METRICS_START_CONTAINERS_ERROR_COUNT)
+    @request_counter(METRICS_START_CONTAINERS_COUNT)
+    @duration_time(METRICS_START_CONTAINERS_DURATION)
     def start_containers(
         self,
         package_name: str,
@@ -96,32 +98,7 @@ class OneDockerService(MetricsGetter):
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
     ) -> List[ContainerInstance]:
-        return asyncio.run(
-            self.start_containers_async(
-                package_name,
-                task_definition,
-                version,
-                cmd_args_list,
-                env_vars,
-                timeout,
-                tag,
-            )
-        )
-
-    @error_counter(METRICS_START_CONTAINERS_ERROR_COUNT)
-    @request_counter(METRICS_START_CONTAINERS_COUNT)
-    @duration_time(METRICS_START_CONTAINERS_DURATION)
-    async def start_containers_async(
-        self,
-        package_name: str,
-        task_definition: Optional[str] = None,
-        version: str = DEFAULT_BINARY_VERSION,
-        cmd_args_list: Optional[List[str]] = None,
-        env_vars: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
-        tag: Optional[str] = None,
-    ) -> List[ContainerInstance]:
-        """Asynchronostrusly spin up one container per element in input command list.
+        """Spin up one container per element in input command list.
         task_definition -- if specified, overrides OneDockerService's task definition
                            when starting this container
         """
@@ -140,7 +117,7 @@ class OneDockerService(MetricsGetter):
             raise ValueError(
                 "task definition should be specified when spinning up containers"
             )
-        container_ids = await self.container_svc.create_instances_async(
+        containers = self.container_svc.create_instances(
             task_definition,
             cmds,
             env_vars,
@@ -149,9 +126,46 @@ class OneDockerService(MetricsGetter):
         if self.metrics:
             name = f"{METRICS_CONTAINER_COUNT}.{self.container_svc.get_region()}.{self.container_svc.get_cluster()}"
             name = f"{METRICS_CONTAINER_COUNT}.{tag}" if tag else name
-            self.metrics.count(name, len(container_ids))
+            self.metrics.count(name, len(containers))
+        return containers
 
-        return container_ids
+    async def start_containers_async(
+        self,
+        package_name: str,
+        task_definition: Optional[str] = None,
+        version: str = DEFAULT_BINARY_VERSION,
+        cmd_args_list: Optional[List[str]] = None,
+        env_vars: Optional[Dict[str, str]] = None,
+        timeout: Optional[int] = None,
+        tag: Optional[str] = None,
+    ) -> List[ContainerInstance]:
+        containers = self.start_containers(
+            package_name=package_name,
+            task_definition=task_definition,
+            cmd_args_list=cmd_args_list,
+            env_vars=env_vars,
+            timeout=timeout,
+            tag=tag,
+        )
+        # Wait for the statues of all instances to become ContainerInstanceStatus.STARTED
+        tasks = [
+            asyncio.create_task(self._wait_for_pending_container(container))
+            for container in containers
+        ]
+        self.logger.info(
+            f"OneDockerService is waiting for {len(containers)} container(s) to become started"
+        )
+        res = await asyncio.gather(*tasks)
+        return [checked_cast(ContainerInstance, container) for container in res]
+
+    async def _wait_for_pending_container(
+        self, container: ContainerInstance
+    ) -> ContainerInstance:
+        updated_container = copy.deepcopy(container)
+        while updated_container.status is ContainerInstanceStatus.UNKNOWN:
+            await asyncio.sleep(1)
+            updated_container = self.get_containers([container.instance_id])[0]
+        return updated_container
 
     def stop_containers(self, containers: List[str]) -> List[Optional[PcpError]]:
         return self.container_svc.cancel_instances(containers)
