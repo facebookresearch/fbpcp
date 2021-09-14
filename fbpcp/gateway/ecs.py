@@ -121,16 +121,31 @@ class ECSGateway(AWSGateway, MetricsGetter):
         )
 
     @error_handler
-    def describe_clusters(self, clusters: List[str]) -> List[Cluster]:
+    def describe_clusters(
+        self,
+        clusters: Optional[List[str]] = None,
+        tags: Optional[Dict[str, str]] = None,
+    ) -> List[Cluster]:
+        if not clusters:
+            clusters = self.list_clusters()
         response = self.client.describe_clusters(clusters=clusters, include=["TAGS"])
-        return [
+        cluster_instances = [
             map_esccluster_to_clusterinstance(cluster)
             for cluster in response["clusters"]
         ]
+        if tags:
+            return list(
+                filter(
+                    lambda cluster_instance: tags.items()
+                    <= cluster_instance.tags.items(),
+                    cluster_instances,
+                )
+            )
+        return cluster_instances
 
     @error_handler
     def describe_cluster(self, cluster: str) -> Cluster:
-        return self.describe_clusters([cluster])[0]
+        return self.describe_clusters(clusters=[cluster])[0]
 
     @error_handler
     def list_clusters(self) -> List[str]:

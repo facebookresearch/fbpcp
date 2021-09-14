@@ -161,7 +161,7 @@ class TestECSGateway(unittest.TestCase):
             return_value=client_return_response
         )
         clusters = self.gw.describe_clusters(
-            [
+            clusters=[
                 self.TEST_CLUSTER,
             ]
         )
@@ -178,6 +178,45 @@ class TestECSGateway(unittest.TestCase):
         ]
         self.assertEqual(expected_clusters, clusters)
         self.gw.client.describe_clusters.assert_called()
+
+    def test_describe_clusers_by_tags(self):
+        test_tasks = 100
+        tags = {self.TEST_CLUSTER_TAG_KEY: self.TEST_CLUSTER_TAG_VALUE}
+        client_return_response = {
+            "clusters": [
+                {
+                    "clusterArn": self.TEST_CLUSTER,
+                    "clusterName": "cluster_1",
+                    "tags": [
+                        {
+                            "key": self.TEST_CLUSTER_TAG_KEY,
+                            "value": self.TEST_CLUSTER_TAG_VALUE,
+                        },
+                    ],
+                    "status": "ACTIVE",
+                    "pendingTasksCount": test_tasks,
+                    "runningTasksCount": test_tasks,
+                }
+            ]
+        }
+        self.gw.client.describe_clusters = MagicMock(
+            return_value=client_return_response
+        )
+        expected_clusters = [
+            Cluster(
+                self.TEST_CLUSTER,
+                "cluster_1",
+                test_tasks,
+                test_tasks,
+                ClusterStatus.ACTIVE,
+                tags,
+            )
+        ]
+        self.gw.list_clusters = MagicMock(return_value=[self.TEST_CLUSTER])
+        clusters = self.gw.describe_clusters(tags=tags)
+        self.assertEqual(expected_clusters, clusters)
+        self.gw.client.describe_clusters.assert_called()
+        self.gw.list_clusters.assert_called()
 
     def test_describe_task_definition(self):
         task_definition_name = "onedocker-task_pce_id"
