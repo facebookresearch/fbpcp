@@ -12,12 +12,14 @@ import boto3
 from fbpcp.decorator.error_handler import error_handler
 from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
 from fbpcp.entity.cluster_instance import Cluster
+from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.error.pcp import PcpError
 from fbpcp.gateway.aws import AWSGateway
 from fbpcp.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
+    map_ecstaskdefinition_to_containerdefinition,
 )
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter
@@ -133,3 +135,31 @@ class ECSGateway(AWSGateway, MetricsGetter):
     @error_handler
     def list_clusters(self) -> List[str]:
         return self.client.list_clusters()["clusterArns"]
+
+    @error_handler
+    def describe_task_definition(self, task_defination: str) -> ContainerDefinition:
+        response = self.client.describe_task_definition(
+            taskDefinition=task_defination, include=["TAGS"]
+        )
+        return map_ecstaskdefinition_to_containerdefinition(
+            response["taskDefinition"], response["tags"]
+        )
+
+    @error_handler
+    def list_task_definitions(self) -> List[str]:
+        return self.client.list_task_definitions()["taskDefinitionArns"]
+
+    @error_handler
+    def describe_task_definitions(
+        self,
+        task_definations: Optional[List[str]] = None,
+        tags: Optional[Dict[str, str]] = None,
+    ) -> List[ContainerDefinition]:
+        if not task_definations:
+            task_definations = self.list_task_definitions()
+        container_definitions = []
+        for arn in task_definations:
+            container_definition = self.describe_task_definition(arn)
+            if tags is None or tags.items() <= container_definition.tags.items():
+                container_definitions.append(container_definition)
+        return container_definitions

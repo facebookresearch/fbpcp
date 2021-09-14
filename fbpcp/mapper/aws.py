@@ -11,6 +11,7 @@ from typing import Any, Dict, List
 
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
+from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.entity.firewall_ruleset import FirewallRule, FirewallRuleset
 from fbpcp.entity.route_table import (
@@ -199,3 +200,42 @@ def map_ec2vpcpeering_to_vpcpeering(
         else {}
     )
     return VpcPeering(id, status, role, requester_vpc_id, accepter_vpc_id, tags)
+
+
+def map_ecstaskdefinition_to_containerdefinition(
+    task_definition: Dict[str, Any],
+    tag_list: List[Dict[str, str]],
+) -> ContainerDefinition:
+    task_definition_id = task_definition["taskDefinitionArn"]
+    container_definition = task_definition["containerDefinitions"][0]
+    image = container_definition["image"]
+    cpu = (
+        container_definition["cpu"]
+        if "cpu" in container_definition
+        else task_definition["cpu"]
+    )
+    memory = (
+        container_definition["memory"]
+        if "memory" in container_definition
+        else task_definition["memory"]
+    )
+    entry_point = (
+        container_definition["entryPoint"]
+        if "entryPoint" in container_definition
+        else []
+    )
+    environment = convert_list_to_dict(
+        container_definition["environment"], "name", "value"
+    )
+    task_role_id = task_definition["taskRoleArn"]
+    tags = convert_list_to_dict(tag_list, "key", "value")
+    return ContainerDefinition(
+        task_definition_id,
+        image,
+        cpu,
+        memory,
+        entry_point,
+        environment,
+        task_role_id,
+        tags,
+    )
