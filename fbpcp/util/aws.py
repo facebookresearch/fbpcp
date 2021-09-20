@@ -8,7 +8,7 @@
 
 
 from functools import reduce
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 def convert_dict_to_list(
@@ -53,3 +53,23 @@ def prepare_tags(tags: Dict[str, str]) -> Dict[str, str]:
     Output examples: {"tag:k1": "v1", "tag:k2", "v2"}
     """
     return reduce(lambda x, y: {**x, **{f"tag:{y}": tags[y]}}, tags.keys(), {})
+
+
+def convert_vpc_tags_to_filter(
+    tags: Optional[Dict[str, str]] = None, vpc_id: Optional[str] = None
+) -> List[Dict[str, List[str]]]:
+    """
+    Input examples:
+        tags [Optional]: {"k1": "v1", "k2": "v2"},
+        vpc_id [Optional]: "vpc-id-ex"
+    Output examples:
+        [
+            {"Name": "k1", "Values": ["v1"]},
+            {"Name": "k2", "Values": ["v2"]},
+            {"Name": "vpc-id", "Values": ["vpc-id-ex"]}
+        ]
+    """
+    vpc_dict = {"vpc-id": vpc_id} if vpc_id else {}
+    tags_dict = prepare_tags(tags) if tags else {}
+    filter_dict = {**vpc_dict, **tags_dict}
+    return convert_dict_to_list(filter_dict, "Name", "Values") if filter_dict else []

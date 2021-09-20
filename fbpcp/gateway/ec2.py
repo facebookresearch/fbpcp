@@ -23,7 +23,7 @@ from fbpcp.mapper.aws import (
     map_ec2securitygroup_to_firewallruleset,
     map_ec2vpcpeering_to_vpcpeering,
 )
-from fbpcp.util.aws import convert_dict_to_list, prepare_tags
+from fbpcp.util.aws import convert_vpc_tags_to_filter
 
 
 class EC2Gateway(AWSGateway):
@@ -46,8 +46,7 @@ class EC2Gateway(AWSGateway):
     ) -> List[Vpc]:
         if vpc_ids is None:
             vpc_ids = []
-        tags_dict = prepare_tags(tags) if tags else {}
-        filters = convert_dict_to_list(tags_dict, "Name", "Values")
+        filters = convert_vpc_tags_to_filter(tags)
         response = self.client.describe_vpcs(VpcIds=vpc_ids, Filters=filters)
         return [map_ec2vpc_to_vpcinstance(vpc) for vpc in response["Vpcs"]]
 
@@ -66,12 +65,7 @@ class EC2Gateway(AWSGateway):
         vpc_id: Optional[str] = None,
         tags: Optional[Dict[str, str]] = None,
     ) -> List[Subnet]:
-        vpc_dict = {"vpc-id": vpc_id} if vpc_id else {}
-        tags_dict = prepare_tags(tags) if tags else {}
-        filter_dict = {**vpc_dict, **tags_dict}
-        filters = (
-            convert_dict_to_list(filter_dict, "Name", "Values") if filter_dict else []
-        )
+        filters = convert_vpc_tags_to_filter(tags, vpc_id)
         response = self.client.describe_subnets(Filters=filters)
         return [map_ec2subnet_to_subnet(subnet) for subnet in response["Subnets"]]
 
@@ -81,12 +75,7 @@ class EC2Gateway(AWSGateway):
         vpc_id: Optional[str] = None,
         tags: Optional[Dict[str, str]] = None,
     ) -> List[RouteTable]:
-        vpc_dict = {"vpc-id": vpc_id} if vpc_id else {}
-        tags_dict = prepare_tags(tags) if tags else {}
-        filter_dict = {**vpc_dict, **tags_dict}
-        filters = (
-            convert_dict_to_list(filter_dict, "Name", "Values") if filter_dict else []
-        )
+        filters = convert_vpc_tags_to_filter(tags, vpc_id)
         response = self.client.describe_route_tables(Filters=filters)
         return [
             map_ec2routetable_to_routetable(route_table)
@@ -99,12 +88,7 @@ class EC2Gateway(AWSGateway):
         vpc_id: Optional[str] = None,
         tags: Optional[Dict[str, str]] = None,
     ) -> List[FirewallRuleset]:
-        vpc_dict = {"vpc-id": vpc_id} if vpc_id else {}
-        tags_dict = prepare_tags(tags) if tags else {}
-        filter_dict = {**vpc_dict, **tags_dict}
-        filters = (
-            convert_dict_to_list(filter_dict, "Name", "Values") if filter_dict else []
-        )
+        filters = convert_vpc_tags_to_filter(tags, vpc_id)
         response = self.client.describe_security_groups(Filters=filters)
         return [
             map_ec2securitygroup_to_firewallruleset(security_group)
@@ -117,11 +101,7 @@ class EC2Gateway(AWSGateway):
         vpc_id: str,
         tags: Optional[Dict[str, str]] = None,
     ) -> List[VpcPeering]:
-        tags_dict = prepare_tags(tags) if tags else {}
-        filter_dict = {**tags_dict}
-        filters = (
-            convert_dict_to_list(filter_dict, "Name", "Values") if filter_dict else []
-        )
+        filters = convert_vpc_tags_to_filter(tags)
         response = self.client.describe_vpc_peering_connections(Filters=filters)
         return [
             map_ec2vpcpeering_to_vpcpeering(vpc_peering, vpc_id)
