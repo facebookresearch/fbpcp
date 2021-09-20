@@ -105,11 +105,6 @@ class TestAWSContainerService(unittest.TestCase):
         )
         self.assertEqual(instances, container_instances)
 
-    def test_list_tasks(self):
-        instance_ids = [TEST_INSTANCE_ID_1, TEST_INSTANCE_ID_2]
-        self.container_svc.ecs_gateway.list_tasks = MagicMock(return_value=instance_ids)
-        self.assertEqual(instance_ids, self.container_svc.list_tasks())
-
     def test_cancel_instances(self):
         instance_ids = [TEST_INSTANCE_ID_1, TEST_INSTANCE_ID_2]
         errors = [None, PcpError("instance id not found")]
