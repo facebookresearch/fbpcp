@@ -20,14 +20,15 @@ COST_GRANULARITY = "DAILY"
 class CostExplorerGateway(AWSGateway):
     def __init__(
         self,
-        region: str,
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__(region, access_key_id, access_key_data, config)
+        super().__init__(
+            access_key_id=access_key_id, access_key_data=access_key_data, config=config
+        )
         # pyre-ignore
-        self.client = boto3.client("ce", region_name=self.region, **self.config)
+        self.client = boto3.client("ce", **self.config)
 
     @error_handler
     def get_cost(self, start_date: str, end_date: str) -> CloudCost:

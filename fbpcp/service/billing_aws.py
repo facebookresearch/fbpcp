@@ -17,14 +17,11 @@ from fbpcp.service.billing import BillingService
 class AWSBillingService(BillingService):
     def __init__(
         self,
-        region: str,
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
-        self.ce_gateway = CostExplorerGateway(
-            region, access_key_id, access_key_data, config
-        )
+        self.ce_gateway = CostExplorerGateway(access_key_id, access_key_data, config)
 
     def get_cost(self, start_date: date, end_date: date) -> CloudCost:
         """Get cost between start_date and end_date
