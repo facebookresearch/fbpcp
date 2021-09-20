@@ -15,14 +15,13 @@ from fbpcp.gateway.costexplorer import CostExplorerGateway
 
 
 class TestCostExplorerGateway(unittest.TestCase):
-    REGION = "us-west-2"
     TEST_ACCESS_KEY_ID = "test-access-key-id"
     TEST_ACCESS_KEY_DATA = "test-access-key-data"
 
     @patch("boto3.client")
     def setUp(self, BotoClient):
         self.gw = CostExplorerGateway(
-            self.REGION, self.TEST_ACCESS_KEY_ID, self.TEST_ACCESS_KEY_DATA
+            self.TEST_ACCESS_KEY_ID, self.TEST_ACCESS_KEY_DATA
         )
         self.gw.client = BotoClient()
 

@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 class AWSGateway:
     def __init__(
         self,
-        region: str,
+        region: Optional[str] = None,
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
