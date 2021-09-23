@@ -7,7 +7,6 @@
 # pyre-strict
 
 import asyncio
-import copy
 import logging
 from typing import Dict, List, Optional, Final
 
@@ -147,24 +146,28 @@ class OneDockerService(MetricsGetter):
             timeout=timeout,
             tag=tag,
         )
-        # Wait for the statues of all instances to become ContainerInstanceStatus.STARTED
-        tasks = [
-            asyncio.create_task(self._wait_for_pending_container(container))
-            for container in containers
-        ]
         self.logger.info(
             f"OneDockerService is waiting for {len(containers)} container(s) to become started"
         )
+        return await self.wait_for_pending_containers(
+            [container.instance_id for container in containers]
+        )
+
+    async def wait_for_pending_containers(
+        self, container_ids: List[str]
+    ) -> List[ContainerInstance]:
+        tasks = [
+            asyncio.create_task(self.wait_for_pending_container(container_id))
+            for container_id in container_ids
+        ]
         res = await asyncio.gather(*tasks)
         return [checked_cast(ContainerInstance, container) for container in res]
 
-    async def _wait_for_pending_container(
-        self, container: ContainerInstance
-    ) -> ContainerInstance:
-        updated_container = copy.deepcopy(container)
+    async def wait_for_pending_container(self, container_id: str) -> ContainerInstance:
+        updated_container = self.get_containers([container_id])[0]
         while updated_container.status is ContainerInstanceStatus.UNKNOWN:
             await asyncio.sleep(1)
-            updated_container = self.get_containers([container.instance_id])[0]
+            updated_container = self.get_containers([container_id])[0]
         return updated_container
 
     def stop_containers(self, containers: List[str]) -> List[Optional[PcpError]]:
