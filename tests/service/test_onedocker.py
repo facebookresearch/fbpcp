@@ -16,6 +16,10 @@ from fbpcp.service.onedocker import (
     METRICS_START_CONTAINERS_DURATION,
 )
 
+TEST_INSTANCE_ID_1 = "test-instance-id-1"
+TEST_INSTANCE_ID_2 = "test-instance-id-2"
+TEST_IP_ADDRESS = "127.0.0.1"
+
 
 class TestOneDockerServiceSync(unittest.TestCase):
     @patch("fbpcp.service.container.ContainerService")
@@ -100,7 +104,9 @@ class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
     @patch("fbpcp.metrics.emitter.MetricsEmitter")
     async def test_metrics(self, MockMetricsEmitter):
         metrics = MockMetricsEmitter()
-        one_docker = OneDockerService(container_svc=self.container_svc, metrics=metrics)
+        onedocker_svc = OneDockerService(
+            container_svc=self.container_svc, metrics=metrics
+        )
         mocked_container_info = ContainerInstance(
             "arn:aws:ecs:region:account_id:task/container_id",
             "192.0.2.0",
@@ -110,7 +116,7 @@ class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
             return_value=[mocked_container_info]
         )
 
-        await one_docker.start_containers_async(
+        await onedocker_svc.start_containers_async(
             package_name="project/exe_name",
             task_definition="task_def",
             cmd_args_list=["cmd_args"],
@@ -119,3 +125,53 @@ class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
         metrics.count.assert_any_call(ANY, 1)
         metrics.count.assert_any_call(METRICS_START_CONTAINERS_COUNT, 1)
         metrics.gauge.assert_called_with(METRICS_START_CONTAINERS_DURATION, ANY)
+
+    async def test_waiting_for_pending_container(self):
+        pending_containers = self._get_pending_container_instances()
+        running_containers = self._get_running_container_instances()
+        self.onedocker_svc.get_containers = MagicMock(return_value=running_containers)
+        expected_container = await self.onedocker_svc.wait_for_pending_container(
+            pending_containers[0].instance_id
+        )
+        self.assertEqual(expected_container, running_containers[0])
+
+    async def test_waiting_for_pending_containers(self):
+        pending_containers = self._get_pending_container_instances()
+        running_containers = self._get_running_container_instances()
+        self.onedocker_svc.get_containers = MagicMock(
+            side_effect=([running_containers[0]], [running_containers[1]])
+        )
+        expected_containers = await self.onedocker_svc.wait_for_pending_containers(
+            [container.instance_id for container in pending_containers]
+        )
+        self.assertEqual(expected_containers, running_containers)
+
+    @staticmethod
+    def _get_pending_container_instances():
+        return [
+            ContainerInstance(
+                TEST_INSTANCE_ID_1,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.UNKNOWN,
+            ),
+            ContainerInstance(
+                TEST_INSTANCE_ID_2,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.UNKNOWN,
+            ),
+        ]
+
+    @staticmethod
+    def _get_running_container_instances():
+        return [
+            ContainerInstance(
+                TEST_INSTANCE_ID_1,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+            ),
+            ContainerInstance(
+                TEST_INSTANCE_ID_2,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+            ),
+        ]

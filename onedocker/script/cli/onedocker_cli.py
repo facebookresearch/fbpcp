@@ -21,6 +21,7 @@ Options:
     --verbose                Set logging level to DEBUG
 """
 
+import asyncio
 import logging
 import os
 import time
@@ -77,6 +78,9 @@ def _test(
         version=version,
         cmd_args=cmd_args,
         timeout=DEFAULT_TIMEOUT,
+    )
+    container = asyncio.run(
+        onedocker_svc.wait_for_pending_container(container.instance_id)
     )
     logger.info(container)
     log_path = log_svc.get_log_path(container)
