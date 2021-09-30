@@ -16,7 +16,6 @@ from fbpcp.repository.mpc_instance import MPCInstanceRepository
 from fbpcp.service.container import ContainerService
 from fbpcp.service.mpc_game import MPCGameService
 from fbpcp.service.onedocker import OneDockerService
-from fbpcp.service.storage import StorageService
 from fbpcp.util.typing import checked_cast
 
 DEFAULT_BINARY_VERSION = "latest"
@@ -30,7 +29,6 @@ class MPCService:
     def __init__(
         self,
         container_svc: ContainerService,
-        storage_svc: StorageService,
         instance_repository: MPCInstanceRepository,
         task_definition: str,
         mpc_game_svc: MPCGameService,
@@ -38,24 +36,17 @@ class MPCService:
         """Constructor of MPCService
         Keyword arguments:
         container_svc -- service to spawn container instances
-        storage_svc -- service to read/write input/output files
         instance_repository -- repository to CRUD MPCInstance
         task_definition -- containers task definition
         mpc_game_svc -- service to generate package name and game arguments.
         """
-        if (
-            container_svc is None
-            or storage_svc is None
-            or instance_repository is None
-            or mpc_game_svc is None
-        ):
+        if container_svc is None or instance_repository is None or mpc_game_svc is None:
             raise ValueError(
                 f"Dependency is missing. container_svc={container_svc}, mpc_game_svc={mpc_game_svc}, "
-                f"storage_svc={storage_svc}, instance_repository={instance_repository}"
+                f"instance_repository={instance_repository}"
             )
 
         self.container_svc = container_svc
-        self.storage_svc = storage_svc
         self.instance_repository = instance_repository
         self.task_definition = task_definition
         self.mpc_game_svc: MPCGameService = mpc_game_svc

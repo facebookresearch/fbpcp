@@ -39,18 +39,15 @@ GAME_ARGS = [
 class TestMPCService(unittest.TestCase):
     def setUp(self):
         cspatcher = patch("fbpcp.service.container.ContainerService")
-        sspatcher = patch("fbpcp.service.storage.StorageService")
         irpatcher = patch("fbpcp.repository.mpc_instance.MPCInstanceRepository")
         gspatcher = patch("fbpcp.service.mpc_game.MPCGameService")
         container_svc = cspatcher.start()
-        storage_svc = sspatcher.start()
         instance_repository = irpatcher.start()
         mpc_game_svc = gspatcher.start()
-        for patcher in (cspatcher, sspatcher, irpatcher, gspatcher):
+        for patcher in (cspatcher, irpatcher, gspatcher):
             self.addCleanup(patcher.stop)
         self.mpc_service = MPCService(
             container_svc,
-            storage_svc,
             instance_repository,
             "test_task_definition",
             mpc_game_svc,
