@@ -7,10 +7,10 @@
 # pyre-strict
 from enum import Enum
 
-
+# This class will be deprecated because we want to get the cloud region list dynamically instead of maintaining it.
+# Please contact Ji Liu if there is any reason that you need this
 class RegionName(Enum):
     AWS_US_EAST_1 = "us-east-1"
     AWS_US_EAST_2 = "us-east-2"
     AWS_US_WEST_1 = "us-west-1"
     AWS_US_WEST_2 = "us-west-2"
-    # TODO will add more region name in later diff
