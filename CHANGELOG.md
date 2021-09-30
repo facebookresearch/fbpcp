@@ -54,3 +54,10 @@ Add onodocker_cli that can be used to upload/show onedocker repository package, 
 
 ### Description of changes
 Add support for single-word OneDocker package in OneDocker Runner
+
+## 0.1.4 -> 0.1.5
+### Types of changes
+*  Breaking change
+
+### Description of changes
+Remove storage service dependency from MPCService
