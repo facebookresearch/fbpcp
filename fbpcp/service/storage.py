@@ -16,6 +16,7 @@ from fbpcp.entity.file_information import FileInfo
 class PathType(Enum):
     Local = 1
     S3 = 2
+    GCS = 3
 
 
 class StorageService(abc.ABC):
