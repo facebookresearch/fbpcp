@@ -9,8 +9,6 @@
 from decimal import Decimal
 from typing import Any, Dict, List
 
-from fbpcp.cloud.region import RegionName
-from fbpcp.cloud.service import ServiceName
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_definition import ContainerDefinition
@@ -113,8 +111,8 @@ def map_cecost_to_cloud_cost(cost_by_date: List[Dict[str, Any]]) -> CloudCost:
         total_cost_amount=total_cost_amount,
         details=[
             CloudCostItem(
-                region=RegionName(region),
-                service=ServiceName(service),
+                region=region,
+                service=service,
                 cost_amount=amount,
             )
             for (region, service), amount in cost_items.items()

@@ -8,8 +8,6 @@ import unittest
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
-from fbpcp.cloud.region import RegionName
-from fbpcp.cloud.service import ServiceName
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.gateway.costexplorer import CostExplorerGateway
 
@@ -26,9 +24,9 @@ class TestCostExplorerGateway(unittest.TestCase):
         self.gw.client = BotoClient()
 
     def test_get_cost(self):
-        test_region = RegionName.AWS_US_EAST_1
-        test_service_macie = ServiceName.AWS_MACIE
-        test_service_s3 = ServiceName.AWS_S3
+        test_region = "us-east-1"
+        test_service_macie = "Amazon Macie"
+        test_service_s3 = "Amazon Simple Storage Service"
         test_amount_macie_1 = "0.0049312"
         test_amount_macie_2 = "0.051"
         test_amount_s3_1 = "0.0018546732"

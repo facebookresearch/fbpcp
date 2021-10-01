@@ -9,14 +9,11 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import List
 
-from fbpcp.cloud.region import RegionName
-from fbpcp.cloud.service import ServiceName
-
 
 @dataclass
 class CloudCostItem:
-    region: RegionName
-    service: ServiceName
+    region: str
+    service: str
     cost_amount: Decimal
 
 
