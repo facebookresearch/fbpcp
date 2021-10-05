@@ -10,6 +10,9 @@
       "site-package": "boto3"
     },
     {
+      "site-package": "google"
+    },
+    {
       "site-package": "tqdm"
     },
     {

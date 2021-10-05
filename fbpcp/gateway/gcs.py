@@ -22,14 +22,14 @@ class GCSGateway(GCPGateway):
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(location, credentials_json, config)
-        credentials: Credentials = (
+        credentials = (
             (Credentials.from_service_account_info(self.config["credentials_json"]))
             if "credentials_json" in self.config.keys()
             else None
         )
         project = credentials.project_id if credentials is not None else None
 
-        self.client: storage.Client = storage.Client(
+        self.client = storage.Client(
             project=project,
             credentials=credentials,
         )
