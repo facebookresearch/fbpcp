@@ -103,19 +103,18 @@ def map_cecost_to_cloud_cost(cost_by_date: List[Dict[str, Any]]) -> CloudCost:
         for group_result in daily_result.get("Groups"):
             amount = Decimal(group_result["Metrics"]["UnblendedCost"]["Amount"])
             total_cost_amount += amount
-            cost_items[tuple(group_result["Keys"])] = (
-                cost_items.get(tuple(group_result["Keys"]), 0) + amount
+            cost_items[group_result["Keys"][0]] = (
+                cost_items.get(group_result["Keys"][0], 0) + amount
             )
 
     return CloudCost(
         total_cost_amount=total_cost_amount,
         details=[
             CloudCostItem(
-                region=region,
                 service=service,
                 cost_amount=amount,
             )
-            for (region, service), amount in cost_items.items()
+            for service, amount in cost_items.items()
         ],
     )
 
