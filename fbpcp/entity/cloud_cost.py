@@ -12,7 +12,6 @@ from typing import List
 
 @dataclass
 class CloudCostItem:
-    region: str
     service: str
     cost_amount: Decimal
 

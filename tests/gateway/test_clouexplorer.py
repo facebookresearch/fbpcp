@@ -24,7 +24,6 @@ class TestCostExplorerGateway(unittest.TestCase):
         self.gw.client = BotoClient()
 
     def test_get_cost(self):
-        test_region = "us-east-1"
         test_service_macie = "Amazon Macie"
         test_service_s3 = "Amazon Simple Storage Service"
         test_amount_macie_1 = "0.0049312"
@@ -45,7 +44,6 @@ class TestCostExplorerGateway(unittest.TestCase):
         client_return_response = {
             "GroupDefinitions": [
                 {"Type": "DIMENSION", "Key": "SERVICE"},
-                {"Type": "DIMENSION", "Key": "REGION"},
             ],
             "ResultsByTime": [
                 {
@@ -53,7 +51,7 @@ class TestCostExplorerGateway(unittest.TestCase):
                     "Total": {},
                     "Groups": [
                         {
-                            "Keys": [test_region, test_service_macie],
+                            "Keys": [test_service_macie],
                             "Metrics": {
                                 "UnblendedCost": {
                                     "Amount": test_amount_macie_1,
@@ -62,7 +60,7 @@ class TestCostExplorerGateway(unittest.TestCase):
                             },
                         },
                         {
-                            "Keys": [test_region, test_service_s3],
+                            "Keys": [test_service_s3],
                             "Metrics": {
                                 "UnblendedCost": {
                                     "Amount": test_amount_s3_1,
@@ -78,7 +76,7 @@ class TestCostExplorerGateway(unittest.TestCase):
                     "Total": {},
                     "Groups": [
                         {
-                            "Keys": [test_region, test_service_macie],
+                            "Keys": [test_service_macie],
                             "Metrics": {
                                 "UnblendedCost": {
                                     "Amount": test_amount_macie_2,
@@ -87,7 +85,7 @@ class TestCostExplorerGateway(unittest.TestCase):
                             },
                         },
                         {
-                            "Keys": [test_region, test_service_s3],
+                            "Keys": [test_service_s3],
                             "Metrics": {
                                 "UnblendedCost": {
                                     "Amount": test_amount_s3_2,
@@ -109,12 +107,10 @@ class TestCostExplorerGateway(unittest.TestCase):
             total_cost_amount=expected_total_test_amount,
             details=[
                 CloudCostItem(
-                    region=test_region,
                     service=test_service_macie,
                     cost_amount=expected_test_amount_macie,
                 ),
                 CloudCostItem(
-                    region=test_region,
                     service=test_service_s3,
                     cost_amount=expected_test_amount_s3,
                 ),

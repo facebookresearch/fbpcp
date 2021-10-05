@@ -31,29 +31,45 @@ class CostExplorerGateway(AWSGateway):
         self.client = boto3.client("ce", **self.config)
 
     @error_handler
-    def get_cost(self, start_date: str, end_date: str) -> CloudCost:
+    def get_cost(
+        self,
+        start_date: str,
+        end_date: str,
+        region: Optional[str] = None,
+    ) -> CloudCost:
         """
         Get cost between start_date and end_date from CostExplorer API using get_cost_and_usage()
         get_cost_and_usage() referece: https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_cost_and_usage
         :param start_date: start date for cost, required format "yyyy-mm-dd" (e.g "2020-12-01")
         :param end_date: end date for cost, required format "yyyy-mm-dd" (e.g "2020-12-01")
+        :param region: region name as additional filter for cost.
         :return: CloudCost object that has the total cost and a list of CloudCostItem objects group by region and service. Unit of cost_amount is USD
         """
 
         page_token = None
         results_by_time = []
-
         while True:
-            paginate_kwargs = {"NextPageToken": page_token} if page_token else {}
+            kwargs = {"NextPageToken": page_token} if page_token else {}
+            kwargs.update(
+                {
+                    "Filter": {
+                        "Dimensions": {
+                            "Key": "REGION",
+                            "Values": [region],
+                        }
+                    }
+                }
+                if region
+                else {}
+            )
             client_response = self.client.get_cost_and_usage(
                 TimePeriod={"Start": start_date, "End": end_date},
                 Granularity=COST_GRANULARITY,
                 Metrics=["UnblendedCost"],
                 GroupBy=[
-                    {"Type": "DIMENSION", "Key": "REGION"},
                     {"Type": "DIMENSION", "Key": "SERVICE"},
                 ],
-                **paginate_kwargs,
+                **kwargs,
             )
             results_by_time.extend(client_response.get("ResultsByTime"))
             page_token = client_response.get("NextPageToken")
