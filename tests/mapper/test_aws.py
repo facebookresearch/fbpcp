@@ -7,8 +7,6 @@
 import unittest
 from decimal import Decimal
 
-from fbpcp.cloud.region import RegionName
-from fbpcp.cloud.service import ServiceName
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
 from fbpcp.entity.container_instance import ContainerInstanceStatus, ContainerInstance
@@ -216,8 +214,8 @@ class TestAWSMapper(unittest.TestCase):
         self.assertEqual(map_ec2subnet_to_subnet(ec2_client_response), expected_subnet)
 
     def test_map_cecost_to_cloud_cost(self):
-        test_region = RegionName.AWS_US_EAST_1
-        test_service = ServiceName.AWS_MACIE
+        test_region = "us-east-1"
+        test_service = "Amazon Macie"
         test_amount_1 = "0.0049312"
         test_amount_2 = "0.051"
         test_amount_expected = Decimal(test_amount_1) + Decimal(test_amount_2)
