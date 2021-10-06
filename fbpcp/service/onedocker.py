@@ -141,6 +141,7 @@ class OneDockerService(MetricsGetter):
         containers = self.start_containers(
             package_name=package_name,
             task_definition=task_definition,
+            version=version,
             cmd_args_list=cmd_args_list,
             env_vars=env_vars,
             timeout=timeout,
