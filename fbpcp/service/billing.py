@@ -8,11 +8,14 @@
 
 import abc
 from datetime import date
+from typing import Optional
 
 from fbpcp.entity.cloud_cost import CloudCost
 
 
 class BillingService(abc.ABC):
     @abc.abstractmethod
-    def get_cost(self, start_date: date, end_date: date) -> CloudCost:
+    def get_cost(
+        self, start_date: date, end_date: date, region: Optional[str] = None
+    ) -> CloudCost:
         pass

@@ -23,13 +23,18 @@ class AWSBillingService(BillingService):
     ) -> None:
         self.ce_gateway = CostExplorerGateway(access_key_id, access_key_data, config)
 
-    def get_cost(self, start_date: date, end_date: date) -> CloudCost:
+    def get_cost(
+        self, start_date: date, end_date: date, region: Optional[str] = None
+    ) -> CloudCost:
         """Get cost between start_date and end_date
         Keyword arguments:
-        start_date -- start date for cost
+        start_date: start date for cost
         end_date: end date for cost
+        region: region name as optional filter for cost.
         """
         date_format = "%Y-%m-%d"
         return self.ce_gateway.get_cost(
-            start_date.strftime(date_format), end_date.strftime(date_format)
+            start_date.strftime(date_format),
+            end_date.strftime(date_format),
+            region,
         )
