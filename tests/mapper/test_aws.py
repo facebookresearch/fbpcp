@@ -214,7 +214,6 @@ class TestAWSMapper(unittest.TestCase):
         self.assertEqual(map_ec2subnet_to_subnet(ec2_client_response), expected_subnet)
 
     def test_map_cecost_to_cloud_cost(self):
-        test_region = "us-east-1"
         test_service = "Amazon Macie"
         test_amount_1 = "0.0049312"
         test_amount_2 = "0.051"
@@ -224,7 +223,7 @@ class TestAWSMapper(unittest.TestCase):
                 "TimePeriod": {"Start": "2021-08-01", "End": "2021-08-02"},
                 "Groups": [
                     {
-                        "Keys": [test_region, test_service],
+                        "Keys": [test_service],
                         "Metrics": {
                             "UnblendedCost": {"Amount": test_amount_1, "Unit": "USD"}
                         },
@@ -235,7 +234,7 @@ class TestAWSMapper(unittest.TestCase):
                 "TimePeriod": {"Start": "2021-08-02", "End": "2021-08-03"},
                 "Groups": [
                     {
-                        "Keys": [test_region, test_service],
+                        "Keys": [test_service],
                         "Metrics": {
                             "UnblendedCost": {"Amount": test_amount_2, "Unit": "USD"}
                         },
@@ -247,7 +246,6 @@ class TestAWSMapper(unittest.TestCase):
             total_cost_amount=test_amount_expected,
             details=[
                 CloudCostItem(
-                    region=test_region,
                     service=test_service,
                     cost_amount=test_amount_expected,
                 )
