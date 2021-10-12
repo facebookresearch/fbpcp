@@ -222,15 +222,11 @@ def map_ecstaskdefinition_to_containerdefinition(
         if "memory" in container_definition
         else task_definition["memory"]
     )
-    entry_point = (
-        container_definition["entryPoint"]
-        if "entryPoint" in container_definition
-        else []
-    )
+    entry_point = container_definition.get("entryPoint", [])
     environment = convert_list_to_dict(
         container_definition["environment"], "name", "value"
     )
-    task_role_id = task_definition["taskRoleArn"]
+    task_role_id = task_definition.get("taskRoleArn", None)
     tags = convert_list_to_dict(tag_list, "key", "value")
     return ContainerDefinition(
         task_definition_id,
