@@ -59,5 +59,9 @@ Add support for single-word OneDocker package in OneDocker Runner
 ### Types of changes
 *  Breaking change
 
+## 0.1.5 -> 0.1.6
+### Types of changes
+*  Bug fix
+
 ### Description of changes
-Remove storage service dependency from MPCService
+Bug fix in onedocker service to add missing binary version when start containers
