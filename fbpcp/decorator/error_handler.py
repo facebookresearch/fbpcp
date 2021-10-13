@@ -8,9 +8,7 @@ from typing import Callable
 
 from botocore.exceptions import ClientError
 from fbpcp.error.mapper.aws import map_aws_error
-from fbpcp.error.mapper.gcp import map_gcp_error
 from fbpcp.error.pcp import PcpError
-from google.cloud.exceptions import GoogleCloudError
 
 
 def error_handler(f: Callable) -> Callable:
@@ -21,8 +19,6 @@ def error_handler(f: Callable) -> Callable:
             raise err
         except ClientError as err:
             raise map_aws_error(err)
-        except GoogleCloudError as err:
-            raise map_gcp_error(err)
         except Exception as err:
             raise PcpError(err)
 
