@@ -44,7 +44,10 @@ def convert_list_to_dict(
         value: "Value"
     Output examples: {"k1": "v1", "k2": "v2"}
     """
-    return reduce(lambda x, y: {**x, **{y[key]: y[value]}}, target_list, {})
+    if target_list is not None:
+        return reduce(lambda x, y: {**x, **{y[key]: y[value]}}, target_list, {})
+    else:
+        return {}
 
 
 def prepare_tags(tags: Dict[str, str]) -> Dict[str, str]:
