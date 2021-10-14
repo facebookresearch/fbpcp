@@ -81,7 +81,7 @@ def map_ec2vpc_to_vpcinstance(vpc: Dict[str, Any]) -> Vpc:
     vpc_id = vpc["VpcId"]
     cidr_block = vpc["CidrBlock"]
     # some vpc instances don't have any tags
-    tags = convert_list_to_dict(vpc["Tags"], "Key", "Value") if "Tags" in vpc else {}
+    tags = convert_list_to_dict(vpc.get("Tags"), "Key", "Value")
 
     # TODO add implementation to get the firewall_ruleset
     return Vpc(vpc_id, cidr_block, state, tags)
@@ -90,9 +90,7 @@ def map_ec2vpc_to_vpcinstance(vpc: Dict[str, Any]) -> Vpc:
 def map_ec2subnet_to_subnet(subnet: Dict[str, Any]) -> Subnet:
     availability_zone = subnet["AvailabilityZone"]
     subnet_id = subnet["SubnetId"]
-    tags = (
-        convert_list_to_dict(subnet["Tags"], "Key", "Value") if "Tags" in subnet else {}
-    )
+    tags = convert_list_to_dict(subnet.get("Tags"), "Key", "Value")
     return Subnet(subnet_id, availability_zone, tags)
 
 
@@ -140,18 +138,14 @@ def map_ec2routetable_to_routetable(route_table: Dict[str, Any]) -> RouteTable:
     route_table_id = route_table["RouteTableId"]
     routes = [map_ec2route_to_route(route) for route in route_table["Routes"]]
     vpc_id = route_table["VpcId"]
-    tags = (
-        convert_list_to_dict(route_table["Tags"], "Key", "Value")
-        if "Tags" in route_table
-        else {}
-    )
+    tags = convert_list_to_dict(route_table.get("Tags"), "Key", "Value")
     return RouteTable(route_table_id, routes, vpc_id, tags)
 
 
 def map_ec2ippermission_to_firewallrule(ip_permission: Dict[str, Any]) -> FirewallRule:
     ip_protocol = ip_permission["IpProtocol"]
-    from_port = ip_permission["FromPort"] if "FromPort" in ip_permission else -1
-    to_port = ip_permission["ToPort"] if "ToPort" in ip_permission else -1
+    from_port = ip_permission.get("FromPort", -1)
+    to_port = ip_permission.get("ToPort", -1)
     ip_range = ip_permission["IpRanges"][0]
     cidr = ip_range["CidrIp"]
     return FirewallRule(from_port, to_port, ip_protocol, cidr)
@@ -162,11 +156,7 @@ def map_ec2securitygroup_to_firewallruleset(
 ) -> FirewallRuleset:
     id = security_group["GroupId"]
     vpc_id = security_group["VpcId"]
-    tags = (
-        convert_list_to_dict(security_group["Tags"], "Key", "Value")
-        if "Tags" in security_group
-        else {}
-    )
+    tags = convert_list_to_dict(security_group.get("Tags"), "Key", "Value")
     ingress = [
         map_ec2ippermission_to_firewallrule(ip_permission)
         for ip_permission in security_group["IpPermissions"]
@@ -197,11 +187,7 @@ def map_ec2vpcpeering_to_vpcpeering(
         if requester_vpc_id == vpc_id
         else VpcPeeringRole.ACCEPTER
     )
-    tags = (
-        convert_list_to_dict(vpc_peering["Tags"], "Key", "Value")
-        if "Tags" in vpc_peering
-        else {}
-    )
+    tags = convert_list_to_dict(vpc_peering.get("Tags"), "Key", "Value")
     return VpcPeering(id, status, role, requester_vpc_id, accepter_vpc_id, tags)
 
 
@@ -212,16 +198,8 @@ def map_ecstaskdefinition_to_containerdefinition(
     task_definition_id = task_definition["taskDefinitionArn"]
     container_definition = task_definition["containerDefinitions"][0]
     image = container_definition["image"]
-    cpu = (
-        container_definition["cpu"]
-        if "cpu" in container_definition
-        else task_definition["cpu"]
-    )
-    memory = (
-        container_definition["memory"]
-        if "memory" in container_definition
-        else task_definition["memory"]
-    )
+    cpu = container_definition.get("cpu", task_definition.get("cpu"))
+    memory = container_definition.get("memory", task_definition.get("memory"))
     entry_point = container_definition.get("entryPoint", [])
     environment = convert_list_to_dict(
         container_definition["environment"], "name", "value"
