@@ -16,10 +16,10 @@ def error_handler(f: Callable) -> Callable:
         try:
             return f(*args, **kwargs)
         except PcpError as err:
-            raise err
+            raise err from None
         except ClientError as err:
-            raise map_aws_error(err)
+            raise map_aws_error(err) from None
         except Exception as err:
-            raise PcpError(err)
+            raise PcpError(err) from None
 
     return wrap
