@@ -13,6 +13,9 @@ install_requires = [
     "pyyaml==5.4.1",
     "tqdm==4.55.1",
     "google-cloud-storage==1.30.0",
+    "docopt==0.6.2",
+    "schema==0.7.0",
+    "psutil==5.8.0",
 ]
 
 with open("README.md", encoding="utf-8") as f:
