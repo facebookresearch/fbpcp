@@ -10,7 +10,7 @@ SCRIPTS_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "${SCRIPTS_DIRECTORY}"
 cd "${SCRIPTS_DIRECTORY}/.."
 
-files=$(find tests "${SCRIPTS_DIRECTORY}" -name '*.py')
+files=$(find tests onedocker/tests "${SCRIPTS_DIRECTORY}" -name '*.py')
 echo "${files}"
 if [[ -z "${files}" ]]; then
   echo 'No test files found, exiting.'
