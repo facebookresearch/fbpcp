@@ -65,3 +65,10 @@ Add support for single-word OneDocker package in OneDocker Runner
 
 ### Description of changes
 Bug fix in onedocker service to add missing binary version when start containers
+
+## 0.1.6 -> 0.2.0
+### Types of changes
+*  New feature (non-breaking change which adds functionality)
+
+### Description of changes
+Release PCE validator and update onedocker dependencies
