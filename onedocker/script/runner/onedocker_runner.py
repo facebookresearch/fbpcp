@@ -50,16 +50,15 @@ DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
 # the default version of the binary
 DEFAULT_BINARY_VERSION = "latest"
 
+logger = None
 
-def _run_package(
+
+def _prepare_executable(
     repository_path: str,
     exe_path: str,
     package_name: str,
     version: str,
-    timeout: int,
-    exe_args: Optional[str] = None,
-) -> None:
-    logger = logging.getLogger(__name__)
+) -> str:
     # download executable from s3
     if repository_path.upper() != "LOCAL":
         _download_executables(repository_path, package_name, version)
@@ -71,7 +70,12 @@ def _run_package(
 
     executable = f"{exe_path}{exe_name}"
     os.chmod(executable, 0o755)
+    return executable
 
+
+def _run_executable(
+    executable: str, timeout: int, exe_args: Optional[str] = None
+) -> None:
     # run execution cmd
     cmd = _build_cmd(executable, exe_args)
     logger.info(f"Running cmd: {cmd} ...")
@@ -79,7 +83,7 @@ def _run_package(
 
     return_code = run_cmd(cmd, timeout)
     if return_code != 0:
-        logger.info(f"Subprocess returned non-zero return code: {return_code}")
+        logger.error(f"Subprocess returned non-zero return code: {return_code}")
 
     net_end: Any = psutil.net_io_counters()
     logger.info(
@@ -87,6 +91,55 @@ def _run_package(
     )
 
     sys.exit(return_code)
+
+
+def _run_package(
+    repository_path: str,
+    exe_path: str,
+    package_name: str,
+    version: str,
+    timeout: int,
+    exe_args: Optional[str] = None,
+) -> None:
+    logger.info(f"Starting to run {package_name}, version: {version}")
+    try:
+        executable = _prepare_executable(
+            repository_path=repository_path,
+            exe_path=exe_path,
+            package_name=package_name,
+            version=version,
+        )
+    except Exception as err:
+        logger.error(
+            f"An error was raised while preparing {package_name}:{version} from {repository_path}, error: {err}",
+            exc_info=True,
+        )
+        sys.exit(1)
+
+    try:
+        _run_executable(
+            executable=executable,
+            timeout=timeout,
+            exe_args=exe_args,
+        )
+    except subprocess.TimeoutExpired:
+        logger.error(
+            f"{timeout} seconds have passed. Now exiting the program....",
+            exc_info=True,
+        )
+        sys.exit(1)
+    except InterruptedError:
+        logger.error(
+            "Receive abort command from user, Now exiting the program....",
+            exc_info=True,
+        )
+        sys.exit(1)
+    except Exception as err:
+        logger.error(
+            f"An error was raised while running {package_name}, error: {err}",
+            exc_info=True,
+        )
+        sys.exit(1)
 
 
 def _build_cmd(executable: str, exe_args: Optional[str]) -> str:
@@ -100,9 +153,8 @@ def _download_executables(
     package_name: str,
     version: str,
 ) -> None:
-    logger = logging.getLogger(__name__)
     s3_region = S3Path(repository_path).region
-    _, exe_name = _parse_package_name(package_name)
+    exe_name = _parse_package_name(package_name)
     # TODO: Remove the hard coded path
     exe_local_path = DEFAULT_EXE_FOLDER + exe_name
     exe_s3_path = f"{repository_path}{package_name}/{version}/{exe_name}"
@@ -113,8 +165,7 @@ def _download_executables(
 
 def _parse_package_name(package_name: str) -> str:
     # Some existing packages are like private_lift/lift, so we have to split it by slash
-    package = package_name.split("/")
-    return package[len(package) - 1]
+    return package_name.split("/")[-1]
 
 
 def _read_config(
@@ -123,7 +174,6 @@ def _read_config(
     env_var: str,
     default_val: str,
 ):
-    logger = logging.getLogger(__name__)
     if argument:
         logger.info(f"Read {config_name} from program arguments...")
         return argument
@@ -137,6 +187,7 @@ def _read_config(
 
 
 def main():
+    global logger
     s = schema.Schema(
         {
             "<package_name>": str,
@@ -153,13 +204,10 @@ def main():
 
     arguments = s.validate(docopt(__doc__))
 
+    logger = logging.getLogger(__name__)
     log_path = arguments["--log_path"]
     log_level = logging.DEBUG if arguments["--verbose"] else logging.INFO
     logging.basicConfig(filename=log_path, level=log_level)
-    logger = logging.getLogger(__name__)
-
-    # timeout could be None if the caller did not provide the value
-    timeout = arguments["--timeout"]
 
     repository_path = _read_config(
         "repository_path",
@@ -174,22 +222,14 @@ def main():
         DEFAULT_EXE_FOLDER,
     )
 
-    logger.info("Starting program....")
-    try:
-        _run_package(
-            repository_path=repository_path,
-            exe_path=exe_path,
-            package_name=arguments["<package_name>"],
-            version=arguments["--version"],
-            timeout=timeout,
-            exe_args=arguments["--exe_args"],
-        )
-    except subprocess.TimeoutExpired:
-        logger.error(f"{timeout} seconds have passed. Now exiting the program....")
-        sys.exit(1)
-    except InterruptedError:
-        logger.error("Receive abort command from user, Now exiting the program....")
-        sys.exit(1)
+    _run_package(
+        repository_path=repository_path,
+        exe_path=exe_path,
+        package_name=arguments["<package_name>"],
+        version=arguments["--version"],
+        timeout=arguments["--timeout"],
+        exe_args=arguments["--exe_args"],
+    )
 
 
 if __name__ == "__main__":
