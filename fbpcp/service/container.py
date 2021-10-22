@@ -46,10 +46,29 @@ class ContainerService(abc.ABC):
 
     @abc.abstractmethod
     def get_instance(self, instance_id: str) -> ContainerInstance:
+        """Get a specific container instance.
+
+        Args:
+            instance_id: uniquely identify a container instance.
+
+        Returns:
+            A container instance.
+
+        Raises:
+            PcpError: The specified container instance wasn't found in the cluster.
+        """
         pass
 
     @abc.abstractmethod
     def get_instances(self, instance_ids: List[str]) -> List[ContainerInstance]:
+        """Get one or more container instances.
+
+        Args:
+            instance_ids: the instance ids of the container instances.
+
+        Returns:
+            A list of found container instances.
+        """
         pass
 
     @abc.abstractmethod
