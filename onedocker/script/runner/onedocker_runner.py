@@ -110,9 +110,8 @@ def _run_package(
             version=version,
         )
     except Exception as err:
-        logger.error(
-            f"An error was raised while preparing {package_name}:{version} from {repository_path}, error: {err}",
-            exc_info=True,
+        logger.exception(
+            f"An error was raised while preparing {package_name}:{version} from {repository_path}, error: {err}"
         )
         sys.exit(1)
 
@@ -122,22 +121,19 @@ def _run_package(
             timeout=timeout,
             exe_args=exe_args,
         )
-    except subprocess.TimeoutExpired:
-        logger.error(
-            f"{timeout} seconds have passed. Now exiting the program....",
-            exc_info=True,
+    except subprocess.TimeoutExpired as err:
+        logger.exception(
+            f"{timeout} seconds have passed. Now exiting the program...\n{err}"
         )
         sys.exit(1)
-    except InterruptedError:
-        logger.error(
-            "Receive abort command from user, Now exiting the program....",
-            exc_info=True,
+    except InterruptedError as err:
+        logger.exception(
+            f"Receive abort command from user, Now exiting the program...\n{err}",
         )
         sys.exit(1)
     except Exception as err:
-        logger.error(
-            f"An error was raised while running {package_name}, error: {err}",
-            exc_info=True,
+        logger.exception(
+            f"An error was raised while running {package_name}, error: {err}"
         )
         sys.exit(1)
 
