@@ -24,7 +24,7 @@ from fbpcp.entity.route_table import (
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc, VpcState
 from fbpcp.entity.vpc_peering import VpcPeering, VpcPeeringRole, VpcPeeringState
-from fbpcp.util.aws import convert_list_to_dict
+from fbpcp.util.aws import convert_list_to_dict, get_container_definition_id
 
 
 def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
@@ -195,8 +195,12 @@ def map_ecstaskdefinition_to_containerdefinition(
     task_definition: Dict[str, Any],
     tag_list: List[Dict[str, str]],
 ) -> ContainerDefinition:
-    task_definition_id = task_definition["taskDefinitionArn"]
+    task_definition_arn = task_definition["taskDefinitionArn"]
     container_definition = task_definition["containerDefinitions"][0]
+    container_name = container_definition["name"]
+    task_definition_id = get_container_definition_id(
+        task_definition_arn, container_name
+    )
     image = container_definition["image"]
     cpu = container_definition.get("cpu", task_definition.get("cpu"))
     memory = container_definition.get("memory", task_definition.get("memory"))

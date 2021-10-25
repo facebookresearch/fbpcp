@@ -76,3 +76,8 @@ def convert_vpc_tags_to_filter(
     tags_dict = prepare_tags(tags) if tags else {}
     filter_dict = {**vpc_dict, **tags_dict}
     return convert_dict_to_list(filter_dict, "Name", "Values") if filter_dict else []
+
+
+def get_container_definition_id(task_definition_id: str, container: str) -> str:
+    # the reverse logic from https://fburl.com/code/ycdjih3q
+    return f"{task_definition_id}#{container}"

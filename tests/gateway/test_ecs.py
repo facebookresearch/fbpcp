@@ -11,7 +11,7 @@ from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
 from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstanceStatus, ContainerInstance
 from fbpcp.gateway.ecs import ECSGateway
-from fbpcp.util.aws import convert_list_to_dict
+from fbpcp.util.aws import convert_list_to_dict, get_container_definition_id
 
 
 class TestECSGateway(unittest.TestCase):
@@ -227,11 +227,16 @@ class TestECSGateway(unittest.TestCase):
         test_environment = [{"name": "USER", "value": "ubuntu"}]
         test_task_role = "test-task-role"
         test_tags = [{"key": "pce-id", "value": "zehuali_test"}]
+        test_container_name = "container_name"
+        test_container_definition_id = get_container_definition_id(
+            self.TEST_TASK_DEFINITION_ARN, test_container_name
+        )
         client_return_response = {
             "taskDefinition": {
                 "taskDefinitionArn": self.TEST_TASK_DEFINITION_ARN,
                 "containerDefinitions": [
                     {
+                        "name": test_container_name,
                         "image": test_image,
                         "cpu": test_cpu,
                         "memory": test_memory,
@@ -254,7 +259,7 @@ class TestECSGateway(unittest.TestCase):
         container_definition = self.gw.describe_task_definition(task_definition_name)
         container_definitions = self.gw.describe_task_definitions(tags=test_tags_dict)
         expected_container_definition = ContainerDefinition(
-            self.TEST_TASK_DEFINITION_ARN,
+            test_container_definition_id,
             test_image,
             test_cpu,
             test_memory,
