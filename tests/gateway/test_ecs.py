@@ -16,6 +16,9 @@ from fbpcp.util.aws import convert_list_to_dict, get_container_definition_id
 
 class TestECSGateway(unittest.TestCase):
     TEST_TASK_ARN = "test-task-arn"
+    TEST_TASK_ARN_2 = "test-task-arn-2"
+    TEST_TASK_ARN_DNE = "test-task-arn-dne"
+
     TEST_TASK_DEFINITION = "test-task-definition"
     TEST_TASK_DEFINITION_ARN = "test-task-definition-arn"
     TEST_CONTAINER = "test-container"
@@ -73,7 +76,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(task, expected_task)
         self.gw.client.run_task.assert_called()
 
-    def test_describe_tasks(self):
+    def test_describe_tasks_single(self):
         client_return_response = {
             "tasks": [
                 {
@@ -91,21 +94,133 @@ class TestECSGateway(unittest.TestCase):
                     ],
                     "taskArn": self.TEST_TASK_ARN,
                 }
-            ]
+            ],
+            "failures": [],
         }
         self.gw.client.describe_tasks = MagicMock(return_value=client_return_response)
-        tasks = [
-            self.TEST_TASK_DEFINITION,
-        ]
-        tasks = self.gw.describe_tasks(self.TEST_CLUSTER, tasks)
-        expected_tasks = [
+        containers = self.gw.describe_tasks(self.TEST_CLUSTER, [self.TEST_TASK_ARN])
+        expected_containers = [
             ContainerInstance(
                 self.TEST_TASK_ARN,
                 self.TEST_IP_ADDRESS,
                 ContainerInstanceStatus.STARTED,
             ),
         ]
-        self.assertEqual(tasks, expected_tasks)
+        self.assertEqual(containers, expected_containers)
+        self.gw.client.describe_tasks.assert_called()
+
+    def test_describe_tasks_multi(self):
+        client_return_response = {
+            "tasks": [
+                {
+                    "containers": [
+                        {
+                            "name": self.TEST_CONTAINER,
+                            "exitcode": 123,
+                            "lastStatus": "RUNNING",
+                            "networkInterfaces": [
+                                {
+                                    "privateIpv4Address": self.TEST_IP_ADDRESS,
+                                },
+                            ],
+                        }
+                    ],
+                    "taskArn": self.TEST_TASK_ARN,
+                },
+                {
+                    "containers": [
+                        {
+                            "name": self.TEST_CONTAINER,
+                            "exitcode": 123,
+                            "lastStatus": "RUNNING",
+                            "networkInterfaces": [
+                                {
+                                    "privateIpv4Address": self.TEST_IP_ADDRESS,
+                                },
+                            ],
+                        }
+                    ],
+                    "taskArn": self.TEST_TASK_ARN_2,
+                },
+            ],
+            "failures": [],
+        }
+        self.gw.client.describe_tasks = MagicMock(return_value=client_return_response)
+        containers = self.gw.describe_tasks(
+            self.TEST_CLUSTER, [self.TEST_TASK_ARN, self.TEST_TASK_ARN_2]
+        )
+        expected_containers = [
+            ContainerInstance(
+                self.TEST_TASK_ARN,
+                self.TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+            ),
+            ContainerInstance(
+                self.TEST_TASK_ARN_2,
+                self.TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+            ),
+        ]
+        self.assertEqual(containers, expected_containers)
+        self.gw.client.describe_tasks.assert_called()
+
+    def test_describe_tasks_nonexistent(self):
+        client_return_response = {
+            "tasks": [
+                {
+                    "containers": [
+                        {
+                            "name": self.TEST_CONTAINER,
+                            "exitcode": 123,
+                            "lastStatus": "RUNNING",
+                            "networkInterfaces": [
+                                {
+                                    "privateIpv4Address": self.TEST_IP_ADDRESS,
+                                },
+                            ],
+                        }
+                    ],
+                    "taskArn": self.TEST_TASK_ARN,
+                },
+                {
+                    "containers": [
+                        {
+                            "name": self.TEST_CONTAINER,
+                            "exitcode": 123,
+                            "lastStatus": "RUNNING",
+                            "networkInterfaces": [
+                                {
+                                    "privateIpv4Address": self.TEST_IP_ADDRESS,
+                                },
+                            ],
+                        }
+                    ],
+                    "taskArn": self.TEST_TASK_ARN_2,
+                },
+            ],
+            "failures": [
+                {"arn": self.TEST_TASK_ARN_DNE, "reason": "reason", "detail": "detail"},
+            ],
+        }
+        self.gw.client.describe_tasks = MagicMock(return_value=client_return_response)
+        containers = self.gw.describe_tasks(
+            self.TEST_CLUSTER,
+            [self.TEST_TASK_ARN, self.TEST_TASK_ARN_DNE, self.TEST_TASK_ARN_2],
+        )
+        expected_containers = [
+            ContainerInstance(
+                self.TEST_TASK_ARN,
+                self.TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+            ),
+            None,
+            ContainerInstance(
+                self.TEST_TASK_ARN_2,
+                self.TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+            ),
+        ]
+        self.assertEqual(containers, expected_containers)
         self.gw.client.describe_tasks.assert_called()
 
     def test_stop_task(self):
