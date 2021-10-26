@@ -1,12 +1,40 @@
 name: Build and Publish Python Distributions to PyPI
 
 on:
-  release:
-      types: [created]
+  push:
+    branches: [ main ]
+    paths:
+      - 'setup.py'
 jobs:
+  check-package-version:
+    name: Check Package Version
+    runs-on: ubuntu-18.04
+    outputs:
+      version_check: ${{ steps.version_check.outputs.version_check }}
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - name: Install packages
+      run: >-
+        python3 -m
+        pip install
+        requests packaging
+    - name: Package version check
+      run: >-
+       python3 ./scripts/compare_package_version.py
+    - name: Get version check output
+      id: version_check
+      run: >-
+       echo "::set-output name=version_check::$(python3 ./scripts/compare_package_version.py | tail -1)"
+
   build-n-publish:
     name: Build and publish distributions to PyPI
     runs-on: ubuntu-18.04
+    needs: check-package-version
+    if : needs.check-package-version.outputs.version_check == 'higher'
     steps:
     - uses: actions/checkout@master
     - name: Set up Python 3.8
