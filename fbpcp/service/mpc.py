@@ -273,7 +273,11 @@ class MPCService:
         self, containers: List[ContainerInstance]
     ) -> List[ContainerInstance]:
         ids = [container.instance_id for container in containers]
-        return self.container_svc.get_instances(ids)
+        return [
+            container
+            for container in self.container_svc.get_instances(ids)
+            if container
+        ]
 
     def _get_instance_status(self, instance: MPCInstance) -> MPCInstanceStatus:
         if instance.status is MPCInstanceStatus.CANCELED:

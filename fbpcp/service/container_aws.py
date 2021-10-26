@@ -81,7 +81,9 @@ class AWSContainerService(ContainerService):
     def get_instance(self, instance_id: str) -> ContainerInstance:
         return self.ecs_gateway.describe_task(self.cluster, instance_id)
 
-    def get_instances(self, instance_ids: List[str]) -> List[ContainerInstance]:
+    def get_instances(
+        self, instance_ids: List[str]
+    ) -> List[Optional[ContainerInstance]]:
         return self.ecs_gateway.describe_tasks(self.cluster, instance_ids)
 
     def cancel_instance(self, instance_id: str) -> None:
