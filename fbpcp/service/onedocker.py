@@ -164,17 +164,26 @@ class OneDockerService(MetricsGetter):
         res = await asyncio.gather(*tasks)
         return [checked_cast(ContainerInstance, container) for container in res]
 
-    async def wait_for_pending_container(self, container_id: str) -> ContainerInstance:
+    async def wait_for_pending_container(
+        self, container_id: str
+    ) -> Optional[ContainerInstance]:
         updated_container = self.get_containers([container_id])[0]
-        while updated_container.status is ContainerInstanceStatus.UNKNOWN:
+        while (
+            updated_container is None
+            or updated_container.status is ContainerInstanceStatus.UNKNOWN
+        ):
             await asyncio.sleep(1)
             updated_container = self.get_containers([container_id])[0]
+            if updated_container is None:
+                break
         return updated_container
 
     def stop_containers(self, containers: List[str]) -> List[Optional[PcpError]]:
         return self.container_svc.cancel_instances(containers)
 
-    def get_containers(self, instance_ids: List[str]) -> List[ContainerInstance]:
+    def get_containers(
+        self, instance_ids: List[str]
+    ) -> List[Optional[ContainerInstance]]:
         return self.container_svc.get_instances(instance_ids)
 
     def _get_exe_name(self, package_name: str) -> str:
