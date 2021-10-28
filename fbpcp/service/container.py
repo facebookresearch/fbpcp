@@ -77,8 +77,27 @@ class ContainerService(abc.ABC):
 
     @abc.abstractmethod
     def cancel_instance(self, instance_id: str) -> None:
+        """Cancel a running container instance.
+
+        cancel_instance does not gurantee immediate terminations. Some implementations
+        may wait for a certain grace period.
+        Cancelled instance may be removed immediately, or after a short time.
+
+        Args:
+            instance_id: the instance id of the container instance to cancel.
+        """
         pass
 
     @abc.abstractmethod
     def cancel_instances(self, instance_ids: List[str]) -> List[Optional[PcpError]]:
+        """Cancel one or more running container instances.
+
+        Args:
+            instance_id: the instance ids of the container instances to cancel.
+
+        Returns:
+            A list of Optionals, in the same order as the input instance ids. A `None` indicates
+            a successful cancellation, whereas a `PceError` indicates a failed cancellation and
+            describes the error reason.
+        """
         pass
