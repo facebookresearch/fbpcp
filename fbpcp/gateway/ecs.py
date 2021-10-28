@@ -101,9 +101,20 @@ class ECSGateway(AWSGateway, MetricsGetter):
         return map_ecstask_to_containerinstance(response["tasks"][0])
 
     @error_handler
-    def describe_tasks(self, cluster: str, tasks: List[str]) -> List[ContainerInstance]:
-        response = self.client.describe_tasks(cluster=cluster, tasks=tasks)
-        return [map_ecstask_to_containerinstance(task) for task in response["tasks"]]
+    def describe_tasks(
+        self, cluster: str, tasks: List[str]
+    ) -> List[Optional[ContainerInstance]]:
+        response = self.client.describe_tasks(
+            cluster=cluster, tasks=tasks
+        )  # not necessarily in order of `tasks`
+
+        arn_to_instance: Dict[str, Optional[ContainerInstance]] = {}
+        for resp_task_dict in response["tasks"]:
+            arn_to_instance[
+                resp_task_dict["taskArn"]
+            ] = map_ecstask_to_containerinstance(resp_task_dict)
+
+        return [arn_to_instance.get(arn, None) for arn in tasks]
 
     @error_handler
     def describe_task(self, cluster: str, task: str) -> ContainerInstance:

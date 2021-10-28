@@ -13,6 +13,7 @@ from fbpcp.service.container_aws import AWSContainerService
 
 TEST_INSTANCE_ID_1 = "test-instance-id-1"
 TEST_INSTANCE_ID_2 = "test-instance-id-2"
+TEST_INSTANCE_ID_DNE = "test-instance-id-dne"
 TEST_REGION = "us-west-2"
 TEST_KEY_ID = "test-key-id"
 TEST_KEY_DATA = "test-key-data"
@@ -102,6 +103,29 @@ class TestAWSContainerService(unittest.TestCase):
         )
         instances = self.container_svc.get_instances(
             [TEST_INSTANCE_ID_1, TEST_INSTANCE_ID_2]
+        )
+        self.assertEqual(instances, container_instances)
+
+    def test_get_instances_nonexistent(self):
+        container_instances = [
+            ContainerInstance(
+                TEST_INSTANCE_ID_1,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+            ),
+            None,
+            ContainerInstance(
+                TEST_INSTANCE_ID_2,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+            ),
+        ]
+
+        self.container_svc.ecs_gateway.describe_tasks = MagicMock(
+            return_value=container_instances
+        )
+        instances = self.container_svc.get_instances(
+            [TEST_INSTANCE_ID_1, TEST_INSTANCE_ID_DNE, TEST_INSTANCE_ID_2]
         )
         self.assertEqual(instances, container_instances)
 
