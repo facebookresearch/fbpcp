@@ -85,6 +85,14 @@ class TestAWSContainerService(unittest.TestCase):
         instance = self.container_svc.get_instance(TEST_INSTANCE_ID_1)
         self.assertEqual(instance, container_instance)
 
+    def test_get_instance_nonexistent(self):
+        container_instance = None
+        self.container_svc.ecs_gateway.describe_task = MagicMock(
+            return_value=container_instance
+        )
+        instance = self.container_svc.get_instance(TEST_INSTANCE_ID_DNE)
+        self.assertEqual(instance, container_instance)
+
     def test_get_instances(self):
         container_instances = [
             ContainerInstance(

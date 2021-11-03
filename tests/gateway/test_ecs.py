@@ -76,7 +76,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(task, expected_task)
         self.gw.client.run_task.assert_called()
 
-    def test_describe_tasks_single(self):
+    def test_describe_task(self):
         client_return_response = {
             "tasks": [
                 {
@@ -98,18 +98,31 @@ class TestECSGateway(unittest.TestCase):
             "failures": [],
         }
         self.gw.client.describe_tasks = MagicMock(return_value=client_return_response)
-        containers = self.gw.describe_tasks(self.TEST_CLUSTER, [self.TEST_TASK_ARN])
-        expected_containers = [
-            ContainerInstance(
-                self.TEST_TASK_ARN,
-                self.TEST_IP_ADDRESS,
-                ContainerInstanceStatus.STARTED,
-            ),
-        ]
-        self.assertEqual(containers, expected_containers)
+        container = self.gw.describe_task(self.TEST_CLUSTER, self.TEST_TASK_ARN)
+        expected_container = ContainerInstance(
+            self.TEST_TASK_ARN,
+            self.TEST_IP_ADDRESS,
+            ContainerInstanceStatus.STARTED,
+        )
+
+        self.assertEqual(container, expected_container)
         self.gw.client.describe_tasks.assert_called()
 
-    def test_describe_tasks_multi(self):
+    def test_describe_task_nonexistent(self):
+        client_return_response = {
+            "tasks": [],
+            "failures": [
+                {"arn": self.TEST_TASK_ARN_DNE, "reason": "reason", "detail": "detail"},
+            ],
+        }
+        self.gw.client.describe_tasks = MagicMock(return_value=client_return_response)
+        container = self.gw.describe_task(self.TEST_CLUSTER, self.TEST_TASK_ARN_DNE)
+        expected_container = None
+
+        self.assertEqual(container, expected_container)
+        self.gw.client.describe_tasks.assert_called()
+
+    def test_describe_tasks(self):
         client_return_response = {
             "tasks": [
                 {
