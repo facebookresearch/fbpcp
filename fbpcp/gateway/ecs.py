@@ -117,7 +117,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
         return [arn_to_instance.get(arn, None) for arn in tasks]
 
     @error_handler
-    def describe_task(self, cluster: str, task: str) -> ContainerInstance:
+    def describe_task(self, cluster: str, task: str) -> Optional[ContainerInstance]:
         return self.describe_tasks(cluster, [task])[0]
 
     @error_handler

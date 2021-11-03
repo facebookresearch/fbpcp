@@ -41,7 +41,6 @@ from onedocker.repository.onedocker_package import (
     OneDockerPackageRepository,
 )
 
-
 logger = None
 onedocker_svc = None
 container_svc = None
@@ -87,6 +86,11 @@ def _test(
     start_time = 0
     while container.status == ContainerInstanceStatus.STARTED:
         container = container_svc.get_instance(container.instance_id)
+        if not container:
+            raise ValueError(
+                f"An error was raised while getting a container with id: {container.instance_id}, got None."
+            )
+
         log_events = log_svc.fetch(log_path, start_time)
 
         for event in log_events:

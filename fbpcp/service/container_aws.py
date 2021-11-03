@@ -78,7 +78,7 @@ class AWSContainerService(ContainerService):
         )
         return instances
 
-    def get_instance(self, instance_id: str) -> ContainerInstance:
+    def get_instance(self, instance_id: str) -> Optional[ContainerInstance]:
         return self.ecs_gateway.describe_task(self.cluster, instance_id)
 
     def get_instances(
