@@ -72,3 +72,11 @@ Bug fix in onedocker service to add missing binary version when start containers
 
 ### Description of changes
 Release PCE validator and update onedocker dependencies
+
+## 0.2.0 -> 0.2.1
+### Types of changes
+* New feature (non-breaking change which adds functionality)
+
+### Description of changes
+* API change: get_containers and get_instances now allows optional value
+* Add more logging in gateway level for better debugging

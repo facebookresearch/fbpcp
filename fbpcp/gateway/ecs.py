@@ -95,7 +95,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
         if not response["tasks"]:
             # common failures: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/api_failures_messages.html
             failure = response["failures"][0]
-            self.logger.warn(f"ECSGateway failed to create a task. Failure: {failure}")
+            self.logger.error(f"ECSGateway failed to create a task. Failure: {failure}")
             raise PcpError(f"ECS failure: reason: {failure['reason']}")
 
         return map_ecstask_to_containerinstance(response["tasks"][0])
@@ -113,6 +113,11 @@ class ECSGateway(AWSGateway, MetricsGetter):
             arn_to_instance[
                 resp_task_dict["taskArn"]
             ] = map_ecstask_to_containerinstance(resp_task_dict)
+
+        for failure in response["failures"]:
+            self.logger.error(
+                f"ECSGateway failed to describe a task {failure['arn']}, reason: {failure['reason']}"
+            )
 
         return [arn_to_instance.get(arn, None) for arn in tasks]
 
