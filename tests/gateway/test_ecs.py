@@ -34,13 +34,13 @@ class TestECSGateway(unittest.TestCase):
     REGION = "us-west-2"
 
     @patch("boto3.client")
-    def setUp(self, BotoClient):
+    def setUp(self, BotoClient) -> None:
         self.gw = ECSGateway(
             self.REGION, self.TEST_ACCESS_KEY_ID, self.TEST_ACCESS_KEY_DATA
         )
         self.gw.client = BotoClient()
 
-    def test_run_task(self):
+    def test_run_task(self) -> None:
         client_return_response = {
             "tasks": [
                 {
@@ -76,7 +76,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(task, expected_task)
         self.gw.client.run_task.assert_called()
 
-    def test_describe_task(self):
+    def test_describe_task(self) -> None:
         client_return_response = {
             "tasks": [
                 {
@@ -108,7 +108,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(container, expected_container)
         self.gw.client.describe_tasks.assert_called()
 
-    def test_describe_task_nonexistent(self):
+    def test_describe_task_nonexistent(self) -> None:
         client_return_response = {
             "tasks": [],
             "failures": [
@@ -122,7 +122,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(container, expected_container)
         self.gw.client.describe_tasks.assert_called()
 
-    def test_describe_tasks(self):
+    def test_describe_tasks(self) -> None:
         client_return_response = {
             "tasks": [
                 {
@@ -177,7 +177,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(containers, expected_containers)
         self.gw.client.describe_tasks.assert_called()
 
-    def test_describe_tasks_nonexistent(self):
+    def test_describe_tasks_nonexistent(self) -> None:
         client_return_response = {
             "tasks": [
                 {
@@ -236,7 +236,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(containers, expected_containers)
         self.gw.client.describe_tasks.assert_called()
 
-    def test_stop_task(self):
+    def test_stop_task(self) -> None:
         client_return_response = {
             "task": {
                 "containers": [
@@ -258,7 +258,7 @@ class TestECSGateway(unittest.TestCase):
         self.gw.stop_task(self.TEST_CLUSTER, self.TEST_TASK_ARN)
         self.gw.client.stop_task.assert_called()
 
-    def test_list_tasks(self):
+    def test_list_tasks(self) -> None:
         client_return_response = {"taskArns": [self.TEST_TASK_ARN]}
         self.gw.client.list_tasks = MagicMock(return_value=client_return_response)
         tasks = self.gw.list_tasks(self.TEST_CLUSTER)
@@ -266,7 +266,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(tasks, expected_tasks)
         self.gw.client.list_tasks.assert_called()
 
-    def test_describe_clusers(self):
+    def test_describe_clusers(self) -> None:
         test_tasks = 100
         client_return_response = {
             "clusters": [
@@ -307,7 +307,7 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(expected_clusters, clusters)
         self.gw.client.describe_clusters.assert_called()
 
-    def test_describe_clusers_by_tags(self):
+    def test_describe_clusers_by_tags(self) -> None:
         test_tasks = 100
         tags = {self.TEST_CLUSTER_TAG_KEY: self.TEST_CLUSTER_TAG_VALUE}
         client_return_response = {
@@ -344,9 +344,9 @@ class TestECSGateway(unittest.TestCase):
         clusters = self.gw.describe_clusters(tags=tags)
         self.assertEqual(expected_clusters, clusters)
         self.gw.client.describe_clusters.assert_called()
-        self.gw.list_clusters.assert_called()
+        self.gw.list_clusters.assert_called()  # pyre-ignore
 
-    def test_describe_task_definition(self):
+    def test_describe_task_definition(self) -> None:
         task_definition_name = "onedocker-task_pce_id"
         test_image = "test_image"
         test_cpu = 4096
