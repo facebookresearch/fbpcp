@@ -16,6 +16,12 @@ class TestStorageService(unittest.TestCase):
         )
         self.assertEqual(type_, PathType.S3)
 
+    def test_path_type_gcs(self):
+        type_ = StorageService.path_type(
+            "https://storage.cloud.google.com/bucket-name/key-name"
+        )
+        self.assertEqual(type_, PathType.GCS)
+
     def test_path_type_local(self):
         type_ = StorageService.path_type("/usr/file")
         self.assertEqual(type_, PathType.Local)
