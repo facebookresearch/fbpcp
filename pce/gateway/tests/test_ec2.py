@@ -4,6 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+# pyre-strict
+
 from unittest import TestCase
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -14,13 +16,13 @@ REGION = "us-west-2"
 
 
 class TestEC2Gateway(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.aws_ec2 = MagicMock()
         with patch("boto3.client") as mock_client:
             mock_client.return_value = self.aws_ec2
             self.ec2 = EC2Gateway(REGION)
 
-    def test_describe_availability_zones(self):
+    def test_describe_availability_zones(self) -> None:
         client_return_response = {
             "AvailabilityZones": [
                 {
