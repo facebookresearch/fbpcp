@@ -17,7 +17,9 @@ from fbpcp.entity.pce import PCE
 from fbpcp.entity.route_table import Route, RouteState, RouteTargetType
 from fbpcp.entity.vpc_instance import Vpc
 from fbpcp.entity.vpc_peering import VpcPeeringState
+from fbpcp.service.pce_aws import PCE_ID_KEY
 from pce.gateway.ec2 import EC2Gateway
+from pce.gateway.iam import IAMGateway
 from pce.validator.message_templates import (
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
@@ -30,6 +32,7 @@ from pce.validator.pce_standard_constants import (
     CONTAINER_CPU,
     CONTAINER_MEMORY,
     CONTAINER_IMAGE,
+    TASK_POLICY,
 )
 
 
@@ -60,8 +63,12 @@ class ValidationSuite:
         key_data: str,
         config: Optional[Dict[str, Any]] = None,
         ec2_gateway: Optional[EC2Gateway] = None,
+        iam_gateway: Optional[IAMGateway] = None,
     ) -> None:
         self.ec2_gateway: EC2Gateway = ec2_gateway or EC2Gateway(
+            region, key_id, key_data, config
+        )
+        self.iam_gateway: IAMGateway = iam_gateway or IAMGateway(
             region, key_id, key_data, config
         )
 
@@ -169,7 +176,7 @@ class ValidationSuite:
 
     def validate_firewall(self, pce: PCE) -> ValidationResult:
         """
-        Check that among inbound traffic from the peers is allowed i.e. there is a rule whose CIDR is overlapped by any firewall rule.
+        Check that inbound traffic from the peers is allowed i.e. there is a rule whose CIDR is overlapped by any firewall rule.
         """
         vpc = pce.pce_network.vpc
         if not vpc:
@@ -189,7 +196,7 @@ class ValidationSuite:
             return ValidationResult(
                 ValidationResultCode.ERROR,
                 ValidationErrorDescriptionTemplate.FIREWALL_RULES_NOT_FOUND.value.format(
-                    pce_id=vpc.tags["pce:pce-id"]
+                    pce_id=vpc.tags[PCE_ID_KEY]
                 ),
             )
         route_table = pce.pce_network.route_table
@@ -233,7 +240,7 @@ class ValidationSuite:
 
     def validate_route_table(self, pce: PCE) -> ValidationResult:
         """
-        Make sure there is a an entry in the route table for the VPC peer and that it is active
+        Make sure there is an entry in the route table for the VPC peer and that it is active
         """
         vpc = pce.pce_network.vpc
         if not vpc:
@@ -264,8 +271,10 @@ class ValidationSuite:
             )
         )
 
-    # Check that all subnets make use of every AZ in the VPC region
     def validate_subnets(self, pce: PCE) -> ValidationResult:
+        """
+        Check that all subnets make use of every AZ in the VPC region
+        """
         region_azs = self.ec2_gateway.describe_availability_zones()
         is_valid = len(set(region_azs)) == len(
             {s.availability_zone for s in pce.pce_network.subnets}
@@ -282,8 +291,10 @@ class ValidationSuite:
             )
         )
 
-    # Check CPU, memory and image name values are according to the standard
     def validate_cluster_definition(self, pce: PCE) -> ValidationResult:
+        """
+        Check CPU, memory and image name values are according to the standard
+        """
         c = pce.pce_compute.container_definition
         if not c:
             return ValidationResult(
@@ -356,6 +367,7 @@ class ValidationSuite:
                     self.validate_route_table,
                     self.validate_subnets,
                     self.validate_cluster_definition,
+                    self.validate_roles,
                 ]
             ]
             if ValidationResultCode.SUCCESS != vr.validation_result_code
@@ -378,3 +390,60 @@ class ValidationSuite:
                 for code, results in results_by_code.items()
             ]
         )
+
+    def validate_roles(self, pce: PCE) -> ValidationResult:
+        """
+        Ensure that the container task execution role has the proper policy (`TASK_POLICY`) among those attached to it.
+        """
+        c = pce.pce_compute.container_definition
+        if not c:
+            return ValidationResult(
+                ValidationResultCode.ERROR,
+                ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_NOT_SET.value,
+            )
+
+        policies = self.iam_gateway.get_policies_for_role(c.task_role_id)
+
+        if not policies:
+            pce_id = c.tags[PCE_ID_KEY]
+            return ValidationResult(
+                ValidationResultCode.ERROR,
+                ValidationErrorDescriptionTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
+                    role_names=c.task_role_id
+                ),
+                ValidationErrorSolutionHintTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
+                    role_names=c.task_role_id, pce_id=pce_id
+                ),
+            )
+
+        policy_name_found = None
+        for policy_name, policy_contents in policies.attached_policy_contents.items():
+            if TASK_POLICY == policy_contents:
+                policy_name_found = policy_name
+                break
+
+        if not policy_name_found:
+            return ValidationResult(
+                ValidationResultCode.ERROR,
+                ValidationErrorDescriptionTemplate.ROLE_WRONG_POLICY.value.format(
+                    role_name=c.task_role_id,
+                    policy_names=",".join(policies.attached_policy_contents.keys()),
+                ),
+                ValidationErrorSolutionHintTemplate.ROLE_WRONG_POLICY.value.format(
+                    role_name=c.task_role_id,
+                    role_policy=TASK_POLICY,
+                ),
+            )
+
+        if len(policies.attached_policy_contents.values()) > 1:
+            return ValidationResult(
+                ValidationResultCode.WARNING,
+                ValidationWarningDescriptionTemplate.MORE_POLICIES_THAN_EXPECTED.value.format(
+                    policy_names=",".join(
+                        policies.attached_policy_contents.keys() - {policy_name_found}
+                    ),
+                    role_id=c.task_role_id,
+                ),
+                ValidationWarningSolutionHintTemplate.MORE_POLICIES_THAN_EXPECTED.value,
+            )
+        return ValidationResult(ValidationResultCode.SUCCESS)

@@ -6,6 +6,8 @@
 
 # pyre-strict
 
+# patternlint-disable f-string-may-be-missing-leading-f
+
 from typing import TypeVar
 
 
@@ -22,22 +24,6 @@ CONTAINER_IMAGE = "539290649537.dkr.ecr.us-west-2.amazonaws.com/one-docker-prod:
 TASK_POLICY = {
     "Version": "2012-10-17",
     "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {"Service": "ecs-tasks.amazonaws.com"},
-            "Effect": "Allow",
-            "Sid": "",
-        }
-    ],
-}
-TASK_EXECUTION_POLICY = {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {"Service": "ecs-tasks.amazonaws.com"},
-            "Effect": "Allow",
-            "Sid": "",
-        }
+        {"Effect": "Allow", "Action": ["s3:*", "s3-object-lambda:*"], "Resource": "*"}
     ],
 }

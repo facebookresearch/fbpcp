@@ -41,6 +41,8 @@ class ValidationErrorDescriptionTemplate(Enum):
     CLUSTER_DEFINITION_WRONG_VALUE = (
         "{resource_name} value '{value}' is incorrect, expected '{expected_value}'."
     )
+    ROLE_WRONG_POLICY = "None of the policies ({policy_names}) attached to the role {role_name} conform to standard."
+    ROLE_POLICIES_NOT_FOUND = "Policies not attached to {role_names}."
 
 
 class ValidationErrorSolutionHintTemplate(Enum):
@@ -52,6 +54,10 @@ class ValidationErrorSolutionHintTemplate(Enum):
     NON_PRIVATE_VPC_CIDR = "Set a private CIDR (https://en.wikipedia.org/wiki/Private_network) for the vpc."
     NOT_ALL_AZ_USED = (
         "Set the subnets so that all availability zones from {region} ({azs}) are used."
+    )
+    ROLE_WRONG_POLICY = "Set the policy of {role_name} to {role_policy}."
+    ROLE_POLICIES_NOT_FOUND = (
+        "Make sure there are policies attached to {role_names} in the pce {pce_id}."
     )
 
 
@@ -67,7 +73,13 @@ class ValidationWarningDescriptionTemplate(Enum):
     CLUSTER_DEFINITION_FLAGGED_VALUES = (
         "Container has outlier values which are non-fatal: {warning_reasons}"
     )
+    MORE_POLICIES_THAN_EXPECTED = (
+        "Policies {policy_names} attached to {role_id} are not expected."
+    )
 
 
 class ValidationWarningSolutionHintTemplate(Enum):
     VPC_PEERING_PEERING_NOT_READY = "Please try again in a moment."
+    MORE_POLICIES_THAN_EXPECTED = (
+        "Consider removing additional policies to strengthen security."
+    )
