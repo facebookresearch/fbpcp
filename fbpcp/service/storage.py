@@ -7,6 +7,7 @@
 # pyre-strict
 
 import abc
+import re
 from enum import Enum
 from typing import List
 
@@ -38,8 +39,15 @@ class StorageService(abc.ABC):
 
     @staticmethod
     def path_type(filename: str) -> PathType:
-        if filename.startswith("https:"):
+        s3_match = re.search(
+            "^https?:/([^.]+).s3.([^.]+).amazonaws.com/(.*)$", filename
+        )
+        if s3_match:
             return PathType.S3
+
+        gcs_match = re.search("^https?://storage.cloud.google.com/(.*)$", filename)
+        if gcs_match:
+            return PathType.GCS
 
         return PathType.Local
 
