@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty
+from fbpcp.error.pcp import PcpError
 from fbpcp.repository.mpc_instance import MPCInstanceRepository
 from fbpcp.service.container import ContainerService
 from fbpcp.service.mpc_game import MPCGameService
@@ -220,7 +221,7 @@ class MPCService:
             instance.containers = self._update_container_instances(instance.containers)
 
             if len(instance.containers) != instance.num_workers:
-                self.logger.warning(
+                raise PcpError(
                     f"Instance {instance_id} has {len(instance.containers)} containers after update, but expecting {instance.num_workers} containers!"
                 )
 
