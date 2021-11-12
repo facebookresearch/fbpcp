@@ -6,7 +6,7 @@
 
 # pyre-strict
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 from unittest import TestCase
 from unittest.mock import MagicMock
 
@@ -19,6 +19,12 @@ from fbpcp.entity.route_table import (
 )
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_peering import VpcPeeringState
+from fbpcp.service.pce_aws import PCE_ID_KEY
+from pce.entity.iam_role import (
+    IAMRole,
+    RoleId,
+    PolicyContents,
+)
 from pce.validator.pce_standard_constants import (
     AvailabilityZone,
     CONTAINER_CPU,
@@ -26,6 +32,7 @@ from pce.validator.pce_standard_constants import (
     CONTAINER_IMAGE,
     FIREWALL_RULE_FINAL_PORT,
     FIREWALL_RULE_INITIAL_PORT,
+    TASK_POLICY,
 )
 from pce.validator.validation_suite import (
     ValidationResult,
@@ -33,6 +40,7 @@ from pce.validator.validation_suite import (
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
     ValidationWarningDescriptionTemplate,
+    ValidationWarningSolutionHintTemplate,
     ClusterResourceType,
     ValidationSuite,
 )
@@ -76,12 +84,20 @@ def create_mock_subnet(availability_zone: AvailabilityZone) -> Subnet:
 
 
 def create_mock_container_definition(
-    cpu: int, memory: int, image: str
+    cpu: Optional[int] = None,
+    memory: Optional[int] = None,
+    image: Optional[str] = None,
+    task_role_id: Optional[str] = None,
+    execution_role_id: Optional[str] = None,
+    tags: Optional[Dict[str, str]] = None,
 ) -> ContainerDefinition:
     c = MagicMock()
     c.cpu = cpu
     c.memory = memory
     c.image = image
+    c.task_role_id = task_role_id
+    c.execution_role_id = execution_role_id
+    c.tags = tags
     return c
 
 
@@ -94,11 +110,22 @@ class TestValidator(TestCase):
     ]
     TEST_VPC_ID = "test_vpc_id"
     TEST_PCE_ID = "test_pce_id"
+    TEST_ACCOUNT_ID = 123456789
+    TEST_TASK_ROLE_NOT_RELATED_NAME = "test_task_role_bad_name"
+    TEST_TASK_ROLE_NAME = "test_task_role_name"
+    TEST_TASK_ROLE_ID = f"foo::bar::role/{TEST_TASK_ROLE_NAME}"
+    TEST_TASK_ROLE_NOT_RELATED_ID = f"foo::bar::role/{TEST_TASK_ROLE_NOT_RELATED_NAME}"
+    TEST_POLICY_TASK_ROLE_NAME = "a/b/test_policy_task_role_name"
 
     def setUp(self) -> None:
         self.ec2_gateway = MagicMock()
+        self.iam_gateway = MagicMock()
         self.validator = ValidationSuite(
-            "test_region", "test_key_id", "test_key_data", ec2_gateway=self.ec2_gateway
+            "test_region",
+            "test_key_id",
+            "test_key_data",
+            ec2_gateway=self.ec2_gateway,
+            iam_gateway=self.iam_gateway,
         )
         self.maxDiff = None
 
@@ -165,7 +192,7 @@ class TestValidator(TestCase):
         pce.pce_network.vpc = MagicMock()
         pce.pce_network.vpc.vpc_id = TestValidator.TEST_VPC_ID
         pce.pce_network.vpc.cidr = vpc_cidr
-        pce.pce_network.vpc.tags = {"pce:pce-id": TestValidator.TEST_PCE_ID}
+        pce.pce_network.vpc.tags = {PCE_ID_KEY: TestValidator.TEST_PCE_ID}
         pce.pce_network.firewall_rulesets = firewall_rulesets
         pce.pce_network.route_table = MagicMock()
         pce.pce_network.route_table.routes = routes
@@ -536,7 +563,20 @@ class TestValidator(TestCase):
         pce.pce_network.vpc_peering.status = VpcPeeringState.ACTIVE
         pce.pce_compute = MagicMock()
         pce.pce_compute.container_definition = create_mock_container_definition(
-            cpu, CONTAINER_MEMORY, CONTAINER_IMAGE
+            cpu,
+            CONTAINER_MEMORY,
+            CONTAINER_IMAGE,
+            task_role_id=TestValidator.TEST_TASK_ROLE_ID,
+            tags={PCE_ID_KEY: TestValidator.TEST_PCE_ID},
+        )
+
+        self.iam_gateway.get_policies_for_role = MagicMock(
+            return_value=IAMRole(
+                TestValidator.TEST_TASK_ROLE_ID,
+                {
+                    TestValidator.TEST_POLICY_TASK_ROLE_NAME: TASK_POLICY,
+                },
+            )
         )
 
         self.ec2_gateway.describe_availability_zones = MagicMock(return_value=[])
@@ -599,4 +639,101 @@ class TestValidator(TestCase):
                     ValidationErrorSolutionHintTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value,
                 ),
             ],
+        )
+
+    def _test_validate_roles(
+        self,
+        task_role_id: RoleId,
+        task_role_policy: IAMRole,
+        expected_result: ValidationResult,
+        expected_error_msg: Optional[str] = None,
+    ) -> None:
+        pce = MagicMock()
+        pce.pce_compute = MagicMock()
+        pce.pce_compute.container_definition = create_mock_container_definition(
+            task_role_id=task_role_id,
+            tags={PCE_ID_KEY: TestValidator.TEST_PCE_ID},
+        )
+
+        def get_policies(role_id: RoleId) -> Optional[IAMRole]:
+            if task_role_policy.role_id == role_id:
+                return task_role_policy
+            return None
+
+        self.iam_gateway.get_policies_for_role = MagicMock(side_effect=get_policies)
+
+        if expected_error_msg:
+            with self.assertRaises(Exception) as ex:
+                self.validator.validate_roles(pce)
+            self.assertEquals(expected_error_msg, str(ex.exception))
+            return
+
+        actual_result = self.validator.validate_roles(pce)
+        self.assertEquals(expected_result, actual_result)
+
+    def test_validate_roles_bad_task_policy(self) -> None:
+        bad_task_policy: PolicyContents = TASK_POLICY.copy()
+        bad_task_policy["Version"] = "2020-01-01"
+        self._test_validate_roles(
+            TestValidator.TEST_TASK_ROLE_ID,
+            IAMRole(
+                TestValidator.TEST_TASK_ROLE_ID,
+                {
+                    TestValidator.TEST_POLICY_TASK_ROLE_NAME: bad_task_policy,
+                },
+            ),
+            ValidationResult(
+                ValidationResultCode.ERROR,
+                ValidationErrorDescriptionTemplate.ROLE_WRONG_POLICY.value.format(
+                    policy_names=TestValidator.TEST_POLICY_TASK_ROLE_NAME,
+                    role_name=TestValidator.TEST_TASK_ROLE_ID,
+                ),
+                ValidationErrorSolutionHintTemplate.ROLE_WRONG_POLICY.value.format(
+                    role_name=TestValidator.TEST_TASK_ROLE_ID,
+                    role_policy=TASK_POLICY,
+                ),
+            ),
+        )
+
+    def test_validate_roles_no_attached_policies(self) -> None:
+        task_policy: PolicyContents = TASK_POLICY.copy()
+        self._test_validate_roles(
+            TestValidator.TEST_TASK_ROLE_ID,
+            IAMRole(
+                # This role is not attached to the container
+                TestValidator.TEST_TASK_ROLE_NOT_RELATED_ID,
+                {TestValidator.TEST_POLICY_TASK_ROLE_NAME: task_policy},
+            ),
+            ValidationResult(
+                ValidationResultCode.ERROR,
+                ValidationErrorDescriptionTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
+                    role_names=",".join((TestValidator.TEST_TASK_ROLE_ID,))
+                ),
+                ValidationErrorSolutionHintTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
+                    role_names=",".join((TestValidator.TEST_TASK_ROLE_ID,)),
+                    pce_id=TestValidator.TEST_PCE_ID,
+                ),
+            ),
+        )
+
+    def test_validate_roles_more_policies_than_expected(self) -> None:
+        additional_policy_name = "task_policy_name_additional"
+        task_policy: PolicyContents = TASK_POLICY.copy()
+        self._test_validate_roles(
+            TestValidator.TEST_TASK_ROLE_ID,
+            IAMRole(
+                TestValidator.TEST_TASK_ROLE_ID,
+                {
+                    TestValidator.TEST_POLICY_TASK_ROLE_NAME: task_policy,
+                    additional_policy_name: {},
+                },
+            ),
+            ValidationResult(
+                ValidationResultCode.WARNING,
+                ValidationWarningDescriptionTemplate.MORE_POLICIES_THAN_EXPECTED.value.format(
+                    policy_names=additional_policy_name,
+                    role_id=TestValidator.TEST_TASK_ROLE_ID,
+                ),
+                ValidationWarningSolutionHintTemplate.MORE_POLICIES_THAN_EXPECTED.value,
+            ),
         )
