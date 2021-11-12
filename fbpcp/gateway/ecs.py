@@ -6,6 +6,7 @@
 
 # pyre-strict
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional, Any, Final
 
 import boto3
@@ -41,7 +42,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
         super().__init__(region, access_key_id, access_key_data, config)
 
         # pyre-ignore
-        self.client = boto3.client("ecs", region_name=self.region, **self.config)
+        self.client = self.create_ecs_client()
         self.metrics: Final[Optional[MetricsEmitter]] = metrics
 
     def has_metrics(self) -> bool:
@@ -52,6 +53,12 @@ class ECSGateway(AWSGateway, MetricsGetter):
             raise PcpError("ECSGateway doesn't have metrics emitter")
 
         return self.metrics
+
+    # TODO: Create an interface to create a client per environment
+    def create_ecs_client(
+        self,
+    ) -> boto3.client:  # pyre-fixme boto3.client is not recognized
+        return boto3.client("ecs", region_name=self.region, **self.config)
 
     @error_counter(METRICS_RUN_TASK_ERROR_COUNT)
     @request_counter(METRICS_RUN_TASK_COUNT)
@@ -169,7 +176,14 @@ class ECSGateway(AWSGateway, MetricsGetter):
 
     @error_handler
     def describe_task_definition(self, task_defination: str) -> ContainerDefinition:
-        response = self.client.describe_task_definition(
+        return self._internal_describe_task_definition(self.client, task_defination)
+
+    def _internal_describe_task_definition(
+        self,
+        client: boto3.client,
+        task_defination: str,
+    ) -> ContainerDefinition:
+        response = client.describe_task_definition(
             taskDefinition=task_defination, include=["TAGS"]
         )
         return map_ecstaskdefinition_to_containerdefinition(
@@ -193,4 +207,33 @@ class ECSGateway(AWSGateway, MetricsGetter):
             container_definition = self.describe_task_definition(arn)
             if tags is None or tags.items() <= container_definition.tags.items():
                 container_definitions.append(container_definition)
+
+        return container_definitions
+
+    @error_handler
+    def describe_task_definitions_in_parallel(
+        self,
+        task_definations: Optional[List[str]] = None,
+        tags: Optional[Dict[str, str]] = None,
+        max_workers: int = 8,
+    ) -> List[ContainerDefinition]:
+        if not task_definations:
+            task_definations = self.list_task_definitions()
+        container_definitions = []
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            input_arguments = [
+                (
+                    self.create_ecs_client(),
+                    definition,
+                )
+                for definition in task_definations
+            ]
+            results = executor.map(
+                lambda args: self._internal_describe_task_definition(*args),
+                input_arguments,
+            )
+            for container_definition in results:
+                if tags is None or tags.items() <= container_definition.tags.items():
+                    container_definitions.append(container_definition)
+
         return container_definitions

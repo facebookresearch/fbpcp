@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
+from typing import Dict, Callable, List
 from unittest.mock import MagicMock, patch
 
 from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
@@ -346,7 +347,35 @@ class TestECSGateway(unittest.TestCase):
         self.gw.client.describe_clusters.assert_called()
         self.gw.list_clusters.assert_called()  # pyre-ignore
 
-    def test_describe_task_definition(self) -> None:
+    def test_describe_task_definition(
+        self,
+    ) -> None:
+        def test_function(tags: Dict[str, str]) -> List[ContainerDefinition]:
+            return self.gw.describe_task_definitions(tags=tags)
+
+        self.describe_task_definition(test_function)
+
+    @patch("boto3.client")
+    def test_describe_task_definition_in_parallel(
+        self,
+        mock_boto_client,
+    ) -> None:
+        self.gw.client = mock_boto_client()
+
+        def test_function(tags: Dict[str, str]) -> List[ContainerDefinition]:
+            return self.gw.describe_task_definitions_in_parallel(tags=tags)
+
+        self.describe_task_definition(test_function)
+
+    def describe_task_definition(
+        self,
+        describe_task_definitions_function: Callable[
+            [
+                Dict[str, str],
+            ],
+            List[ContainerDefinition],
+        ],
+    ) -> None:
         task_definition_name = "onedocker-task_pce_id"
         test_image = "test_image"
         test_cpu = 4096
@@ -385,7 +414,7 @@ class TestECSGateway(unittest.TestCase):
         test_tags_dict = convert_list_to_dict(test_tags, "key", "value")
         test_environment_dict = convert_list_to_dict(test_environment, "name", "value")
         container_definition = self.gw.describe_task_definition(task_definition_name)
-        container_definitions = self.gw.describe_task_definitions(tags=test_tags_dict)
+        container_definitions = describe_task_definitions_function(test_tags_dict)
         expected_container_definition = ContainerDefinition(
             test_container_definition_id,
             test_image,
@@ -399,5 +428,5 @@ class TestECSGateway(unittest.TestCase):
         self.assertEqual(expected_container_definition, container_definition)
         self.assertEqual([expected_container_definition], container_definitions)
 
-        self.gw.client.describe_task_definition.assert_called()
+        self.assertEqual(2, self.gw.client.describe_task_definition.call_count)
         self.gw.client.list_task_definitions.assert_called()
