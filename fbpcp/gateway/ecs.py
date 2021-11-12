@@ -176,9 +176,9 @@ class ECSGateway(AWSGateway, MetricsGetter):
 
     @error_handler
     def describe_task_definition(self, task_defination: str) -> ContainerDefinition:
-        return self._internal_describe_task_definition(self.client, task_defination)
+        return self._describe_task_definition_core(self.client, task_defination)
 
-    def _internal_describe_task_definition(
+    def _describe_task_definition_core(
         self,
         client: boto3.client,
         task_defination: str,
@@ -197,13 +197,13 @@ class ECSGateway(AWSGateway, MetricsGetter):
     @error_handler
     def describe_task_definitions(
         self,
-        task_definations: Optional[List[str]] = None,
+        task_definitions: Optional[List[str]] = None,
         tags: Optional[Dict[str, str]] = None,
     ) -> List[ContainerDefinition]:
-        if not task_definations:
-            task_definations = self.list_task_definitions()
+        if not task_definitions:
+            task_definitions = self.list_task_definitions()
         container_definitions = []
-        for arn in task_definations:
+        for arn in task_definitions:
             container_definition = self.describe_task_definition(arn)
             if tags is None or tags.items() <= container_definition.tags.items():
                 container_definitions.append(container_definition)
@@ -213,12 +213,12 @@ class ECSGateway(AWSGateway, MetricsGetter):
     @error_handler
     def describe_task_definitions_in_parallel(
         self,
-        task_definations: Optional[List[str]] = None,
+        task_definitions: Optional[List[str]] = None,
         tags: Optional[Dict[str, str]] = None,
         max_workers: int = 8,
     ) -> List[ContainerDefinition]:
-        if not task_definations:
-            task_definations = self.list_task_definitions()
+        if not task_definitions:
+            task_definitions = self.list_task_definitions()
         container_definitions = []
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             input_arguments = [
@@ -226,10 +226,10 @@ class ECSGateway(AWSGateway, MetricsGetter):
                     self.create_ecs_client(),
                     definition,
                 )
-                for definition in task_definations
+                for definition in task_definitions
             ]
             results = executor.map(
-                lambda args: self._internal_describe_task_definition(*args),
+                lambda args: self._describe_task_definition_core(*args),
                 input_arguments,
             )
             for container_definition in results:
