@@ -35,7 +35,7 @@ class ValidationErrorDescriptionTemplate(Enum):
         "Container values incorrectly set: {error_reasons}"
     )
     NON_PRIVATE_VPC_CIDR = "The CIDR of the vpc {vpc_cidr} is not a private range."
-    NOT_ALL_AZ_USED = "Not all availability zones used."
+    NOT_ALL_AZ_USED = "Subnets are not using all availability zones from {region}, currently using {azs}."
     FIREWALL_PEER_ROUTE_NOT_SET = "No peer route found."
     FIREWALL_RULES_NOT_FOUND = "No firewall rules found tagged with {pce_id}."
     CLUSTER_DEFINITION_WRONG_VALUE = (
@@ -53,7 +53,7 @@ class ValidationErrorSolutionHintTemplate(Enum):
     CLUSTER_DEFINITION_WRONG_VALUES = f"Please set container values (cpu, memory, image) as ({CONTAINER_CPU},{CONTAINER_MEMORY},'{CONTAINER_IMAGE}')"
     NON_PRIVATE_VPC_CIDR = "Set a private CIDR (https://en.wikipedia.org/wiki/Private_network) for the vpc."
     NOT_ALL_AZ_USED = (
-        "Set the subnets so that all availability zones from {region} ({azs}) are used."
+        "Set the subnets so that all availability zones are used, {azs} are missing."
     )
     ROLE_WRONG_POLICY = "Set the policy of {role_name} to {role_policy}."
     ROLE_POLICIES_NOT_FOUND = (

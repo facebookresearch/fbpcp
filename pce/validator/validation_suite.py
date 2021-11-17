@@ -275,18 +275,21 @@ class ValidationSuite:
         """
         Check that all subnets make use of every AZ in the VPC region
         """
-        region_azs = self.ec2_gateway.describe_availability_zones()
-        is_valid = len(set(region_azs)) == len(
-            {s.availability_zone for s in pce.pce_network.subnets}
-        )
+        region_azs = set(self.ec2_gateway.describe_availability_zones())
+        used_azs = {s.availability_zone for s in pce.pce_network.subnets}
+        # There can't be a case where AZs are used and are not among the region AZs
+        is_valid = region_azs == used_azs
         return (
             ValidationResult(ValidationResultCode.SUCCESS)
             if is_valid
             else ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value,
+                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value.format(
+                    region=pce.pce_network.region,
+                    azs=",".join(sorted(used_azs)) if used_azs else "none",
+                ),
                 ValidationErrorSolutionHintTemplate.NOT_ALL_AZ_USED.value.format(
-                    region=pce.pce_network.region, azs=",".join(region_azs)
+                    azs=",".join(sorted(region_azs - used_azs)),
                 ),
             )
         )

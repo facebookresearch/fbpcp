@@ -103,7 +103,7 @@ def create_mock_container_definition(
 
 class TestValidator(TestCase):
     TEST_REGION = "us-east-1"
-    TEST_AZS = [
+    TEST_REGION_AZS = [
         "us-east-1-bos-1a",
         "us-east-1-chi-1a",
         "us-east-1-dfw-1a",
@@ -423,45 +423,61 @@ class TestValidator(TestCase):
         self.assertEquals(expected_result, actual_result)
 
     def test_validate_subnet_single_zone(self) -> None:
+        subnet_availability_zones = [
+            "us-east-1-bos-1a",
+            "us-east-1-bos-1a",
+            "us-east-1-bos-1a",
+        ]
         self._test_validate_subnet(
-            [
-                "us-east-1-bos-1a",
-                "us-east-1-bos-1a",
-                "us-east-1-bos-1a",
-            ],
-            TestValidator.TEST_AZS,
+            subnet_availability_zones,
+            TestValidator.TEST_REGION_AZS,
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value,
-                ValidationErrorSolutionHintTemplate.NOT_ALL_AZ_USED.value.format(
+                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value.format(
                     region=TestValidator.TEST_REGION,
-                    azs=",".join(TestValidator.TEST_AZS),
+                    azs=",".join(set(subnet_availability_zones)),
+                ),
+                ValidationErrorSolutionHintTemplate.NOT_ALL_AZ_USED.value.format(
+                    azs=",".join(
+                        sorted(
+                            set(TestValidator.TEST_REGION_AZS)
+                            - set(subnet_availability_zones)
+                        )
+                    ),
                 ),
             ),
         )
 
     def test_validate_subnet_more_subnets_than_zone(self) -> None:
+        subnet_availability_zones = [
+            "us-east-1-bos-1a",
+            "us-east-1-chi-1a",
+            "us-east-1-chi-1a",
+        ]
         self._test_validate_subnet(
-            [
-                "us-east-1-bos-1a",
-                "us-east-1-chi-1a",
-                "us-east-1-chi-1a",
-            ],
-            TestValidator.TEST_AZS,
+            subnet_availability_zones,
+            TestValidator.TEST_REGION_AZS,
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value,
-                ValidationErrorSolutionHintTemplate.NOT_ALL_AZ_USED.value.format(
+                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value.format(
                     region=TestValidator.TEST_REGION,
-                    azs=",".join(TestValidator.TEST_AZS),
+                    azs=",".join(sorted(set(subnet_availability_zones))),
+                ),
+                ValidationErrorSolutionHintTemplate.NOT_ALL_AZ_USED.value.format(
+                    azs=",".join(
+                        sorted(
+                            set(TestValidator.TEST_REGION_AZS)
+                            - set(subnet_availability_zones)
+                        )
+                    ),
                 ),
             ),
         )
 
     def test_validate_subnet_success(self) -> None:
         self._test_validate_subnet(
-            TestValidator.TEST_AZS,
-            TestValidator.TEST_AZS,
+            TestValidator.TEST_REGION_AZS,
+            TestValidator.TEST_REGION_AZS,
             ValidationResult(ValidationResultCode.SUCCESS),
         )
 
