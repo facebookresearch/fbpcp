@@ -109,7 +109,7 @@ class OneDockerService(MetricsGetter):
             for cmd_args in cmd_args_list
         ]
 
-        self.logger.info("Spinning up container instances")
+        self.logger.info(f"Spinning up {len(cmds)} container instance[s]")
 
         task_definition = task_definition or self.task_definition
         if not task_definition:
@@ -127,32 +127,6 @@ class OneDockerService(MetricsGetter):
             name = f"{METRICS_CONTAINER_COUNT}.{tag}" if tag else name
             self.metrics.count(name, len(containers))
         return containers
-
-    async def start_containers_async(
-        self,
-        package_name: str,
-        task_definition: Optional[str] = None,
-        version: str = DEFAULT_BINARY_VERSION,
-        cmd_args_list: Optional[List[str]] = None,
-        env_vars: Optional[Dict[str, str]] = None,
-        timeout: Optional[int] = None,
-        tag: Optional[str] = None,
-    ) -> List[ContainerInstance]:
-        containers = self.start_containers(
-            package_name=package_name,
-            task_definition=task_definition,
-            version=version,
-            cmd_args_list=cmd_args_list,
-            env_vars=env_vars,
-            timeout=timeout,
-            tag=tag,
-        )
-        self.logger.info(
-            f"OneDockerService is waiting for {len(containers)} container(s) to become started"
-        )
-        return await self.wait_for_pending_containers(
-            [container.instance_id for container in containers]
-        )
 
     async def wait_for_pending_containers(
         self, container_ids: List[str]
