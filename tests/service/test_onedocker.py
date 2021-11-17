@@ -6,7 +6,7 @@
 
 import unittest
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import AsyncMock, call, MagicMock, patch, ANY
+from unittest.mock import call, MagicMock, patch, ANY
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
@@ -29,10 +29,14 @@ TEST_TAG = "test"
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
+    @patch("fbpcp.metrics.emitter.MetricsEmitter")
     @patch("fbpcp.service.container.ContainerService")
-    def setUp(self, MockContainerService):
+    def setUp(self, MockContainerService, MockMetricsEmitter):
         self.container_svc = MockContainerService()
-        self.onedocker_svc = OneDockerService(self.container_svc, TEST_TASK_DEF)
+        self.metrics = MockMetricsEmitter()
+        self.onedocker_svc = OneDockerService(
+            self.container_svc, TEST_TASK_DEF, self.metrics
+        )
 
     def test_start_container(self):
         mocked_container_info = _get_pending_container_instances()[0]
@@ -91,44 +95,35 @@ class TestOneDockerServiceSync(unittest.TestCase):
         )
         self.container_svc.cancel_instances.assert_called_with(containers)
 
-
-class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
-    @patch("fbpcp.service.container.ContainerService")
-    def setUp(self, MockContainerService):
-        self.container_svc = MockContainerService()
-        self.onedocker_svc = OneDockerService(self.container_svc, TEST_TASK_DEF)
-
-    @patch("fbpcp.metrics.emitter.MetricsEmitter")
-    async def test_metrics(self, MockMetricsEmitter):
-        metrics = MockMetricsEmitter()
-        onedocker_svc = OneDockerService(
-            container_svc=self.container_svc, metrics=metrics
-        )
+    def test_metrics(self):
         self.container_svc.create_instances = MagicMock(
             return_value=_get_pending_container_instances()
-        )
-
-        onedocker_svc.wait_for_pending_containers = AsyncMock(
-            return_value=_get_running_container_instances()
         )
 
         calls = [
             call(TEST_PACKAGE_NAME, TEST_VERSION, TEST_CMD_ARGS_LIST[0], TEST_TIMEOUT),
             call(TEST_PACKAGE_NAME, TEST_VERSION, TEST_CMD_ARGS_LIST[1], TEST_TIMEOUT),
         ]
-        onedocker_svc._get_cmd = MagicMock()
-        await onedocker_svc.start_containers_async(
+        self.onedocker_svc._get_cmd = MagicMock()
+        self.onedocker_svc.start_containers(
             package_name=TEST_PACKAGE_NAME,
             task_definition=TEST_TASK_DEF,
             cmd_args_list=TEST_CMD_ARGS_LIST,
             version=TEST_VERSION,
             timeout=TEST_TIMEOUT,
         )
-        onedocker_svc._get_cmd.assert_has_calls(calls, any_order=False)
+        self.onedocker_svc._get_cmd.assert_has_calls(calls, any_order=False)
 
-        metrics.count.assert_any_call(ANY, 2)
-        metrics.count.assert_any_call(METRICS_START_CONTAINERS_COUNT, 1)
-        metrics.gauge.assert_called_with(METRICS_START_CONTAINERS_DURATION, ANY)
+        self.metrics.count.assert_any_call(ANY, 2)
+        self.metrics.count.assert_any_call(METRICS_START_CONTAINERS_COUNT, 1)
+        self.metrics.gauge.assert_called_with(METRICS_START_CONTAINERS_DURATION, ANY)
+
+
+class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
+    @patch("fbpcp.service.container.ContainerService")
+    def setUp(self, MockContainerService):
+        self.container_svc = MockContainerService()
+        self.onedocker_svc = OneDockerService(self.container_svc, TEST_TASK_DEF)
 
     async def test_waiting_for_pending_container(self):
         pending_containers = _get_pending_container_instances()

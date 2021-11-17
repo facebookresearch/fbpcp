@@ -164,7 +164,10 @@ class TestMPCService(unittest.TestCase):
                 ContainerInstanceStatus.STARTED,
             )
         ]
-        self.mpc_service.onedocker_svc.start_containers_async = AsyncMock(
+        self.mpc_service.onedocker_svc.start_containers = MagicMock(
+            return_value=created_instances
+        )
+        self.mpc_service.onedocker_svc.wait_for_pending_containers = AsyncMock(
             return_value=created_instances
         )
         built_onedocker_args = ("private_lift/lift", "test one docker arguments")
