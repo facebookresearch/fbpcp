@@ -126,6 +126,7 @@ class TestValidator(TestCase):
             "test_key_data",
             ec2_gateway=self.ec2_gateway,
             iam_gateway=self.iam_gateway,
+            client_generator_fn=MagicMock(),
         )
         self.maxDiff = None
 

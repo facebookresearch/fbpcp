@@ -10,14 +10,16 @@ import ipaddress
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, List, Tuple, Dict, Any
 
+import click
 from fbpcp.entity.firewall_ruleset import FirewallRuleset
 from fbpcp.entity.pce import PCE
 from fbpcp.entity.route_table import Route, RouteState, RouteTargetType
 from fbpcp.entity.vpc_instance import Vpc
 from fbpcp.entity.vpc_peering import VpcPeeringState
 from fbpcp.service.pce_aws import PCE_ID_KEY
+from pce.gateway.client_generator import ClientGeneratorFuncton
 from pce.gateway.ec2 import EC2Gateway
 from pce.gateway.iam import IAMGateway
 from pce.validator.message_templates import (
@@ -25,6 +27,7 @@ from pce.validator.message_templates import (
     ValidationErrorSolutionHintTemplate,
     ValidationWarningDescriptionTemplate,
     ValidationWarningSolutionHintTemplate,
+    ValidationStepNames,
 )
 from pce.validator.pce_standard_constants import (
     FIREWALL_RULE_INITIAL_PORT,
@@ -48,6 +51,12 @@ class ValidationResult:
     description: Optional[str] = None
     solution_hint: Optional[str] = None
 
+    def __str__(self) -> str:
+        return f"{self.description}{f' {self.solution_hint}' if self.solution_hint else ''}"
+
+    def __hash__(self) -> int:
+        return hash(self.__str__())
+
 
 class ClusterResourceType(Enum):
     CPU = "cpu"
@@ -58,16 +67,16 @@ class ClusterResourceType(Enum):
 class ValidationSuite:
     def __init__(
         self,
-        region: str,
-        key_id: str,
-        key_data: str,
+        region: Optional[str],
+        key_id: Optional[str],
+        key_data: Optional[str],
         config: Optional[Dict[str, Any]] = None,
         ec2_gateway: Optional[EC2Gateway] = None,
         iam_gateway: Optional[IAMGateway] = None,
+        client_generator_fn: Optional[ClientGeneratorFuncton] = None,
     ) -> None:
-        self.ec2_gateway: EC2Gateway = ec2_gateway or EC2Gateway(
-            region, key_id, key_data, config
-        )
+        assert client_generator_fn and region
+        self.ec2_gateway: EC2Gateway = ec2_gateway or EC2Gateway(client_generator_fn)
         self.iam_gateway: IAMGateway = iam_gateway or IAMGateway(
             region, key_id, key_data, config
         )
@@ -359,22 +368,30 @@ class ValidationSuite:
         """
         Execute all existing validations returning warnings and errors encapsulated in `ValidationResult` objects
         """
-        return [
-            vr
-            for vr in [
-                validation_function(pce)
-                for validation_function in [
-                    self.validate_private_cidr,
-                    self.validate_vpc_peering,
-                    self.validate_firewall,
-                    self.validate_route_table,
-                    self.validate_subnets,
+        with click.progressbar(
+            [
+                (self.validate_private_cidr, ValidationStepNames.CIDR),
+                (self.validate_vpc_peering, ValidationStepNames.VPC_PEERING),
+                (self.validate_firewall, ValidationStepNames.FIREWALL),
+                (self.validate_route_table, ValidationStepNames.ROUTE_TABLE),
+                (self.validate_subnets, ValidationStepNames.SUBNETS),
+                (
                     self.validate_cluster_definition,
-                    self.validate_roles,
+                    ValidationStepNames.CLUSTER_DEFINITION,
+                ),
+                (self.validate_roles, ValidationStepNames.ROLE),
+            ],
+            item_show_func=lambda i: str(i[1].value) if i else "",
+            label="Validating PCE...",
+        ) as validation_functions:
+            return [
+                vr
+                for vr in [
+                    validation_function(pce)
+                    for validation_function, _ in validation_functions
                 ]
+                if ValidationResultCode.SUCCESS != vr.validation_result_code
             ]
-            if ValidationResultCode.SUCCESS != vr.validation_result_code
-        ]
 
     @classmethod
     def summarize_errors(cls, validation_results: List[ValidationResult]) -> str:
@@ -384,12 +401,8 @@ class ValidationSuite:
         return "\n".join(
             [
                 f"{code}:\n\t"
-                + "\n\t".join(
-                    [
-                        f"{res.description}{f' {res.solution_hint}' if res.solution_hint else ''}"
-                        for res in results
-                    ]
-                )
+                # dict preserves insertion order since 3.6, hence is preferred over set
+                + "\n\t".join([str(res) for res in dict.fromkeys(results)])
                 for code, results in results_by_code.items()
             ]
         )
