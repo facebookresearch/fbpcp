@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Dict, Any, List, Tuple
 
+import click
 from fbpcp.entity.firewall_ruleset import FirewallRuleset
 from fbpcp.entity.pce import PCE
 from fbpcp.entity.route_table import Route, RouteState, RouteTargetType
@@ -25,6 +26,7 @@ from pce.validator.message_templates import (
     ValidationErrorSolutionHintTemplate,
     ValidationWarningDescriptionTemplate,
     ValidationWarningSolutionHintTemplate,
+    ValidationStepNames,
 )
 from pce.validator.pce_standard_constants import (
     FIREWALL_RULE_INITIAL_PORT,
@@ -365,22 +367,30 @@ class ValidationSuite:
         """
         Execute all existing validations returning warnings and errors encapsulated in `ValidationResult` objects
         """
-        return [
-            vr
-            for vr in [
-                validation_function(pce)
-                for validation_function in [
-                    self.validate_private_cidr,
-                    self.validate_vpc_peering,
-                    self.validate_firewall,
-                    self.validate_route_table,
-                    self.validate_subnets,
+        with click.progressbar(
+            [
+                (self.validate_private_cidr, ValidationStepNames.CIDR),
+                (self.validate_vpc_peering, ValidationStepNames.VPC_PEERING),
+                (self.validate_firewall, ValidationStepNames.FIREWALL),
+                (self.validate_route_table, ValidationStepNames.ROUTE_TABLE),
+                (self.validate_subnets, ValidationStepNames.SUBNETS),
+                (
                     self.validate_cluster_definition,
-                    self.validate_roles,
+                    ValidationStepNames.CLUSTER_DEFINITION,
+                ),
+                (self.validate_roles, ValidationStepNames.ROLE),
+            ],
+            item_show_func=lambda i: str(i[1].value) if i else "",
+            label="Validating PCE...",
+        ) as validation_functions:
+            return [
+                vr
+                for vr in [
+                    validation_function(pce)
+                    for validation_function, _ in validation_functions
                 ]
+                if ValidationResultCode.SUCCESS != vr.validation_result_code
             ]
-            if ValidationResultCode.SUCCESS != vr.validation_result_code
-        ]
 
     @classmethod
     def summarize_errors(cls, validation_results: List[ValidationResult]) -> str:
