@@ -16,6 +16,7 @@ install_requires = [
     "docopt==0.6.2",
     "schema==0.7.0",
     "psutil==5.8.0",
+    "click==7.1.2",
 ]
 
 with open("README.md", encoding="utf-8") as f:
