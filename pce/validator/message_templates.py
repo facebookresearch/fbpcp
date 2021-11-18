@@ -22,7 +22,7 @@ from pce.validator.pce_standard_constants import (
 class ValidationErrorDescriptionTemplate(Enum):
     UNKNOWN = "Unknown error"
     VPC_PEERING_NO_VPC_PEERING = "No VPC peering set."
-    VPC_PEERING_NO_VPC = "No VPC set."
+    VPC_PEERING_NO_VPC = "VPC not found."
     VPC_PEERING_NO_VPC_CIDR = "No VPC CIDR set."
     VPC_PEERING_NO_ROUTE_TABLE = "No route table set."
     # @lint-ignore This is a valid/inteneded usage of a string as a template
@@ -83,3 +83,13 @@ class ValidationWarningSolutionHintTemplate(Enum):
     MORE_POLICIES_THAN_EXPECTED = (
         "Consider removing additional policies to strengthen security."
     )
+
+
+class ValidationStepNames(Enum):
+    CIDR = "CIDR"
+    VPC_PEERING = "VPC peering"
+    FIREWALL = "Firewall"
+    ROUTE_TABLE = "Route table"
+    SUBNETS = "Subnets"
+    CLUSTER_DEFINITION = "Cluster definition"
+    ROLE = "IAM roles"
