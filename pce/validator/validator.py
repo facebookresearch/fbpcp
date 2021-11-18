@@ -27,8 +27,9 @@ from schema import Schema
 
 def validate_pce(region: str, key_id: str, key_data: str, pce_id: str) -> None:
     pce_service = AWSPCEService(region, key_id, key_data, None)
+    logging.info(f"Loading the PCE {pce_id}...")
     pce = pce_service.get_pce(pce_id)
-    logging.info(f"PCE {pce}")
+    logging.info(f"PCE loaded: {pce}")
     validator = ValidationSuite(region, key_id, key_data, None)
 
     failed_results = validator.validate_network_and_compute(pce)
