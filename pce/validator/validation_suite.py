@@ -10,7 +10,7 @@ import ipaddress
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, List, Tuple, Dict, Any
+from typing import Optional, List, Tuple
 
 import click
 from fbpcp.entity.firewall_ruleset import FirewallRuleset
@@ -67,19 +67,12 @@ class ClusterResourceType(Enum):
 class ValidationSuite:
     def __init__(
         self,
-        region: Optional[str],
-        key_id: Optional[str],
-        key_data: Optional[str],
-        config: Optional[Dict[str, Any]] = None,
+        client_generator_fn: ClientGeneratorFuncton,
         ec2_gateway: Optional[EC2Gateway] = None,
         iam_gateway: Optional[IAMGateway] = None,
-        client_generator_fn: Optional[ClientGeneratorFuncton] = None,
     ) -> None:
-        assert client_generator_fn and region
         self.ec2_gateway: EC2Gateway = ec2_gateway or EC2Gateway(client_generator_fn)
-        self.iam_gateway: IAMGateway = iam_gateway or IAMGateway(
-            region, key_id, key_data, config
-        )
+        self.iam_gateway: IAMGateway = iam_gateway or IAMGateway(client_generator_fn)
 
     def validate_private_cidr(self, pce: PCE) -> ValidationResult:
         vpc = pce.pce_network.vpc

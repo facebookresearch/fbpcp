@@ -7,22 +7,18 @@
 # pyre-strict
 
 from unittest import TestCase
-from unittest.mock import patch, call, MagicMock
+from unittest.mock import call, MagicMock
 
 from pce.entity.iam_role import (
     IAMRole,
 )
 from pce.gateway.iam import IAMGateway
 
-REGION = "us-west-2"
-
 
 class TestIAMGateway(TestCase):
     def setUp(self) -> None:
         self.aws_iam = MagicMock()
-        with patch("boto3.client") as mock_client:
-            mock_client.return_value = self.aws_iam
-            self.iam = IAMGateway(REGION)
+        self.iam = IAMGateway(lambda _: self.aws_iam)
 
     def test_get_policies_for_role(self) -> None:
         test_role_name_1 = "test_role_1"

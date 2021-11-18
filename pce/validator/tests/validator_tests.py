@@ -121,12 +121,9 @@ class TestValidator(TestCase):
         self.ec2_gateway = MagicMock()
         self.iam_gateway = MagicMock()
         self.validator = ValidationSuite(
-            "test_region",
-            "test_key_id",
-            "test_key_data",
+            client_generator_fn=MagicMock(),
             ec2_gateway=self.ec2_gateway,
             iam_gateway=self.iam_gateway,
-            client_generator_fn=MagicMock(),
         )
         self.maxDiff = None
 

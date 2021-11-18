@@ -6,30 +6,23 @@
 # pyre-strict
 
 from re import sub
-from typing import Optional, Dict, Any
+from typing import Optional
 
-import boto3
+import botocore
 from fbpcp.gateway.aws import AWSGateway
 from pce.entity.iam_role import (
     IAMRole,
     RoleId,
     RoleName,
 )
+from pce.gateway.client_generator import ClientGeneratorFuncton
 from pce.mapper.aws import map_attachedrolepolicies_to_rolepolicies
 
 
 class IAMGateway(AWSGateway):
-    def __init__(
-        self,
-        region: str,
-        access_key_id: Optional[str] = None,
-        access_key_data: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        super().__init__(region, access_key_id, access_key_data, config)
-
-        # pyre-ignore
-        self.client = boto3.client("iam", region_name=self.region, **self.config)
+    def __init__(self, create_generator_fn: ClientGeneratorFuncton) -> None:
+        super().__init__()
+        self.client: botocore.client.BaseClient = create_generator_fn("iam")
 
     @classmethod
     def _role_id_to_name(cls, role_id: RoleId) -> RoleName:
