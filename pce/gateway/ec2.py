@@ -5,24 +5,17 @@
 
 # pyre-strict
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 
-import boto3
+import botocore
 from fbpcp.gateway.aws import AWSGateway
+from pce.gateway.client_generator import ClientGeneratorFuncton
 
 
 class EC2Gateway(AWSGateway):
-    def __init__(
-        self,
-        region: str,
-        access_key_id: Optional[str] = None,
-        access_key_data: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        super().__init__(region, access_key_id, access_key_data, config)
-
-        # pyre-ignore
-        self.client = boto3.client("ec2", region_name=self.region, **self.config)
+    def __init__(self, create_generator_fn: ClientGeneratorFuncton) -> None:
+        super().__init__()
+        self.client: botocore.client.BaseClient = create_generator_fn("ec2")
 
     def describe_availability_zones(
         self,

@@ -21,6 +21,7 @@ import logging
 
 from docopt import docopt
 from fbpcp.service.pce_aws import AWSPCEService
+from pce.gateway.client_generator import create_client_generator
 from pce.validator.validation_suite import ValidationSuite
 from schema import Schema
 
@@ -30,7 +31,13 @@ def validate_pce(region: str, key_id: str, key_data: str, pce_id: str) -> None:
     logging.info(f"Loading the PCE {pce_id}...")
     pce = pce_service.get_pce(pce_id)
     logging.info(f"PCE loaded: {pce}")
-    validator = ValidationSuite(region, key_id, key_data, None)
+    validator = ValidationSuite(
+        region=region,
+        key_id=key_id,
+        key_data=key_data,
+        config=None,
+        client_generator_fn=create_client_generator(region, key_id, key_data, None),
+    )
 
     failed_results = validator.validate_network_and_compute(pce)
     if failed_results:
