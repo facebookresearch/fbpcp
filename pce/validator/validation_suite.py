@@ -10,7 +10,7 @@ import ipaddress
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, List, Tuple, Dict, Any
 
 import click
 from fbpcp.entity.firewall_ruleset import FirewallRuleset
@@ -19,6 +19,7 @@ from fbpcp.entity.route_table import Route, RouteState, RouteTargetType
 from fbpcp.entity.vpc_instance import Vpc
 from fbpcp.entity.vpc_peering import VpcPeeringState
 from fbpcp.service.pce_aws import PCE_ID_KEY
+from pce.gateway.client_generator import ClientGeneratorFuncton
 from pce.gateway.ec2 import EC2Gateway
 from pce.gateway.iam import IAMGateway
 from pce.validator.message_templates import (
@@ -66,16 +67,16 @@ class ClusterResourceType(Enum):
 class ValidationSuite:
     def __init__(
         self,
-        region: str,
-        key_id: str,
-        key_data: str,
+        region: Optional[str],
+        key_id: Optional[str],
+        key_data: Optional[str],
         config: Optional[Dict[str, Any]] = None,
         ec2_gateway: Optional[EC2Gateway] = None,
         iam_gateway: Optional[IAMGateway] = None,
+        client_generator_fn: Optional[ClientGeneratorFuncton] = None,
     ) -> None:
-        self.ec2_gateway: EC2Gateway = ec2_gateway or EC2Gateway(
-            region, key_id, key_data, config
-        )
+        assert client_generator_fn and region
+        self.ec2_gateway: EC2Gateway = ec2_gateway or EC2Gateway(client_generator_fn)
         self.iam_gateway: IAMGateway = iam_gateway or IAMGateway(
             region, key_id, key_data, config
         )
