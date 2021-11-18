@@ -48,6 +48,12 @@ class ValidationResult:
     description: Optional[str] = None
     solution_hint: Optional[str] = None
 
+    def __str__(self) -> str:
+        return f"{self.description}{f' {self.solution_hint}' if self.solution_hint else ''}"
+
+    def __hash__(self) -> int:
+        return hash(self.__str__())
+
 
 class ClusterResourceType(Enum):
     CPU = "cpu"
@@ -384,12 +390,8 @@ class ValidationSuite:
         return "\n".join(
             [
                 f"{code}:\n\t"
-                + "\n\t".join(
-                    [
-                        f"{res.description}{f' {res.solution_hint}' if res.solution_hint else ''}"
-                        for res in results
-                    ]
-                )
+                # dict preserves insertion order since 3.6, hence is preferred over set
+                + "\n\t".join([str(res) for res in dict.fromkeys(results)])
                 for code, results in results_by_code.items()
             ]
         )
