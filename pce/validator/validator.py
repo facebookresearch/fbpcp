@@ -41,7 +41,7 @@ def validate_pce(region: str, key_id: str, key_data: str, pce_id: str) -> None:
         print("Your PCE environments are set up correctly.")
 
 
-def main():
+def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
     s = Schema({"--region": str, "--key-id": str, "--key-data": str, "--pce-id": str})

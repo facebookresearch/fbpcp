@@ -159,7 +159,7 @@ def _build_exe_s3_path(repository_path: str, package_name: str, version: str) ->
     return f"{repository_path}{package_name}/{version}/{package_name.split('/')[-1]}"
 
 
-def main():
+def main() -> None:
     global container_svc, onedocker_svc, onedocker_package_repo, log_svc, logger, task_definition, repository_path
     s = schema.Schema(
         {
