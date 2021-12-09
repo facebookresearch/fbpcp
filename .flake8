@@ -7,6 +7,7 @@ ignore =
   # Black conflicts and overlaps.
   # Found in https://github.com/psf/black/issues/429
   B950, # Line too long. (Use `arc lint`'s LINEWRAP instead)
+  C901, # The function is too complex
   E111, # Indentation is not a multiple of four.
   E115, # Expected an indented block (comment).
   E117, # Over-indented.

@@ -8,7 +8,11 @@ from typing import Callable
 
 from botocore.exceptions import ClientError
 from fbpcp.error.mapper.aws import map_aws_error
+from fbpcp.error.mapper.gcp import map_gcp_error
+from fbpcp.error.mapper.k8s import map_k8s_error
 from fbpcp.error.pcp import PcpError
+from google.cloud.exceptions import GoogleCloudError
+from kubernetes.client.exceptions import OpenApiException
 
 
 def error_handler(f: Callable) -> Callable:
@@ -17,8 +21,14 @@ def error_handler(f: Callable) -> Callable:
             return f(*args, **kwargs)
         except PcpError as err:
             raise err from None
+        # AWS Error
         except ClientError as err:
             raise map_aws_error(err) from None
+        # GCP Error
+        except GoogleCloudError as err:
+            raise map_gcp_error(err) from None
+        except OpenApiException as err:
+            raise map_k8s_error(err) from None
         except Exception as err:
             raise PcpError(err) from None
 

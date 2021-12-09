@@ -10,6 +10,7 @@ from botocore.exceptions import ClientError
 from fbpcp.decorator.error_handler import error_handler
 from fbpcp.error.pcp import PcpError
 from fbpcp.error.pcp import ThrottlingError
+from google.cloud.exceptions import TooManyRequests
 
 
 class TestErrorHandler(unittest.TestCase):
@@ -54,3 +55,12 @@ class TestErrorHandler(unittest.TestCase):
             raise ValueError("just a test")
 
         self.assertRaises(PcpError, foo, "error1", "error2")
+
+    def test_gcp_throttling_error(self):
+        @error_handler
+        def foo():
+            # Exception mapping a 429 Too Many Requests response
+            err = TooManyRequests("test")
+            raise err
+
+        self.assertRaises(ThrottlingError, foo)
