@@ -19,6 +19,9 @@
       "site-package": "pyyaml"
     },
     {
+      "site-package": "kubernetes"
+    },
+    {
       "site-package": "fbpcp"
     }
   ],
