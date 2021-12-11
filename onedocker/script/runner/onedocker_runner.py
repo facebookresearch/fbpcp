@@ -37,6 +37,7 @@ from fbpcp.service.storage_s3 import S3StorageService
 from fbpcp.util.s3path import S3Path
 from onedocker.common.env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
 from onedocker.common.util import run_cmd
+from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
 
 # The default OneDocker repository path on S3
@@ -149,14 +150,16 @@ def _download_executables(
     package_name: str,
     version: str,
 ) -> None:
-    s3_region = S3Path(repository_path).region
     exe_name = _parse_package_name(package_name)
     # TODO: Remove the hard coded path
     exe_local_path = DEFAULT_EXE_FOLDER + exe_name
     exe_s3_path = f"{repository_path}{package_name}/{version}/{exe_name}"
-    logger.info(f"Downloading executables from {exe_s3_path}")
-    storage_svc = S3StorageService(s3_region)
-    storage_svc.copy(exe_s3_path, exe_local_path)
+    storage_svc = S3StorageService(S3Path(repository_path).region)
+    onedocker_package_repository = OneDockerPackageRepository(
+        storage_svc, repository_path
+    )
+    logger.info(f"Downloading package {package_name}: {version} from {exe_s3_path}")
+    onedocker_package_repository.download(package_name, version, exe_local_path)
 
 
 def _parse_package_name(package_name: str) -> str:
