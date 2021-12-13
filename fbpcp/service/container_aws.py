@@ -105,3 +105,7 @@ class AWSContainerService(ContainerService):
         """
         s = container_definition.split("#")
         return (s[0], s[1])
+
+    def get_current_instances_count(self) -> int:
+        cluster = self.ecs_gateway.describe_cluster(self.cluster)
+        return cluster.running_tasks + cluster.pending_tasks
