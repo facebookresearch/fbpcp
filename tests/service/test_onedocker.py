@@ -118,6 +118,19 @@ class TestOneDockerServiceSync(unittest.TestCase):
         self.metrics.count.assert_any_call(METRICS_START_CONTAINERS_COUNT, 1)
         self.metrics.gauge.assert_called_with(METRICS_START_CONTAINERS_DURATION, ANY)
 
+    def test_get_container(self):
+        # Arrange
+        expected_results = _get_pending_container_instances()[0]
+
+        self.container_svc.get_instance = MagicMock(return_value=expected_results)
+
+        # Act
+        container = self.onedocker_svc.get_container(TEST_INSTANCE_ID_1)
+
+        # Assert
+        self.assertEqual(container, expected_results)
+        self.container_svc.get_instance.assert_called_with(TEST_INSTANCE_ID_1)
+
 
 class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
     @patch("fbpcp.service.container.ContainerService")

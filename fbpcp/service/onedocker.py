@@ -160,6 +160,9 @@ class OneDockerService(MetricsGetter):
     ) -> List[Optional[ContainerInstance]]:
         return self.container_svc.get_instances(instance_ids)
 
+    def get_container(self, instance_id: str) -> Optional[ContainerInstance]:
+        return self.container_svc.get_instance(instance_id)
+
     def _get_exe_name(self, package_name: str) -> str:
         return package_name.split("/")[1]
 
