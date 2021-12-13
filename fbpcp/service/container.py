@@ -101,3 +101,11 @@ class ContainerService(abc.ABC):
             describes the error reason.
         """
         pass
+
+    @abc.abstractmethod
+    def get_current_instances_count(self) -> int:
+        """Get total pending and running tasks count for cluster
+        Returns:
+            Integer that represent the total pending and running tasks count for cluster
+        """
+        pass
