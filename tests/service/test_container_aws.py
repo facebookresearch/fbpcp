@@ -7,6 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from fbpcp.entity.cluster_instance import Cluster
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.container_aws import AWSContainerService
@@ -142,3 +143,21 @@ class TestAWSContainerService(unittest.TestCase):
         errors = [None, PcpError("instance id not found")]
         self.container_svc.ecs_gateway.stop_task = MagicMock(side_effect=errors)
         self.assertEqual(self.container_svc.cancel_instances(instance_ids), errors)
+
+    def test_get_current_instances_count(self):
+        # Arrange
+        TEST_PENDING_TASKS_COUNT = 2
+        TEST_RUNNING_TASKS_COUNT = 3
+        TEST_TASKS_COUNT = TEST_PENDING_TASKS_COUNT + TEST_RUNNING_TASKS_COUNT
+        self.container_svc.ecs_gateway.describe_cluster = MagicMock(
+            return_value=Cluster(
+                cluster_arn="test",
+                cluster_name=TEST_CLUSTER,
+                pending_tasks=TEST_PENDING_TASKS_COUNT,
+                running_tasks=TEST_RUNNING_TASKS_COUNT,
+            )
+        )
+        # Act
+        count = self.container_svc.get_current_instances_count()
+        # Assert
+        self.assertEqual(count, TEST_TASKS_COUNT)
