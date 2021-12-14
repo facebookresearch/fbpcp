@@ -67,8 +67,8 @@ class ValidationSuite:
     def __init__(
         self,
         region: str,
-        key_id: str,
-        key_data: str,
+        key_id: Optional[str] = None,
+        key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
         ec2_gateway: Optional[EC2Gateway] = None,
         iam_gateway: Optional[IAMGateway] = None,
