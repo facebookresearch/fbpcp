@@ -104,8 +104,8 @@ class ContainerService(abc.ABC):
 
     @abc.abstractmethod
     def get_current_instances_count(self) -> int:
-        """Get total pending and running tasks count for cluster
+        """Get total pending and running instances count for cluster
         Returns:
-            Integer that represent the total pending and running tasks count for cluster
+            Integer that represent the total pending and running instances count for cluster
         """
         pass
