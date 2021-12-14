@@ -11,7 +11,7 @@ import logging
 from typing import Dict, List, Optional, Final
 
 from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
-from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.error.pcp import PcpError
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter
@@ -142,10 +142,7 @@ class OneDockerService(MetricsGetter):
         self, container_id: str
     ) -> Optional[ContainerInstance]:
         updated_container = self.get_containers([container_id])[0]
-        while (
-            updated_container is None
-            or updated_container.status is ContainerInstanceStatus.UNKNOWN
-        ):
+        while not updated_container or not updated_container.ip_address:
             await asyncio.sleep(1)
             updated_container = self.get_containers([container_id])[0]
             if updated_container is None:
