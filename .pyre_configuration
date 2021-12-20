@@ -10,6 +10,9 @@
       "site-package": "boto3"
     },
     {
+      "site-package": "pyre_extensions"
+    },
+    {
       "site-package": "google"
     },
     {
@@ -28,5 +31,5 @@
   "source_directories": [
     "fbpcp"
   ],
-  "version": "0.0.101631877055"
+  "version": "0.0.101639483840"
 }
