@@ -7,7 +7,7 @@
 
 
 Usage:
-    pce_validator --region=<region> --key-id=<key_id> --key-data=<key_data> --pce-id=<pce_id>
+    pce_validator --region=<region> --pce-id=<pce_id> [--key-id=<key_id>] [--key-data=<key_data>]
 
 Options:
     --region=<region>       (AWS) Region name
@@ -22,7 +22,7 @@ import logging
 from docopt import docopt
 from fbpcp.service.pce_aws import AWSPCEService
 from pce.validator.validation_suite import ValidationSuite
-from schema import Schema
+from schema import Schema, Optional, Or
 
 
 def validate_pce(region: str, key_id: str, key_data: str, pce_id: str) -> None:
@@ -44,7 +44,14 @@ def validate_pce(region: str, key_id: str, key_data: str, pce_id: str) -> None:
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
 
-    s = Schema({"--region": str, "--key-id": str, "--key-data": str, "--pce-id": str})
+    s = Schema(
+        {
+            "--region": str,
+            "--pce-id": str,
+            Optional("--key-id"): Or(None, str),
+            Optional("--key-data"): Or(None, str),
+        }
+    )
     arguments = s.validate(docopt(__doc__))
 
     region = arguments["--region"]
