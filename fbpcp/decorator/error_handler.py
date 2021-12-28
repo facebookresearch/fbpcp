@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import functools
 from typing import Callable
 
 from botocore.exceptions import ClientError
@@ -16,7 +17,8 @@ from kubernetes.client.exceptions import OpenApiException
 
 
 def error_handler(f: Callable) -> Callable:
-    def wrap(*args, **kwargs):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
         try:
             return f(*args, **kwargs)
         except PcpError as err:
@@ -32,4 +34,4 @@ def error_handler(f: Callable) -> Callable:
         except Exception as err:
             raise PcpError(err) from None
 
-    return wrap
+    return wrapper
