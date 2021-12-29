@@ -23,6 +23,7 @@ jobs:
           source env/bin/activate
           python3 -m pip install .
           VERSION=$(grep "version" .pyre_configuration | sed -n -e 's/.*\(0\.0\.[0-9]*\).*/\1/p')
+          echo "VIRTUAL ENV:" $VIRTUAL_ENV
           python3 -m pip install pyre-check-nightly==$VERSION
       - name: Run Pyre
         run: |
