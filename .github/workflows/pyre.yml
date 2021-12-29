@@ -28,5 +28,4 @@ jobs:
       - name: Run Pyre
         run: |
           source env/bin/activate
-          pyre init
-          pyre
+          pyre check
