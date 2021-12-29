@@ -2,9 +2,9 @@ name: pyre
 
 on:
   push:
-    branches: [ main ]
+    branches: [ ziyan-test ]
   pull_request:
-    branches: [ main ]
+    branches: [ ziyan-test ]
 
   workflow_dispatch:
 
