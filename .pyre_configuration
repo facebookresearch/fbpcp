@@ -22,11 +22,19 @@
       "site-package": "kubernetes"
     },
     {
+      "site-package": "onedocker"
+    },
+    {
+      "site-package": "pce"
+    },
+    {
       "site-package": "fbpcp"
     }
   ],
   "source_directories": [
-    "fbpcp"
+    "fbpcp",
+    "onedocker",
+    "pce"
   ],
   "version": "0.0.101631877055"
 }
