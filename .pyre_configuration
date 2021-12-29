@@ -1,32 +1,8 @@
 {
-  "search_path": [
-    {
-      "site-package": "dataclasses_json"
-    },
-    {
-      "site-package": "botocore"
-    },
-    {
-      "site-package": "boto3"
-    },
-    {
-      "site-package": "google"
-    },
-    {
-      "site-package": "tqdm"
-    },
-    {
-      "site-package": "pyyaml"
-    },
-    {
-      "site-package": "kubernetes"
-    },
-    {
-      "site-package": "fbpcp"
-    }
-  ],
   "source_directories": [
-    "fbpcp"
+    "fbpcp",
+    "onedocker",
+    "pce"
   ],
   "version": "0.0.101631877055"
 }

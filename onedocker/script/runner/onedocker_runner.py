@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+# pyre-strict
 
 """
 CLI for running an executable in OneDocker containers.
@@ -28,7 +29,7 @@ import subprocess
 import sys
 from pathlib import Path
 from shlex import join, split
-from typing import Any, Optional
+from typing import Optional
 
 import psutil
 import schema
@@ -51,7 +52,7 @@ DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
 # the default version of the binary
 DEFAULT_BINARY_VERSION = "latest"
 
-logger = None
+logger: logging.Logger
 
 
 def _prepare_executable(
@@ -80,13 +81,13 @@ def _run_executable(
     # run execution cmd
     cmd = _build_cmd(executable, exe_args)
     logger.info(f"Running cmd: {cmd} ...")
-    net_start: Any = psutil.net_io_counters()
+    net_start = psutil.net_io_counters()
 
     return_code = run_cmd(cmd, timeout)
     if return_code != 0:
         logger.error(f"Subprocess returned non-zero return code: {return_code}")
 
-    net_end: Any = psutil.net_io_counters()
+    net_end = psutil.net_io_counters()
     logger.info(
         f"Net usage: {net_end.bytes_sent - net_start.bytes_sent} bytes sent, {net_end.bytes_recv - net_start.bytes_recv} bytes received"
     )
@@ -103,6 +104,7 @@ def _run_package(
     exe_args: Optional[str] = None,
 ) -> None:
     logger.info(f"Starting to run {package_name}, version: {version}")
+    executable = ""
     try:
         executable = _prepare_executable(
             repository_path=repository_path,
@@ -172,20 +174,21 @@ def _read_config(
     argument: Optional[str],
     env_var: str,
     default_val: str,
-):
+) -> str:
     if argument:
         logger.info(f"Read {config_name} from program arguments...")
         return argument
 
-    if os.getenv(env_var):
+    env_val = os.getenv(env_var)
+    if env_val:
         logger.info(f"Read {config_name} from environment variables...")
-        return os.getenv(env_var)
+        return env_val
 
     logger.info(f"Read {config_name} from default value...")
     return default_val
 
 
-def main():
+def main() -> None:
     global logger
     s = schema.Schema(
         {
