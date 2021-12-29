@@ -26,4 +26,5 @@ jobs:
           python3 -m pip install pyre-check-nightly==$VERSION
       - name: Run Pyre
         run: |
+          source env/bin/activate
           pyre check
