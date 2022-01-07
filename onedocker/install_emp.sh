@@ -20,7 +20,7 @@ sed -i "s/FB_POLYN:STRING=283/FB_POLYN:STRING=251/" ~/relic/CMakeCache.txt
 # get and install emp-tool
 git clone https://github.com/emp-toolkit/emp-tool.git
 cd emp-tool || exit
-git checkout 508db1726c3c040fd12ad1f4d870169b29dbda13
+git checkout 0.2.3
 cd /root/emp-tool || exit
 cmake . -DTHREADING=ON
 make
@@ -30,7 +30,7 @@ make install
 cd /root || exit
 git clone https://github.com/emp-toolkit/emp-ot.git
 cd emp-ot || exit
-git checkout 7a3ff4b567631ef441ba6a85aadd395bfe925839
+git checkout 0.2.2
 cmake . -DTHREADING=ON
 make
 make install
@@ -39,7 +39,7 @@ make install
 cd /root || exit
 git clone https://github.com/emp-toolkit/emp-sh2pc.git
 cd emp-sh2pc || exit
-git checkout 07271059d99312cfc0c6589f43fc2d9ddfe6788b
+git checkout 0.2.2
 cd /root/emp-sh2pc || exit
 mkdir build
 cd build || exit

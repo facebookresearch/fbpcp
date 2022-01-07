@@ -20,7 +20,8 @@ RUN apt-get update && apt-get install -y \
   libssl1.1 \
   libre2-5 \
   zlib1g \
-  sudo
+  sudo \
+  xxd
 
 # TODO: static link to libemp-tool.so in our game executable
 ADD install_emp.sh .
