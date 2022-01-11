@@ -74,7 +74,13 @@ class AWSPCEService(PCEService):
         if container_definitions:
             container_definition = container_definitions[0]
         else:
-            container_definition = self.ecs_gateway.describe_task_definition(
-                SHARED_TASK_DEFINITION_PREFIX + self.region
-            )
+            try:
+                container_definition = self.ecs_gateway.describe_task_definition(
+                    SHARED_TASK_DEFINITION_PREFIX + self.region
+                )
+            except Exception as err:
+                # The PCE service will only be responsible for getting the resources
+                # The caller will decide how to handle the case that PCE don't have the container definition
+                container_definition = None
+                self.logger.exception(err)
         return PCECompute(self.region, cluster, container_definition)
