@@ -87,3 +87,10 @@ Release PCE validator and update onedocker dependencies
 
 ### Description of changes
 * Update the version of dependencies to make them internally consistent and Fix the docker image vulnerables
+
+## 0.2.2 -> 0.2.3
+### Types of changes
+* New feature (non-breaking change which adds functionality)
+
+### Description of changes
+* API change: start_containers and get_containers now support up tp 1000 concurrent containers
