@@ -93,4 +93,4 @@ Release PCE validator and update onedocker dependencies
 * New feature (non-breaking change which adds functionality)
 
 ### Description of changes
-* API change: start_containers and get_containers now support up tp 1000 concurrent containers
+* API change: Update get_instances in AWS Container Service to take larger input size
