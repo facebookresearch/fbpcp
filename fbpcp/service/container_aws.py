@@ -15,6 +15,8 @@ from fbpcp.gateway.ecs import ECSGateway
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.service.container import ContainerService
 
+AWS_API_INPUT_SIZE_LIMIT = 100  # AWS API Call Capacity Limit
+
 
 class AWSContainerService(ContainerService):
     def __init__(
@@ -84,7 +86,28 @@ class AWSContainerService(ContainerService):
     def get_instances(
         self, instance_ids: List[str]
     ) -> List[Optional[ContainerInstance]]:
-        return self.ecs_gateway.describe_tasks(self.cluster, instance_ids)
+        """Get one or more container instances
+
+        Args:
+            instance_ids: a list of the container instances.
+
+        Returns:
+            A list of Optional, in the same order as the input ids. For example, if
+            users pass 3 instance_ids and the second instance could not be found,
+            then returned list should also have 3 elements, with the 2nd elements being None.
+        """
+        containers = []
+        [
+            containers.extend(res)
+            for res in [
+                self.ecs_gateway.describe_tasks(self.cluster, ids)
+                for ids in [
+                    instance_ids[i : i + AWS_API_INPUT_SIZE_LIMIT]
+                    for i in range(0, len(instance_ids), AWS_API_INPUT_SIZE_LIMIT)
+                ]
+            ]
+        ]
+        return containers
 
     def cancel_instance(self, instance_id: str) -> None:
         return self.ecs_gateway.stop_task(cluster=self.cluster, task_id=instance_id)
