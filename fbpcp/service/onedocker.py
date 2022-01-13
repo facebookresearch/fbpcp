@@ -101,6 +101,20 @@ class OneDockerService(MetricsGetter):
         task_definition -- if specified, overrides OneDockerService's task definition
                            when starting this container
         """
+        """Spin up cloud containers according to command arg list.
+
+        Args:
+            package_name:       Name of running package within docker image
+            task_definition:    Task definition required by docker containers. If specified, overrides OneDockerService's task definition
+                                when starting this container
+            cmd_args_list:      A list of command overrides in docker containers
+            env_vars:           environment variable overrides in docker containers
+            timeout:            container timeout. If specified, docker container would be forced to stop
+            tag:                Tag for docker containers
+
+        Returns:
+            A list of the containers that were successfuly started
+        """
         if not cmd_args_list:
             raise ValueError("Command Argument List shouldn't be None or Empty")
 
@@ -184,6 +198,17 @@ class OneDockerService(MetricsGetter):
     def get_containers(
         self, instance_ids: List[str]
     ) -> List[Optional[ContainerInstance]]:
+        # TODO We will need long term discussion on the container capacity of onedocker
+        """Get one or more container instances
+
+        Args:
+            instance_ids: a list of the container instances.
+
+        Returns:
+            A list of Optional, in the same order as the input ids. For example, if
+            users pass 3 instance_ids and the second instance could not be found,
+            then returned list should also have 3 elements, with the 2nd elements being None.
+        """
         return self.container_svc.get_instances(instance_ids)
 
     def _get_exe_name(self, package_name: str) -> str:

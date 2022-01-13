@@ -4,12 +4,14 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import math
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import call, MagicMock, patch
+from uuid import uuid4
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
-from fbpcp.service.container_aws import AWSContainerService
+from fbpcp.service.container_aws import AWSContainerService, AWS_API_INPUT_SIZE_LIMIT
 
 TEST_INSTANCE_ID_1 = "test-instance-id-1"
 TEST_INSTANCE_ID_2 = "test-instance-id-2"
@@ -94,23 +96,50 @@ class TestAWSContainerService(unittest.TestCase):
         self.assertEqual(instance, container_instance)
 
     def test_get_instances(self):
+        # Arrange
+        num_instances = 134
+        instance_ids = [uuid4() for _ in range(num_instances)]
         container_instances = [
             ContainerInstance(
-                TEST_INSTANCE_ID_1,
-                TEST_IP_ADDRESS,
-                ContainerInstanceStatus.STARTED,
-            ),
+                instance_id, TEST_IP_ADDRESS, ContainerInstanceStatus.UNKNOWN
+            )
+            for instance_id in instance_ids
+        ]
+        expected_container_shard_0 = [
             ContainerInstance(
-                TEST_INSTANCE_ID_2,
-                TEST_IP_ADDRESS,
-                ContainerInstanceStatus.STARTED,
+                instance_id, TEST_IP_ADDRESS, ContainerInstanceStatus.UNKNOWN
+            )
+            for instance_id in instance_ids[0:AWS_API_INPUT_SIZE_LIMIT]
+        ]
+        expected_container_shard_1 = [
+            ContainerInstance(
+                instance_id, TEST_IP_ADDRESS, ContainerInstanceStatus.UNKNOWN
+            )
+            for instance_id in instance_ids[AWS_API_INPUT_SIZE_LIMIT:num_instances]
+        ]
+
+        self.container_svc.ecs_gateway.describe_tasks = MagicMock(
+            side_effect=[expected_container_shard_0, expected_container_shard_1]
+        )
+
+        calls = [
+            call(self.container_svc.cluster, instance_ids[0:AWS_API_INPUT_SIZE_LIMIT]),
+            call(
+                self.container_svc.cluster,
+                instance_ids[AWS_API_INPUT_SIZE_LIMIT:num_instances],
             ),
         ]
-        self.container_svc.ecs_gateway.describe_tasks = MagicMock(
-            return_value=container_instances
+
+        # Act
+        instances = self.container_svc.get_instances(instance_ids=instance_ids)
+
+        # Assert
+        self.container_svc.ecs_gateway.describe_tasks.assert_has_calls(
+            calls, any_order=False
         )
-        instances = self.container_svc.get_instances(
-            [TEST_INSTANCE_ID_1, TEST_INSTANCE_ID_2]
+        self.assertEqual(
+            self.container_svc.ecs_gateway.describe_tasks.call_count,
+            math.ceil(num_instances / AWS_API_INPUT_SIZE_LIMIT),
         )
         self.assertEqual(instances, container_instances)
 

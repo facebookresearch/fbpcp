@@ -80,3 +80,10 @@ Release PCE validator and update onedocker dependencies
 ### Description of changes
 * API change: get_containers and get_instances now allows optional value
 * Add more logging in gateway level for better debugging
+
+## 0.2.1 -> 0.2.1-patch
+### Types of changes
+*  Hotfix
+
+### Description of changes
+Update input size in get_containers
