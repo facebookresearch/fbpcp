@@ -45,6 +45,8 @@ def main() -> None:
     elif version_parse(setup_version) == version_parse(pypi_version):
         print(f"setup.py {setup_version} is equal to Pypi version {pypi_version}")
         print("equal")
+    elif "post" in setup_version:
+        print("Post Release")
     else:
         print(
             f"Error: setup.py {setup_version} is lower than to Pypi version {pypi_version}, this is not exepected."

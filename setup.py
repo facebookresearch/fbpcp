@@ -23,8 +23,8 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="fbpcp",
-    # patch version for hotfix 0119
-    version="0.2.1-patch",
+    # patch version for updating input size in get_containers
+    version="0.2.post1",
     description="Facebook Private Computation Platform",
     author="Facebook",
     author_email="researchtool-help@fb.com",
