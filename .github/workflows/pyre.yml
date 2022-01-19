@@ -2,9 +2,9 @@ name: pyre
 
 on:
   push:
-    branches: [ main ]
+    branches: [ hotfix-0119 ]
   pull_request:
-    branches: [ main ]
+    branches: [ hotfix-0119 ]
 
   workflow_dispatch:
 

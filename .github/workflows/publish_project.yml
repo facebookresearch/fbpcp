@@ -2,7 +2,7 @@ name: Build and Publish Python Distributions to PyPI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ hotfix-0119 ]
     paths:
       - 'setup.py'
 jobs:
