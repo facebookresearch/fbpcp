@@ -31,11 +31,11 @@ REGION = "us-west-2"
 
 class TestEC2Gateway(unittest.TestCase):
     @patch("boto3.client")
-    def setUp(self, BotoClient):
+    def setUp(self, BotoClient) -> None:
         self.gw = EC2Gateway(REGION, TEST_ACCESS_KEY_ID, TEST_ACCESS_KEY_DATA)
         self.gw.client = BotoClient()
 
-    def test_describe_vpcs(self):
+    def test_describe_vpcs(self) -> None:
         client_return_response = {
             "Vpcs": [
                 {
@@ -65,7 +65,7 @@ class TestEC2Gateway(unittest.TestCase):
         self.assertEqual(vpcs, expected_vpcs)
         self.gw.client.describe_vpcs.assert_called()
 
-    def test_list_vpcs(self):
+    def test_list_vpcs(self) -> None:
         client_return_response = {
             "Vpcs": [
                 {"VpcId": TEST_VPC_ID},
@@ -77,7 +77,7 @@ class TestEC2Gateway(unittest.TestCase):
         self.assertEqual(vpcs, expected_vpcs)
         self.gw.client.describe_vpcs.assert_called()
 
-    def test_describe_subnets(self):
+    def test_describe_subnets(self) -> None:
         test_subnet_id = "subnet-a0b1c3d4e5"
         test_az = "us-west-2a"
         test_tag_key = "Name"
@@ -99,7 +99,7 @@ class TestEC2Gateway(unittest.TestCase):
         self.assertEqual(subnets, expected_subnets)
         self.gw.client.describe_subnets.assert_called()
 
-    def test_describe_route_tables(self):
+    def test_describe_route_tables(self) -> None:
         test_route_table_id = "rtb-a0b1c3d4e5"
         vpc_peering_id = "pcx-a0b1c3d4e5"
         gateway_id = "igw-a0b1c3d4e5"
@@ -146,7 +146,7 @@ class TestEC2Gateway(unittest.TestCase):
         self.assertEqual(route_tables, expected_route_tables)
         self.gw.client.describe_route_tables.assert_called()
 
-    def test_describe_security_groups(self):
+    def test_describe_security_groups(self) -> None:
         test_security_group_id = "sg-a0b1c3d4e5"
         test_from_port = 5000
         test_to_port = 15500
@@ -207,7 +207,7 @@ class TestEC2Gateway(unittest.TestCase):
         self.assertEqual(firewall_rulesets, expected_firewall_rulesets)
         self.gw.client.describe_security_groups.assert_called()
 
-    def test_describe_vpc_peerings(self):
+    def test_describe_vpc_peerings(self) -> None:
         test_vpc_peering_id = "pcx-a0b1c3d4e5"
         test_requester_vpc_id = "vpc-a0b1c2d3e4"
         test_accepter_vpc_id = "vpc-f5g6h7i8j9"
