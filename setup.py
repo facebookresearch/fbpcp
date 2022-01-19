@@ -23,7 +23,7 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="fbpcp",
-    # patch version for updating input size in get_containers
+    # patch version for updating input size in get_containers in container_aws
     version="0.2.post1",
     description="Facebook Private Computation Platform",
     author="Facebook",
