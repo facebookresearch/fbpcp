@@ -23,6 +23,7 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="fbpcp",
+    # patch version for hotfix 0119
     version="0.2.1-patch",
     description="Facebook Private Computation Platform",
     author="Facebook",
