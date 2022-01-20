@@ -263,21 +263,20 @@ class ValidationSuite:
                 ValidationErrorDescriptionTemplate.VPC_PEERING_NO_ROUTE_TABLE.value,
             )
 
-        is_valid = any(
+        is_vpc_peering_valid = any(
             r.state == RouteState.ACTIVE
             and r.route_target.route_target_type == RouteTargetType.VPC_PEERING
             for r in (route_table.routes if route_table else [])
         )
 
-        return (
-            ValidationResult(ValidationResultCode.SUCCESS)
-            if is_valid
-            else ValidationResult(
+        if not is_vpc_peering_valid:
+            return ValidationResult(
                 ValidationResultCode.ERROR,
                 ValidationErrorDescriptionTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
                 ValidationErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             )
-        )
+
+        return ValidationResult(ValidationResultCode.SUCCESS)
 
     def validate_subnets(self, pce: PCE) -> ValidationResult:
         """
