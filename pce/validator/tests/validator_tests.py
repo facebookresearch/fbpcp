@@ -6,7 +6,7 @@
 
 # pyre-strict
 
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from unittest import TestCase
 from unittest.mock import MagicMock
 
@@ -28,10 +28,12 @@ from pce.entity.iam_role import (
 from pce.validator.pce_standard_constants import (
     AvailabilityZone,
     CONTAINER_CPU,
-    CONTAINER_MEMORY,
     CONTAINER_IMAGE,
+    CONTAINER_MEMORY,
     FIREWALL_RULE_FINAL_PORT,
     FIREWALL_RULE_INITIAL_PORT,
+    IGW_ROUTE_DESTINATION_CIDR_BLOCK,
+    IGW_ROUTE_TARGET_PREFIX,
     TASK_POLICY,
 )
 from pce.validator.validation_suite import (
@@ -66,15 +68,31 @@ def create_mock_firewall_rule_set(ingress: List[FirewallRule]) -> FirewallRulese
 
 
 def create_mock_route(
-    cidr: str, target_type: RouteTargetType, state: RouteState = RouteState.ACTIVE
+    cidr: str,
+    target_type: RouteTargetType,
+    state: RouteState = RouteState.ACTIVE,
+    route_target_id: str = "",
 ) -> Route:
     r = MagicMock()
     r.destination_cidr_block = cidr
     r.state = state
     r.route_target = MagicMock()
     r.route_target.route_target_type = target_type
-    r.route_target.route_target_id = f"target_{target_type.name}_{cidr}"
+    r.route_target.route_target_id = (
+        f"target_{target_type.name}_{cidr}"
+        if route_target_id == ""
+        else route_target_id
+    )
     return r
+
+
+def create_mock_valid_igw_route(**kwargs: Any) -> Route:
+    return create_mock_route(
+        cidr=IGW_ROUTE_DESTINATION_CIDR_BLOCK,
+        target_type=RouteTargetType.INTERNET,
+        route_target_id=f"{IGW_ROUTE_TARGET_PREFIX}1a2b3c4d0000",
+        **kwargs,
+    )
 
 
 def create_mock_subnet(availability_zone: AvailabilityZone) -> Subnet:
@@ -391,9 +409,49 @@ class TestValidator(TestCase):
             [
                 create_mock_route("11.2.0.0/16", RouteTargetType.INTERNET),
                 create_mock_route("10.1.0.0/16", RouteTargetType.VPC_PEERING),
-                create_mock_route("11.4.0.0/16", RouteTargetType.INTERNET),
+                create_mock_valid_igw_route(),
             ],
             ValidationResult(ValidationResultCode.SUCCESS),
+        )
+
+    def test_validate_route_table_no_igw(self) -> None:
+        self._test_validate_route_table(
+            [
+                create_mock_route("11.2.0.0/16", RouteTargetType.OTHER),
+                create_mock_route("10.1.0.0/16", RouteTargetType.VPC_PEERING),
+                # route present but target is not an Internet Gateway
+                create_mock_route(
+                    "11.2.0.0/16",
+                    RouteTargetType.INTERNET,
+                    route_target_id="vgw-a1b2c3d4",
+                ),
+                # route present, target correct but destination CIDR is
+                # not IGW_ROUTE_DESTINATION_CIDR_BLOCK
+                create_mock_route(
+                    "11.2.0.0/16",
+                    RouteTargetType.INTERNET,
+                    route_target_id=f"{IGW_ROUTE_TARGET_PREFIX}a1b2c3d4",
+                ),
+            ],
+            ValidationResult(
+                validation_result_code=ValidationResultCode.ERROR,
+                description=ValidationErrorDescriptionTemplate.ROUTE_TABLE_IGW_MISSING.value,
+                solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
+            ),
+        )
+
+    def test_validate_route_table_igw_inactive(self) -> None:
+        self._test_validate_route_table(
+            [
+                create_mock_route("11.2.0.0/16", RouteTargetType.OTHER),
+                create_mock_route("10.1.0.0/16", RouteTargetType.VPC_PEERING),
+                create_mock_valid_igw_route(state=RouteState.UNKNOWN),
+            ],
+            ValidationResult(
+                validation_result_code=ValidationResultCode.ERROR,
+                description=ValidationErrorDescriptionTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
+                solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
+            ),
         )
 
     def _test_validate_subnet(
@@ -614,6 +672,7 @@ class TestValidator(TestCase):
             "10.1.0.0/16",
             [
                 create_mock_route("12.4.1.0/24", RouteTargetType.VPC_PEERING),
+                create_mock_valid_igw_route(),
             ],
             [
                 create_mock_firewall_rule_set(

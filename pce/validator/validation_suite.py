@@ -29,11 +29,13 @@ from pce.validator.message_templates import (
     ValidationStepNames,
 )
 from pce.validator.pce_standard_constants import (
-    FIREWALL_RULE_INITIAL_PORT,
-    FIREWALL_RULE_FINAL_PORT,
     CONTAINER_CPU,
-    CONTAINER_MEMORY,
     CONTAINER_IMAGE,
+    CONTAINER_MEMORY,
+    FIREWALL_RULE_FINAL_PORT,
+    FIREWALL_RULE_INITIAL_PORT,
+    IGW_ROUTE_DESTINATION_CIDR_BLOCK,
+    IGW_ROUTE_TARGET_PREFIX,
     TASK_POLICY,
 )
 
@@ -274,6 +276,31 @@ class ValidationSuite:
                 ValidationResultCode.ERROR,
                 ValidationErrorDescriptionTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
                 ValidationErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
+            )
+
+        igw_route = None
+        for route in route_table.routes:
+            if (
+                route.route_target.route_target_type == RouteTargetType.INTERNET
+                and route.route_target.route_target_id.startswith(
+                    IGW_ROUTE_TARGET_PREFIX
+                )
+                and route.destination_cidr_block == IGW_ROUTE_DESTINATION_CIDR_BLOCK
+            ):
+                igw_route = route
+
+        if not igw_route:
+            return ValidationResult(
+                ValidationResultCode.ERROR,
+                ValidationErrorDescriptionTemplate.ROUTE_TABLE_IGW_MISSING.value,
+                ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
+            )
+
+        if igw_route.state != RouteState.ACTIVE:
+            return ValidationResult(
+                ValidationResultCode.ERROR,
+                ValidationErrorDescriptionTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
+                ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
             )
 
         return ValidationResult(ValidationResultCode.SUCCESS)
