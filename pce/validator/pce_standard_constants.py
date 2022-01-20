@@ -27,3 +27,6 @@ TASK_POLICY = {
         {"Effect": "Allow", "Action": ["s3:*", "s3-object-lambda:*"], "Resource": "*"}
     ],
 }
+
+IGW_ROUTE_TARGET_PREFIX: str = "igw-"
+IGW_ROUTE_DESTINATION_CIDR_BLOCK: str = "0.0.0.0/0"

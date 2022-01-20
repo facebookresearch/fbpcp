@@ -11,11 +11,12 @@
 from enum import Enum
 
 from pce.validator.pce_standard_constants import (
-    FIREWALL_RULE_INITIAL_PORT,
-    FIREWALL_RULE_FINAL_PORT,
     CONTAINER_CPU,
-    CONTAINER_MEMORY,
     CONTAINER_IMAGE,
+    CONTAINER_MEMORY,
+    FIREWALL_RULE_FINAL_PORT,
+    FIREWALL_RULE_INITIAL_PORT,
+    IGW_ROUTE_DESTINATION_CIDR_BLOCK,
 )
 
 
@@ -30,6 +31,8 @@ class ValidationErrorDescriptionTemplate(Enum):
     FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE = f"Ingress cidr {{fr_vpc_id}}:{{fri_cidr}}:{{fri_from_port}}-{{fri_to_port}} can't contain the expected port range {FIREWALL_RULE_INITIAL_PORT}-{FIREWALL_RULE_FINAL_PORT}"
     FIREWALL_INVALID_RULESETS = "Invalid firewall rulesets: {error_reasons}"
     ROUTE_TABLE_VPC_PEERING_MISSING = "No valid VPC peering found in route table."
+    ROUTE_TABLE_IGW_MISSING = "Internet Gateway route missing in route table."
+    ROUTE_TABLE_IGW_INACTIVE = "Internet Gateway route is not Active."
     CLUSTER_DEFINITION_NOT_SET = "No container definition."
     CLUSTER_DEFINITION_WRONG_VALUES = (
         "Container values incorrectly set: {error_reasons}"
@@ -50,6 +53,14 @@ class ValidationErrorSolutionHintTemplate(Enum):
         "Set correct CIDR and port ranges for the offending firewall rules."
     )
     ROUTE_TABLE_VPC_PEERING_MISSING = "Define a VPC connection in the route table."
+    ROUTE_TABLE_IGW_MISSING = (
+        f"Ensure that a route for destination {IGW_ROUTE_DESTINATION_CIDR_BLOCK} "
+        "to an Internet Gateway target is added to the route table."
+    )
+    ROUTE_TABLE_IGW_INACTIVE = (
+        "Ensure that the Internet Gateway route in the routing table is in the Active state. "
+        "Recreate the Internet Gateway resource if needed or reach out to AWS Support for troubleshooting."
+    )
     CLUSTER_DEFINITION_WRONG_VALUES = f"Please set container values (cpu, memory, image) as ({CONTAINER_CPU},{CONTAINER_MEMORY},'{CONTAINER_IMAGE}')"
     NON_PRIVATE_VPC_CIDR = "Set a private CIDR (https://en.wikipedia.org/wiki/Private_network) for the vpc."
     NOT_ALL_AZ_USED = (
