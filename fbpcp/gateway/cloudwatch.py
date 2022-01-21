@@ -9,6 +9,7 @@
 from typing import Optional, Dict, List, Any
 
 import boto3
+from botocore.client import BaseClient
 from fbpcp.decorator.error_handler import error_handler
 from fbpcp.entity.log_event import LogEvent
 from fbpcp.gateway.aws import AWSGateway
@@ -23,8 +24,9 @@ class CloudWatchGateway(AWSGateway):
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(region, access_key_id, access_key_data, config)
-        # pyre-ignore
-        self.client = boto3.client("logs", region_name=self.region, **self.config)
+        self.client: BaseClient = boto3.client(
+            "logs", region_name=self.region, **self.config
+        )
 
     @error_handler
     def get_log_events(
