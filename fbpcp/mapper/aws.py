@@ -124,7 +124,7 @@ def map_ec2route_to_route(route: Dict[str, Any]) -> Route:
     if "VpcPeeringConnectionId" in route:
         route_target_type = RouteTargetType.VPC_PEERING
         route_target_id = route["VpcPeeringConnectionId"]
-    elif "GatewayId" in route:
+    elif "GatewayId" in route and route["GatewayId"].startswith("igw-"):
         route_target_type = RouteTargetType.INTERNET
         route_target_id = route["GatewayId"]
     state = RouteState.UNKNOWN

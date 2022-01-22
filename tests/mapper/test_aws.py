@@ -10,12 +10,19 @@ from decimal import Decimal
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
 from fbpcp.entity.container_instance import ContainerInstanceStatus, ContainerInstance
+from fbpcp.entity.route_table import (
+    Route,
+    RouteState,
+    RouteTarget,
+    RouteTargetType,
+)
 from fbpcp.entity.subnet import Subnet
 from fbpcp.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
     map_ec2subnet_to_subnet,
     map_cecost_to_cloud_cost,
+    map_ec2route_to_route,
 )
 
 
@@ -24,6 +31,12 @@ class TestAWSMapper(unittest.TestCase):
     TEST_TASK_ARN = "test-task-arn"
     TEST_CLUSTER_ARN = "test-cluster-arn"
     TEST_CLUSTER_NAME = "test-cluster-name"
+    TEST_LOCAL_ROUTE_CIDR = "10.0.0.0/16"
+    TEST_LOCAL_TARGET_ID = "local"
+    TEST_IGW_ROUTE_CIDR = "0.0.0.0/0"
+    TEST_IGW_TARGET_ID = "igw-a1b2c3d000"
+    TEST_ROUTE_STATE_ACTIVE = "active"
+    TEST_ROUTE_STATE_INACTIVE = "blackhole"
 
     def test_map_ecstask_to_containerinstance(self):
         ecs_task_response = {
@@ -254,4 +267,55 @@ class TestAWSMapper(unittest.TestCase):
         self.assertEqual(
             map_cecost_to_cloud_cost(ce_client_response),
             expected_cloud_cost,
+        )
+
+    def test_map_ec2route_to_route_parse_local(self):
+        local_route_response = {
+            "DestinationCidrBlock": self.TEST_LOCAL_ROUTE_CIDR,
+            "GatewayId": self.TEST_LOCAL_TARGET_ID,
+            "State": self.TEST_ROUTE_STATE_ACTIVE,
+        }
+        expected_parsed_route = Route(
+            self.TEST_LOCAL_ROUTE_CIDR,
+            RouteTarget(route_target_type=RouteTargetType.OTHER, route_target_id=""),
+            RouteState.ACTIVE,
+        )
+        self.assertEqual(
+            map_ec2route_to_route(local_route_response), expected_parsed_route
+        )
+
+    def test_map_ec2route_to_route_parse_internet_gateway(self):
+        igw_route_response = {
+            "DestinationCidrBlock": self.TEST_IGW_ROUTE_CIDR,
+            "GatewayId": self.TEST_IGW_TARGET_ID,
+            "State": self.TEST_ROUTE_STATE_ACTIVE,
+        }
+        expected_parsed_route = Route(
+            self.TEST_IGW_ROUTE_CIDR,
+            RouteTarget(
+                route_target_type=RouteTargetType.INTERNET,
+                route_target_id=self.TEST_IGW_TARGET_ID,
+            ),
+            RouteState.ACTIVE,
+        )
+        self.assertEqual(
+            map_ec2route_to_route(igw_route_response), expected_parsed_route
+        )
+
+    def test_map_ec2route_to_route_parse_internet_gateway_inactive(self):
+        igw_route_response = {
+            "DestinationCidrBlock": self.TEST_IGW_ROUTE_CIDR,
+            "GatewayId": self.TEST_IGW_TARGET_ID,
+            "State": self.TEST_ROUTE_STATE_INACTIVE,
+        }
+        expected_parsed_route = Route(
+            self.TEST_IGW_ROUTE_CIDR,
+            RouteTarget(
+                route_target_type=RouteTargetType.INTERNET,
+                route_target_id=self.TEST_IGW_TARGET_ID,
+            ),
+            RouteState.UNKNOWN,
+        )
+        self.assertEqual(
+            map_ec2route_to_route(igw_route_response), expected_parsed_route
         )

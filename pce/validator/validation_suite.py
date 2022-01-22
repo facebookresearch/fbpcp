@@ -35,7 +35,6 @@ from pce.validator.pce_standard_constants import (
     FIREWALL_RULE_FINAL_PORT,
     FIREWALL_RULE_INITIAL_PORT,
     IGW_ROUTE_DESTINATION_CIDR_BLOCK,
-    IGW_ROUTE_TARGET_PREFIX,
     TASK_POLICY,
 )
 
@@ -282,9 +281,6 @@ class ValidationSuite:
         for route in route_table.routes:
             if (
                 route.route_target.route_target_type == RouteTargetType.INTERNET
-                and route.route_target.route_target_id.startswith(
-                    IGW_ROUTE_TARGET_PREFIX
-                )
                 and route.destination_cidr_block == IGW_ROUTE_DESTINATION_CIDR_BLOCK
             ):
                 igw_route = route
