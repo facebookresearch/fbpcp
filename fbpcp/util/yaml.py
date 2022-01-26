@@ -17,7 +17,6 @@ def load(file_path: Path) -> Dict[str, Any]:
         return yaml.safe_load(stream)
 
 
-# pyre-ignore
-def dump(data: Any, file_path: Path) -> None:
+def dump(data: Dict[str, Any], file_path: Path) -> None:
     with open(file_path, "w") as f:
         return yaml.dump(data, f)
