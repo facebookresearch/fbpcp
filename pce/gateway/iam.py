@@ -18,7 +18,7 @@ from pce.entity.iam_role import (
 from pce.mapper.aws import map_attachedrolepolicies_to_rolepolicies
 
 
-class IAMGateway(AWSGateway):
+class PCEIAMGateway(AWSGateway):
     def __init__(
         self,
         region: str,
