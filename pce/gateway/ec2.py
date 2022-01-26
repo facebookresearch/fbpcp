@@ -11,7 +11,7 @@ import boto3
 from fbpcp.gateway.aws import AWSGateway
 
 
-class EC2Gateway(AWSGateway):
+class PCEEC2Gateway(AWSGateway):
     def __init__(
         self,
         region: str,

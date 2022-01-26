@@ -10,17 +10,17 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from pce.gateway.ec2 import EC2Gateway
+from pce.gateway.ec2 import PCEEC2Gateway
 
 REGION = "us-west-2"
 
 
-class TestEC2Gateway(TestCase):
+class TestPCEEC2Gateway(TestCase):
     def setUp(self) -> None:
         self.aws_ec2 = MagicMock()
         with patch("boto3.client") as mock_client:
             mock_client.return_value = self.aws_ec2
-            self.ec2 = EC2Gateway(REGION)
+            self.ec2 = PCEEC2Gateway(REGION)
 
     def test_describe_availability_zones(self) -> None:
         client_return_response = {

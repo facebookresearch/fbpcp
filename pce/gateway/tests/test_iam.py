@@ -12,17 +12,17 @@ from unittest.mock import patch, call, MagicMock
 from pce.entity.iam_role import (
     IAMRole,
 )
-from pce.gateway.iam import IAMGateway
+from pce.gateway.iam import PCEIAMGateway
 
 REGION = "us-west-2"
 
 
-class TestIAMGateway(TestCase):
+class TestPCEIAMGateway(TestCase):
     def setUp(self) -> None:
         self.aws_iam = MagicMock()
         with patch("boto3.client") as mock_client:
             mock_client.return_value = self.aws_iam
-            self.iam = IAMGateway(REGION)
+            self.iam = PCEIAMGateway(REGION)
 
     def test_get_policies_for_role(self) -> None:
         test_role_name_1 = "test_role_1"
@@ -107,7 +107,7 @@ class TestIAMGateway(TestCase):
 
         mock_paginator.paginate.assert_has_calls(
             [
-                call(RoleName=IAMGateway._role_id_to_name(test_role_name))
+                call(RoleName=PCEIAMGateway._role_id_to_name(test_role_name))
                 for test_role_name in test_expected_role_attached_policies.keys()
             ]
         )
@@ -115,13 +115,17 @@ class TestIAMGateway(TestCase):
     def test_role_id_to_name_slashes(self) -> None:
         role_name = "application_abc/component_xyz/RDSAccess"
         self.assertEqual(
-            IAMGateway._role_id_to_name(f"arn:aws:iam::123456789012:role/{role_name}"),
+            PCEIAMGateway._role_id_to_name(
+                f"arn:aws:iam::123456789012:role/{role_name}"
+            ),
             role_name,
         )
 
     def test_role_id_to_name_no_slashes(self) -> None:
         role_name = "RDSAccess"
         self.assertEqual(
-            IAMGateway._role_id_to_name(f"arn:aws:iam::123456789012:role/{role_name}"),
+            PCEIAMGateway._role_id_to_name(
+                f"arn:aws:iam::123456789012:role/{role_name}"
+            ),
             role_name,
         )

@@ -19,8 +19,8 @@ from fbpcp.entity.route_table import Route, RouteState, RouteTargetType
 from fbpcp.entity.vpc_instance import Vpc
 from fbpcp.entity.vpc_peering import VpcPeeringState
 from fbpcp.service.pce_aws import PCE_ID_KEY
-from pce.gateway.ec2 import EC2Gateway
-from pce.gateway.iam import IAMGateway
+from pce.gateway.ec2 import PCEEC2Gateway
+from pce.gateway.iam import PCEIAMGateway
 from pce.validator.message_templates import (
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
@@ -71,13 +71,13 @@ class ValidationSuite:
         key_id: Optional[str] = None,
         key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
-        ec2_gateway: Optional[EC2Gateway] = None,
-        iam_gateway: Optional[IAMGateway] = None,
+        ec2_gateway: Optional[PCEEC2Gateway] = None,
+        iam_gateway: Optional[PCEIAMGateway] = None,
     ) -> None:
-        self.ec2_gateway: EC2Gateway = ec2_gateway or EC2Gateway(
+        self.ec2_gateway: PCEEC2Gateway = ec2_gateway or PCEEC2Gateway(
             region, key_id, key_data, config
         )
-        self.iam_gateway: IAMGateway = iam_gateway or IAMGateway(
+        self.iam_gateway: PCEIAMGateway = iam_gateway or PCEIAMGateway(
             region, key_id, key_data, config
         )
 
