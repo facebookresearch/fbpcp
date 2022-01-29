@@ -70,6 +70,9 @@ class ValidationErrorSolutionHintTemplate(Enum):
     ROLE_POLICIES_NOT_FOUND = (
         "Make sure there are policies attached to {role_names} in the pce {pce_id}."
     )
+    CLOUDWATCH_LOGS_NOT_FOUND_FROM_TASK = (
+        "No CloudWatch logs are configurered in ECS task definition."
+    )
 
 
 class ValidationWarningDescriptionTemplate(Enum):
@@ -88,6 +91,11 @@ class ValidationWarningDescriptionTemplate(Enum):
         "Policies {policy_names} attached to {role_id} are not expected."
     )
 
+    CLOUDWATCH_LOGS_NOT_CONFIGURED_IN_TASK_DEFINITION = (
+        "No CloudWatch logs are configurered in ECS task definition."
+    )
+    CLOUDWATCH_LOGS_NOT_FOUND = "CloudWatch logs are not found, please check if log group name {log_group_name_from_task} is correct or if this log group gets deleted "
+
 
 class ValidationWarningSolutionHintTemplate(Enum):
     VPC_PEERING_PEERING_NOT_READY = "Please try again in a moment."
@@ -104,3 +112,4 @@ class ValidationStepNames(Enum):
     SUBNETS = "Subnets"
     CLUSTER_DEFINITION = "Cluster definition"
     ROLE = "IAM roles"
+    LOG_GROUP = "Log group"
