@@ -8,7 +8,7 @@
 
 
 from functools import reduce
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 def convert_dict_to_list(
@@ -81,3 +81,11 @@ def convert_vpc_tags_to_filter(
 def get_container_definition_id(task_definition_id: str, container: str) -> str:
     # the reverse logic from https://fburl.com/code/ycdjih3q
     return f"{task_definition_id}#{container}"
+
+
+def split_container_definition(container_definition: str) -> Tuple[str, str]:
+    """
+    container_definition = task_definition#container
+    """
+    s = container_definition.split("#")
+    return (s[0], s[1])
