@@ -10,7 +10,7 @@ from fbpcp.util.arg_builder import build_cmd_args
 
 
 class TestArgBuilder(unittest.TestCase):
-    def test_build_cmd_args(self):
+    def test_build_cmd_args(self) -> None:
         expected_cmd_args = (
             "--arg1=value1 --arg2=value2 --arg3='--k1=v1 --k2=v2' --arg4=0"
         )
