@@ -26,7 +26,6 @@ from pce.validator.message_templates import (
     ValidationErrorSolutionHintTemplate,
     ValidationWarningDescriptionTemplate,
     ValidationWarningSolutionHintTemplate,
-    ValidationStepNames,
 )
 from pce.validator.pce_standard_constants import (
     CONTAINER_CPU,
@@ -36,6 +35,9 @@ from pce.validator.pce_standard_constants import (
     FIREWALL_RULE_INITIAL_PORT,
     IGW_ROUTE_DESTINATION_CIDR_BLOCK,
     TASK_POLICY,
+)
+from pce.validator.validator_step_names import (
+    ValidationStepNames,
 )
 
 
