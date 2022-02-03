@@ -7,13 +7,14 @@
 # pyre-strict
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.error.pcp import PcpError
 from fbpcp.gateway.ecs import ECSGateway
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.service.container import ContainerService
+from fbpcp.util.aws import split_container_definition
 
 AWS_API_INPUT_SIZE_LIMIT = 100  # AWS API Call Capacity Limit
 
@@ -53,9 +54,7 @@ class AWSContainerService(ContainerService):
         cmd: str,
         env_vars: Optional[Dict[str, str]] = None,
     ) -> ContainerInstance:
-        task_definition, container = self._split_container_definition(
-            container_definition
-        )
+        task_definition, container = split_container_definition(container_definition)
 
         if not self.subnets:
             raise PcpError(
@@ -117,13 +116,6 @@ class AWSContainerService(ContainerService):
                 res.append(err)
 
         return res
-
-    def _split_container_definition(self, container_definition: str) -> Tuple[str, str]:
-        """
-        container_definition = task_definition#container
-        """
-        s = container_definition.split("#")
-        return (s[0], s[1])
 
     def get_current_instances_count(self) -> int:
         cluster = self.ecs_gateway.describe_cluster(self.cluster)
