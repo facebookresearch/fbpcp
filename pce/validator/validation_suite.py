@@ -21,11 +21,9 @@ from fbpcp.entity.vpc_peering import VpcPeeringState
 from fbpcp.service.pce_aws import PCE_ID_KEY
 from pce.gateway.ec2 import PCEEC2Gateway
 from pce.gateway.iam import PCEIAMGateway
-from pce.validator.message_templates import (
+from pce.validator.error_message_templates import (
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
-    ValidationWarningDescriptionTemplate,
-    ValidationWarningSolutionHintTemplate,
 )
 from pce.validator.pce_standard_constants import (
     CONTAINER_CPU,
@@ -38,6 +36,10 @@ from pce.validator.pce_standard_constants import (
 )
 from pce.validator.validator_step_names import (
     ValidationStepNames,
+)
+from pce.validator.warning_message_templates import (
+    ValidationWarningDescriptionTemplate,
+    ValidationWarningSolutionHintTemplate,
 )
 
 
