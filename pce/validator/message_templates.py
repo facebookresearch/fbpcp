@@ -94,13 +94,3 @@ class ValidationWarningSolutionHintTemplate(Enum):
     MORE_POLICIES_THAN_EXPECTED = (
         "Consider removing additional policies to strengthen security."
     )
-
-
-class ValidationStepNames(Enum):
-    CIDR = "CIDR"
-    VPC_PEERING = "VPC peering"
-    FIREWALL = "Firewall"
-    ROUTE_TABLE = "Route table"
-    SUBNETS = "Subnets"
-    CLUSTER_DEFINITION = "Cluster definition"
-    ROLE = "IAM roles"
