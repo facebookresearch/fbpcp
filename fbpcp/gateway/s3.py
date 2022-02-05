@@ -10,6 +10,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 import boto3
+from botocore.exceptions import ClientError
 from fbpcp.decorator.error_handler import error_handler
 from fbpcp.gateway.aws import AWSGateway
 from tqdm.auto import tqdm
@@ -106,8 +107,11 @@ class S3Gateway(AWSGateway):
             # Result intentionally discarded
             _ = self.client.head_object(Bucket=bucket, Key=key)
             return True
-        except Exception:
-            return False
+        except ClientError as err:
+            if err.response["Error"]["Code"] == "404":
+                return False
+            else:
+                raise
 
     @error_handler
     def copy(
