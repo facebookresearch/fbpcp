@@ -432,6 +432,16 @@ class ValidationSuite:
             ]
         )
 
+    @classmethod
+    def contains_error_result(cls, results: List[ValidationResult]) -> bool:
+        return any(
+            [
+                result
+                for result in results
+                if result.validation_result_code == ValidationResultCode.ERROR
+            ]
+        )
+
     def validate_roles(self, pce: PCE) -> ValidationResult:
         """
         Ensure that the container task execution role has the proper policy (`TASK_POLICY`) among those attached to it.

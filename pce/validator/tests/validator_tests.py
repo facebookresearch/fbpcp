@@ -812,3 +812,19 @@ class TestValidator(TestCase):
                 ValidationWarningSolutionHintTemplate.MORE_POLICIES_THAN_EXPECTED.value,
             ),
         )
+
+
+class TestValidationSuite(TestCase):
+    def test_contains_error_result(self) -> None:
+        results = [
+            ValidationResult(ValidationResultCode.WARNING),
+            ValidationResult(ValidationResultCode.ERROR),
+        ]
+        self.assertTrue(ValidationSuite.contains_error_result(results))
+
+    def test_contains_error_result_warnings_only(self) -> None:
+        results = [
+            ValidationResult(ValidationResultCode.WARNING),
+            ValidationResult(ValidationResultCode.WARNING),
+        ]
+        self.assertFalse(ValidationSuite.contains_error_result(results))
