@@ -6,7 +6,7 @@
 
 import unittest
 from typing import Dict, Callable, List
-from unittest.mock import MagicMock, patch
+from unittest.mock import call, MagicMock, patch
 
 from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
 from fbpcp.entity.container_definition import ContainerDefinition
@@ -430,3 +430,109 @@ class TestECSGateway(unittest.TestCase):
 
         self.assertEqual(2, self.gw.client.describe_task_definition.call_count)
         self.gw.client.list_task_definitions.assert_called()
+
+    def test_list_task_definitions(self) -> None:
+        client_return_response = {
+            "taskDefinitionArns": [
+                self.TEST_TASK_DEFINITION_ARN,
+                self.TEST_TASK_DEFINITION_ARN,
+            ],
+        }
+        self.gw.client.list_task_definitions = MagicMock(
+            return_value=client_return_response,
+        )
+        tasks = self.gw.list_task_definitions()
+        expected_tasks = [self.TEST_TASK_DEFINITION_ARN, self.TEST_TASK_DEFINITION_ARN]
+        expected_calls = [call(next_token=None)]
+        self.assertEqual(tasks, expected_tasks)
+        self.gw.client.list_task_definitions.assert_has_calls(expected_calls)
+        self.gw.client.list_task_definitions.assert_called_once
+
+    def test_list_task_definitions_iterates_when_next_token(self) -> None:
+        client_return_first_response = {
+            "taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN],
+            "nextToken": "token1",
+        }
+        client_return_second_response = {
+            "taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN],
+            "nextToken": "token2",
+        }
+        client_return_third_response = {
+            "taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN],
+            "nextToken": None,
+        }
+        self.gw.client.list_task_definitions = MagicMock(
+            side_effect=[
+                client_return_first_response,
+                client_return_second_response,
+                client_return_third_response,
+            ]
+        )
+        tasks = self.gw.list_task_definitions()
+        expected_tasks = [
+            self.TEST_TASK_DEFINITION_ARN,
+            self.TEST_TASK_DEFINITION_ARN,
+            self.TEST_TASK_DEFINITION_ARN,
+        ]
+        expected_calls = [
+            call(next_token=None),
+            call(next_token="token1"),
+            call(next_token="token2"),
+        ]
+        self.assertEqual(tasks, expected_tasks)
+        self.gw.client.list_task_definitions.assert_has_calls(expected_calls)
+
+    def test_list_task_definitions_respects_limit(self) -> None:
+        client_return_first_response = {
+            "taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN],
+            "nextToken": "token1",
+        }
+        client_return_second_response = {
+            "taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN],
+            "nextToken": "token2",
+        }
+        client_return_third_response = {
+            "taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN],
+            "nextToken": None,
+        }
+        self.gw.client.list_task_definitions = MagicMock(
+            side_effect=[
+                client_return_first_response,
+                client_return_second_response,
+                client_return_third_response,
+            ]
+        )
+        tasks = self.gw.list_task_definitions(limit=2)
+        expected_tasks = [self.TEST_TASK_DEFINITION_ARN, self.TEST_TASK_DEFINITION_ARN]
+        expected_calls = [call(next_token=None), call(next_token="token1")]
+        self.assertEqual(tasks, expected_tasks)
+        self.gw.client.list_task_definitions.assert_has_calls(expected_calls)
+
+    def test_list_task_definitions_respects_up_to_limit(self) -> None:
+        client_return_first_response = {
+            "taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN],
+            "nextToken": "token1",
+        }
+        client_return_second_response = {
+            "taskDefinitionArns": [
+                self.TEST_TASK_DEFINITION_ARN,
+                self.TEST_TASK_DEFINITION_ARN,
+            ],
+            "nextToken": "token2",
+        }
+        client_return_third_response = {
+            "taskDefinitionArns": [self.TEST_TASK_DEFINITION_ARN],
+            "nextToken": None,
+        }
+        self.gw.client.list_task_definitions = MagicMock(
+            side_effect=[
+                client_return_first_response,
+                client_return_second_response,
+                client_return_third_response,
+            ]
+        )
+        tasks = self.gw.list_task_definitions(limit=2)
+        expected_tasks = [self.TEST_TASK_DEFINITION_ARN, self.TEST_TASK_DEFINITION_ARN]
+        expected_calls = [call(next_token=None), call(next_token="token1")]
+        self.assertEqual(tasks, expected_tasks)
+        self.gw.client.list_task_definitions.assert_has_calls(expected_calls)
