@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional, Any, Final
 
 import boto3
+from botocore.client import BaseClient
 from fbpcp.decorator.error_handler import error_handler
 from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
 from fbpcp.entity.cluster_instance import Cluster
@@ -41,8 +42,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
     ) -> None:
         super().__init__(region, access_key_id, access_key_data, config)
 
-        # pyre-ignore
-        self.client = self.create_ecs_client()
+        self.client: BaseClient = self.create_ecs_client()
         self.metrics: Final[Optional[MetricsEmitter]] = metrics
 
     def has_metrics(self) -> bool:
@@ -57,7 +57,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
     # TODO: Create an interface to create a client per environment
     def create_ecs_client(
         self,
-    ) -> boto3.client:  # pyre-fixme boto3.client is not recognized
+    ) -> BaseClient:
         return boto3.client("ecs", region_name=self.region, **self.config)
 
     @error_counter(METRICS_RUN_TASK_ERROR_COUNT)
@@ -180,7 +180,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
 
     def _describe_task_definition_core(
         self,
-        client: boto3.client,
+        client: BaseClient,
         task_defination: str,
     ) -> ContainerDefinition:
         response = client.describe_task_definition(
@@ -191,8 +191,22 @@ class ECSGateway(AWSGateway, MetricsGetter):
         )
 
     @error_handler
-    def list_task_definitions(self) -> List[str]:
-        return self.client.list_task_definitions()["taskDefinitionArns"]
+    def list_task_definitions(self, limit: int = 1000) -> List[str]:
+        task_definitions = []
+        next_token = None
+
+        while len(task_definitions) < limit:
+            task_definition_response = self.client.list_task_definitions(
+                next_token=next_token,
+            )
+            task_definitions.extend(task_definition_response["taskDefinitionArns"])
+            next_token = task_definition_response.get("nextToken")
+            if not next_token:
+                break
+
+        if limit and len(task_definitions) > limit:
+            task_definitions = task_definitions[:limit]
+        return task_definitions
 
     @error_handler
     def describe_task_definitions(
