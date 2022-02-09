@@ -18,10 +18,13 @@ Options:
 
 
 import logging
+import sys
 
 from docopt import docopt
 from fbpcp.service.pce_aws import AWSPCEService
-from pce.validator.validation_suite import ValidationSuite
+from pce.validator.validation_suite import (
+    ValidationSuite,
+)
 from schema import Schema, Optional, Or
 
 
@@ -37,6 +40,8 @@ def validate_pce(region: str, key_id: str, key_data: str, pce_id: str) -> None:
         logging.error(
             f"Validation failed for PCE {pce_id}:\n{ValidationSuite.summarize_errors(failed_results)}"
         )
+        if ValidationSuite.contains_error_result(failed_results):
+            sys.exit(1)
     else:
         print("Your PCE environments are set up correctly.")
 
