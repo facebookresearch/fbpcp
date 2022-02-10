@@ -7,7 +7,7 @@
 # pyre-strict
 
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List, Optional, Any, Final
+from typing import Dict, List, Optional, Any, Final, Iterator, Tuple
 
 import boto3
 from botocore.client import BaseClient
@@ -133,8 +133,31 @@ class ECSGateway(AWSGateway, MetricsGetter):
         return self.describe_tasks(cluster, [task])[0]
 
     @error_handler
-    def list_tasks(self, cluster: str) -> List[str]:
-        return self.client.list_tasks(cluster=cluster)["taskArns"]
+    def list_tasks(
+        self,
+        cluster: str,
+        nextToken: Optional[str] = None,
+    ) -> Tuple[List[str], str]:
+        kwargs = {"cluster": cluster}
+        if nextToken:
+            kwargs["nextToken"] = nextToken
+
+        response = self.client.list_tasks(**kwargs)
+        return response.get("taskArns", None), response.get("nextToken", None)
+
+    @error_handler
+    def iterate_list_tasks(
+        self,
+        cluster: str,
+    ) -> Iterator[str]:
+        list_tasks = self.list_tasks(cluster)
+        if list_tasks[0]:
+            yield from list_tasks[0]
+
+        while list_tasks[1]:
+            list_tasks = self.list_tasks(cluster, list_tasks[1])
+            if list_tasks[0]:
+                yield from list_tasks[0]
 
     @error_handler
     def stop_task(self, cluster: str, task_id: str) -> None:

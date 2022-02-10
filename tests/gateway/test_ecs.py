@@ -19,6 +19,7 @@ class TestECSGateway(unittest.TestCase):
     TEST_TASK_ARN = "test-task-arn"
     TEST_TASK_ARN_2 = "test-task-arn-2"
     TEST_TASK_ARN_DNE = "test-task-arn-dne"
+    TEST_TASK_NEXT_TOKEN = "test-token"
 
     TEST_TASK_DEFINITION = "test-task-definition"
     TEST_TASK_DEFINITION_ARN = "test-task-definition-arn"
@@ -260,12 +261,46 @@ class TestECSGateway(unittest.TestCase):
         self.gw.client.stop_task.assert_called()
 
     def test_list_tasks(self) -> None:
-        client_return_response = {"taskArns": [self.TEST_TASK_ARN]}
+        client_return_response = {
+            "taskArns": [self.TEST_TASK_ARN],
+            "nextToken": self.TEST_TASK_NEXT_TOKEN,
+        }
         self.gw.client.list_tasks = MagicMock(return_value=client_return_response)
-        tasks = self.gw.list_tasks(self.TEST_CLUSTER)
+        list_tasks = self.gw.list_tasks(self.TEST_CLUSTER)
         expected_tasks = [self.TEST_TASK_ARN]
-        self.assertEqual(tasks, expected_tasks)
+        self.assertEqual(list_tasks[0], expected_tasks)
+        self.assertEqual(list_tasks[1], self.TEST_TASK_NEXT_TOKEN)
         self.gw.client.list_tasks.assert_called()
+
+    def test_list_tasks_has_next(self) -> None:
+        client_return_response = {
+            "taskArns": [self.TEST_TASK_ARN],
+        }
+        self.gw.client.list_tasks = MagicMock(return_value=client_return_response)
+        list_tasks = self.gw.list_tasks(self.TEST_CLUSTER, self.TEST_TASK_NEXT_TOKEN)
+        expected_tasks = [self.TEST_TASK_ARN]
+        self.assertEqual(list_tasks[0], expected_tasks)
+        self.assertIsNone(list_tasks[1])
+        self.gw.client.list_tasks.assert_called_with(
+            cluster=self.TEST_CLUSTER, nextToken=self.TEST_TASK_NEXT_TOKEN
+        )
+
+    def test_iterate_list_tasks(self) -> None:
+        client_return_resp = {
+            "taskArns": [self.TEST_TASK_ARN],
+            "nextToken": self.TEST_TASK_NEXT_TOKEN,
+        }
+        client_return_resp2 = {
+            "taskArns": [self.TEST_TASK_ARN_2],
+        }
+        self.gw.client.list_tasks = MagicMock(
+            side_effect=[client_return_resp, client_return_resp2]
+        )
+
+        tasks = self.gw.iterate_list_tasks(self.TEST_CLUSTER)
+        expected_tasks = [self.TEST_TASK_ARN, self.TEST_TASK_ARN_2]
+        self.assertEqual(list(tasks), expected_tasks)
+        self.assertEqual(self.gw.client.list_tasks.call_count, 2)
 
     def test_describe_clusers(self) -> None:
         test_tasks = 100
