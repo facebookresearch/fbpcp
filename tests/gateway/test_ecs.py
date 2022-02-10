@@ -478,7 +478,7 @@ class TestECSGateway(unittest.TestCase):
         )
         tasks = self.gw.list_task_definitions()
         expected_tasks = [self.TEST_TASK_DEFINITION_ARN, self.TEST_TASK_DEFINITION_ARN]
-        expected_calls = [call(next_token=None)]
+        expected_calls = [call(nextToken="")]
         self.assertEqual(tasks, expected_tasks)
         self.gw.client.list_task_definitions.assert_has_calls(expected_calls)
         self.gw.client.list_task_definitions.assert_called_once
@@ -510,9 +510,9 @@ class TestECSGateway(unittest.TestCase):
             self.TEST_TASK_DEFINITION_ARN,
         ]
         expected_calls = [
-            call(next_token=None),
-            call(next_token="token1"),
-            call(next_token="token2"),
+            call(nextToken=""),
+            call(nextToken="token1"),
+            call(nextToken="token2"),
         ]
         self.assertEqual(tasks, expected_tasks)
         self.gw.client.list_task_definitions.assert_has_calls(expected_calls)
@@ -539,7 +539,7 @@ class TestECSGateway(unittest.TestCase):
         )
         tasks = self.gw.list_task_definitions(limit=2)
         expected_tasks = [self.TEST_TASK_DEFINITION_ARN, self.TEST_TASK_DEFINITION_ARN]
-        expected_calls = [call(next_token=None), call(next_token="token1")]
+        expected_calls = [call(nextToken=""), call(nextToken="token1")]
         self.assertEqual(tasks, expected_tasks)
         self.gw.client.list_task_definitions.assert_has_calls(expected_calls)
 
@@ -568,6 +568,6 @@ class TestECSGateway(unittest.TestCase):
         )
         tasks = self.gw.list_task_definitions(limit=2)
         expected_tasks = [self.TEST_TASK_DEFINITION_ARN, self.TEST_TASK_DEFINITION_ARN]
-        expected_calls = [call(next_token=None), call(next_token="token1")]
+        expected_calls = [call(nextToken=""), call(nextToken="token1")]
         self.assertEqual(tasks, expected_tasks)
         self.gw.client.list_task_definitions.assert_has_calls(expected_calls)

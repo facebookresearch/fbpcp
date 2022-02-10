@@ -216,11 +216,11 @@ class ECSGateway(AWSGateway, MetricsGetter):
     @error_handler
     def list_task_definitions(self, limit: int = 1000) -> List[str]:
         task_definitions = []
-        next_token = None
+        next_token = ""
 
         while len(task_definitions) < limit:
             task_definition_response = self.client.list_task_definitions(
-                next_token=next_token,
+                nextToken=next_token,
             )
             task_definitions.extend(task_definition_response["taskDefinitionArns"])
             next_token = task_definition_response.get("nextToken")
