@@ -35,6 +35,7 @@ from pce.validator.pce_standard_constants import (
     IGW_ROUTE_DESTINATION_CIDR_BLOCK,
     IGW_ROUTE_TARGET_PREFIX,
     TASK_POLICY,
+    DEFAULT_PARTNER_VPC_CIDR,
 )
 from pce.validator.validation_suite import (
     ValidationResult,
@@ -178,7 +179,7 @@ class TestValidator(TestCase):
             )
 
     def test_validate_private_cidr_success(self) -> None:
-        for invalid_ip in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]:
+        for invalid_ip in ["10.1.0.0/16", "10.1.10.0/24", "10.1.128.128/28"]:
             self._test_validate_private_cidr(
                 invalid_ip, ValidationResult(ValidationResultCode.SUCCESS)
             )
@@ -192,7 +193,9 @@ class TestValidator(TestCase):
                     ValidationErrorDescriptionTemplate.NON_PRIVATE_VPC_CIDR.value.format(
                         vpc_cidr=TestValidator.TEST_VPC_ID
                     ),
-                    ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value,
+                    ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value.format(
+                        default_vpc_cidr=DEFAULT_PARTNER_VPC_CIDR
+                    ),
                 ),
                 None,
             )

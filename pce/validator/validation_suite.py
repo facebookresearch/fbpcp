@@ -33,6 +33,7 @@ from pce.validator.pce_standard_constants import (
     FIREWALL_RULE_INITIAL_PORT,
     IGW_ROUTE_DESTINATION_CIDR_BLOCK,
     TASK_POLICY,
+    DEFAULT_PARTNER_VPC_CIDR,
 )
 from pce.validator.validator_step_names import (
     ValidationStepNames,
@@ -92,7 +93,14 @@ class ValidationSuite:
                 ValidationResultCode.ERROR,
                 ValidationErrorDescriptionTemplate.VPC_PEERING_NO_VPC.value,
             )
-        is_valid = ipaddress.ip_network(vpc.cidr).is_private
+        vpc_network = ipaddress.ip_network(vpc.cidr)
+        valid_network = ipaddress.ip_network(DEFAULT_PARTNER_VPC_CIDR)
+        is_valid = (
+            vpc_network.is_private
+            and (vpc_network[0] in valid_network)
+            and (vpc_network[-1] in valid_network)
+        )
+
         return (
             ValidationResult(ValidationResultCode.SUCCESS)
             if is_valid
@@ -101,7 +109,9 @@ class ValidationSuite:
                 ValidationErrorDescriptionTemplate.NON_PRIVATE_VPC_CIDR.value.format(
                     vpc_cidr=vpc.vpc_id
                 ),
-                ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value,
+                ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value.format(
+                    default_vpc_cidr=DEFAULT_PARTNER_VPC_CIDR
+                ),
             )
         )
 
