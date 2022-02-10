@@ -62,7 +62,7 @@ class ValidationErrorSolutionHintTemplate(Enum):
         "Recreate the Internet Gateway resource if needed or reach out to AWS Support for troubleshooting."
     )
     CLUSTER_DEFINITION_WRONG_VALUES = f"Please set container values (cpu, memory, image) as ({CONTAINER_CPU},{CONTAINER_MEMORY},'{CONTAINER_IMAGE}')"
-    NON_PRIVATE_VPC_CIDR = "Set a private CIDR (https://en.wikipedia.org/wiki/Private_network) for the vpc."
+    NON_PRIVATE_VPC_CIDR = "Set a private CIDR {default_vpc_cidr} for the vpc."
     NOT_ALL_AZ_USED = (
         "Set the subnets so that all availability zones are used, {azs} are missing."
     )
