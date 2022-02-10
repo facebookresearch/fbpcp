@@ -94,3 +94,10 @@ Release PCE validator and update onedocker dependencies
 
 ### Description of changes
 * API change: Update get_instances in AWS Container Service to take larger input size
+
+## 0.2.3 -> 0.2.4
+### Types of changes
+* New feature (non-breaking change which adds functionality)
+
+### Description of changes
+* PCE Validator CLI Change: Implement returning non zero exit code for error results
