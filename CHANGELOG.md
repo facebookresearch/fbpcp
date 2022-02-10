@@ -101,3 +101,12 @@ Release PCE validator and update onedocker dependencies
 
 ### Description of changes
 * PCE Validator CLI Change: Implement returning non zero exit code for error results
+
+## 0.2.4 -> 0.2.5
+### Types of changes
+* Bug fix (non-breaking change which fixes an issue)
+
+### Description of changes
+* Fixes bug introduced in 0.2.4 (And 0.2.4 was deleted from pypi to prevent further usage)
+* The fix is to use the correct parameter name nextToken in list_task_definitions - PR # 252
+* (From 0.2.3 -> 0.2.4) PCE Validator CLI Change: Implement returning non zero exit code for error results
