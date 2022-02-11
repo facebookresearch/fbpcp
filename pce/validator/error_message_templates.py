@@ -19,6 +19,9 @@ from pce.validator.pce_standard_constants import (
     IGW_ROUTE_DESTINATION_CIDR_BLOCK,
 )
 
+# scenarios should raise error message are the ones will block advertiser run study
+# new error message should follow above standard
+
 
 class ValidationErrorDescriptionTemplate(Enum):
     UNKNOWN = "Unknown error"
