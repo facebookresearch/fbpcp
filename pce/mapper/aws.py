@@ -6,7 +6,7 @@
 
 # pyre-strict
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 from pce.entity.iam_role import (
     IAMRole,
@@ -21,3 +21,16 @@ def map_attachedrolepolicies_to_rolepolicies(
     attached_role_policies: Dict[PolicyName, PolicyContents],
 ) -> Optional[IAMRole]:
     return IAMRole(role_id, attached_role_policies) if attached_role_policies else None
+
+
+def map_ecstaskdefinition_to_awslogsgroupname(
+    task_definition: Dict[str, Any],
+) -> Optional[str]:
+    try:
+        container_definition = task_definition["containerDefinitions"][0]
+        log_configuration = container_definition["logConfiguration"]
+        log_group_name = log_configuration["options"]["awslogs-group"]
+        return log_group_name
+    # Key error indicates the log group does not exist, error will be returned in error message templates
+    except KeyError:
+        return None
