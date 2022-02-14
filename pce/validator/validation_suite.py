@@ -20,7 +20,9 @@ from fbpcp.entity.vpc_instance import Vpc
 from fbpcp.entity.vpc_peering import VpcPeeringState
 from fbpcp.service.pce_aws import PCE_ID_KEY
 from pce.gateway.ec2 import PCEEC2Gateway
+from pce.gateway.ecs import ECSGateway
 from pce.gateway.iam import PCEIAMGateway
+from pce.gateway.logs_aws import LogsGateway
 from pce.validator.error_message_templates import (
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
@@ -78,11 +80,20 @@ class ValidationSuite:
         config: Optional[Dict[str, Any]] = None,
         ec2_gateway: Optional[PCEEC2Gateway] = None,
         iam_gateway: Optional[PCEIAMGateway] = None,
+        ecs_gateway: Optional[ECSGateway] = None,
+        logs_gateway: Optional[LogsGateway] = None,
     ) -> None:
         self.ec2_gateway: PCEEC2Gateway = ec2_gateway or PCEEC2Gateway(
             region, key_id, key_data, config
         )
         self.iam_gateway: PCEIAMGateway = iam_gateway or PCEIAMGateway(
+            region, key_id, key_data, config
+        )
+        self.ecs_gateway: ECSGateway = ecs_gateway or ECSGateway(
+            region, key_id, key_data, config
+        )
+
+        self.logs_gateway: LogsGateway = logs_gateway or LogsGateway(
             region, key_id, key_data, config
         )
 
@@ -415,6 +426,7 @@ class ValidationSuite:
                     ValidationStepNames.CLUSTER_DEFINITION,
                 ),
                 (self.validate_roles, ValidationStepNames.ROLE),
+                (self.validate_log_group, ValidationStepNames.LOG_GROUP),
             ],
             item_show_func=lambda i: str(i[1].value) if i else "",
             label="Validating PCE...",
@@ -508,3 +520,32 @@ class ValidationSuite:
                 ValidationWarningSolutionHintTemplate.MORE_POLICIES_THAN_EXPECTED.value,
             )
         return ValidationResult(ValidationResultCode.SUCCESS)
+
+    def validate_log_group(self, pce: PCE) -> ValidationResult:
+        c = pce.pce_compute.container_definition
+        if not c:
+            return ValidationResult(
+                ValidationResultCode.ERROR,
+                ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_NOT_SET.value,
+            )
+
+        log_group_name_from_task = self.ecs_gateway.extract_log_group_name(c.id)
+        if not log_group_name_from_task:
+            return ValidationResult(
+                ValidationResultCode.WARNING,
+                ValidationWarningDescriptionTemplate.CLOUDWATCH_LOGS_NOT_CONFIGURED_IN_TASK_DEFINITION.value,
+            )
+
+        log_group = self.logs_gateway.describe_log_group(
+            log_group_name=log_group_name_from_task
+        )
+
+        if log_group and log_group.log_group_name:
+            return ValidationResult(ValidationResultCode.SUCCESS)
+
+        return ValidationResult(
+            ValidationResultCode.WARNING,
+            ValidationWarningDescriptionTemplate.CLOUDWATCH_LOGS_NOT_FOUND.value.format(
+                log_group_name_from_task=log_group_name_from_task
+            ),
+        )

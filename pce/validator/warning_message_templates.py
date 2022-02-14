@@ -31,6 +31,10 @@ class ValidationWarningDescriptionTemplate(Enum):
     MORE_POLICIES_THAN_EXPECTED = (
         "Policies {policy_names} attached to {role_id} are not expected."
     )
+    CLOUDWATCH_LOGS_NOT_CONFIGURED_IN_TASK_DEFINITION = (
+        "CloudWatch logs are not configured in ECS task definition."
+    )
+    CLOUDWATCH_LOGS_NOT_FOUND = "CloudWatch logs are not found, please check if log group name {log_group_name_from_task} is correct or if this log group gets deleted "
 
 
 class ValidationWarningSolutionHintTemplate(Enum):

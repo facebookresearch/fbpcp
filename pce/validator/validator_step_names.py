@@ -18,3 +18,4 @@ class ValidationStepNames(Enum):
     SUBNETS = "Subnets"
     CLUSTER_DEFINITION = "Cluster definition"
     ROLE = "IAM roles"
+    LOG_GROUP = "Log group"

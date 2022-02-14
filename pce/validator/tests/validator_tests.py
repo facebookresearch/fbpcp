@@ -25,6 +25,7 @@ from pce.entity.iam_role import (
     RoleId,
     PolicyContents,
 )
+from pce.entity.log_group_aws import LogGroup
 from pce.validator.pce_standard_constants import (
     AvailabilityZone,
     CONTAINER_CPU,
@@ -120,6 +121,14 @@ def create_mock_container_definition(
     return c
 
 
+def create_mock_log_group(
+    log_group_name: Optional[str] = None,
+) -> LogGroup:
+    log_group = MagicMock()
+    log_group.log_group_name = log_group_name
+    return log_group
+
+
 class TestValidator(TestCase):
     TEST_REGION = "us-east-1"
     TEST_REGION_AZS = [
@@ -135,16 +144,22 @@ class TestValidator(TestCase):
     TEST_TASK_ROLE_ID = f"foo::bar::role/{TEST_TASK_ROLE_NAME}"
     TEST_TASK_ROLE_NOT_RELATED_ID = f"foo::bar::role/{TEST_TASK_ROLE_NOT_RELATED_NAME}"
     TEST_POLICY_TASK_ROLE_NAME = "a/b/test_policy_task_role_name"
+    TEST_LOG_GROUP_NAME = "/ecs/test_log_group"
+    TEST_NONEXIST_LOG_GROUP_NAME = "/etc/nonexist_log_group"
 
     def setUp(self) -> None:
         self.ec2_gateway = MagicMock()
         self.iam_gateway = MagicMock()
+        self.logs_gateway = MagicMock()
+        self.ecs_gateway = MagicMock()
         self.validator = ValidationSuite(
             "test_region",
             "test_key_id",
             "test_key_data",
             ec2_gateway=self.ec2_gateway,
             iam_gateway=self.iam_gateway,
+            ecs_gateway=self.ecs_gateway,
+            logs_gateway=self.logs_gateway,
         )
         self.maxDiff = None
 
@@ -815,6 +830,45 @@ class TestValidator(TestCase):
                 ValidationWarningSolutionHintTemplate.MORE_POLICIES_THAN_EXPECTED.value,
             ),
         )
+
+    def test_validate_log_group_deleted(self) -> None:
+        pce = MagicMock()
+        self.ecs_gateway.extract_log_group_name = MagicMock(
+            return_value=TestValidator.TEST_NONEXIST_LOG_GROUP_NAME
+        )
+        self.logs_gateway.describe_log_group = MagicMock(return_value=None)
+
+        expected_result = ValidationResult(
+            ValidationResultCode.WARNING,
+            ValidationWarningDescriptionTemplate.CLOUDWATCH_LOGS_NOT_FOUND.value.format(
+                log_group_name_from_task=TestValidator.TEST_NONEXIST_LOG_GROUP_NAME
+            ),
+        )
+        actual_result = self.validator.validate_log_group(pce)
+        self.assertEquals(expected_result, actual_result)
+
+    def test_validate_log_group_success(self) -> None:
+        pce = MagicMock()
+        self.ecs_gateway.extract_log_group_name = MagicMock(
+            return_value=TestValidator.TEST_LOG_GROUP_NAME
+        )
+        self.logs_gateway.describe_log_group = create_mock_log_group(
+            log_group_name=TestValidator.TEST_LOG_GROUP_NAME
+        )
+        expected_result = ValidationResult(ValidationResultCode.SUCCESS)
+        actual_result = self.validator.validate_log_group(pce)
+        self.assertEquals(expected_result, actual_result)
+
+    def test_validate_log_group_not_configuered_in_task(self) -> None:
+        pce = MagicMock()
+        self.ecs_gateway.extract_log_group_name = MagicMock(return_value=None)
+        expected_result = ValidationResult(
+            ValidationResultCode.WARNING,
+            ValidationWarningDescriptionTemplate.CLOUDWATCH_LOGS_NOT_CONFIGURED_IN_TASK_DEFINITION.value,
+        )
+
+        actual_result = self.validator.validate_log_group(pce)
+        self.assertEquals(expected_result, actual_result)
 
 
 class TestValidationSuite(TestCase):
