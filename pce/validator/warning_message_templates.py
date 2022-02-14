@@ -15,6 +15,10 @@ from pce.validator.pce_standard_constants import (
     FIREWALL_RULE_INITIAL_PORT,
 )
 
+# for scenarios should raise up warning messages are
+# 1) the current PCE setup is not a blocker for running study, however not fully follow the PCE set up standard.
+# 2) run time components are still in pending status
+
 
 class ValidationWarningDescriptionTemplate(Enum):
     VPC_PEERING_PEERING_NOT_READY = "Still setting up peering."
