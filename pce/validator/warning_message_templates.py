@@ -21,7 +21,9 @@ from pce.validator.pce_standard_constants import (
 
 
 class ValidationWarningDescriptionTemplate(Enum):
-    VPC_PEERING_PEERING_NOT_READY = "Still setting up peering."
+    VPC_PEERING_PEERING_NOT_READY = (
+        "VPC Peering Connection request is pending acceptance."
+    )
     FIREWALL_CIDR_EXCEED_EXPECTED_RANGE = f"Ingress cidr {{fr_vpc_id}}:{{fri_cidr}}:{{fri_from_port}}-{{fri_to_port}} exceeds the expected port range {FIREWALL_RULE_INITIAL_PORT}-{FIREWALL_RULE_FINAL_PORT}"
     FIREWALL_FLAGGED_RULESETS = (
         "These issues are not fatal but are worth noticing: {warning_reasons}"
@@ -42,7 +44,9 @@ class ValidationWarningDescriptionTemplate(Enum):
 
 
 class ValidationWarningSolutionHintTemplate(Enum):
-    VPC_PEERING_PEERING_NOT_READY = "Please try again in a moment."
+    VPC_PEERING_PEERING_NOT_READY = (
+        "Please work with Acceptor VPC owner to accept peering request."
+    )
     MORE_POLICIES_THAN_EXPECTED = (
         "Consider removing additional policies to strengthen security."
     )
