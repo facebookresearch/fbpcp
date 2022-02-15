@@ -446,14 +446,11 @@ class ValidationSuite:
         results_by_code = defaultdict(list)
         for result in validation_results:
             results_by_code[result.validation_result_code].append(result)
-        return "\n".join(
-            [
-                f"{code}:\n\t"
-                # dict preserves insertion order since 3.6, hence is preferred over set
-                + "\n\t".join([str(res) for res in dict.fromkeys(results)])
-                for code, results in results_by_code.items()
-            ]
-        )
+        summary = ""
+        for code, results in results_by_code.items():
+            for result in results:
+                summary += f"{code}: {result}\n"
+        return summary
 
     @classmethod
     def contains_error_result(cls, results: List[ValidationResult]) -> bool:
