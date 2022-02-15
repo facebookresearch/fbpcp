@@ -274,7 +274,8 @@ class ValidationSuite:
 
     def validate_route_table(self, pce: PCE) -> ValidationResult:
         """
-        Make sure there is an entry in the route table for the VPC peer and that it is active
+        Make sure routing table has all the required routes in active state
+        This includes routes for a Peering Connection and an Internet Gateway
         """
         vpc = pce.pce_network.vpc
         if not vpc:

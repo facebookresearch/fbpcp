@@ -33,7 +33,9 @@ class ValidationErrorDescriptionTemplate(Enum):
     FIREWALL_CIDR_NOT_OVERLAPS_VPC = "VPC peering for VPC {peer_target_id} doesn't have an inbound rule to allow traffic to {vpc_id}:{vpc_cidr}."
     FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE = f"Ingress cidr {{fr_vpc_id}}:{{fri_cidr}}:{{fri_from_port}}-{{fri_to_port}} can't contain the expected port range {FIREWALL_RULE_INITIAL_PORT}-{FIREWALL_RULE_FINAL_PORT}"
     FIREWALL_INVALID_RULESETS = "Invalid firewall rulesets: {error_reasons}"
-    ROUTE_TABLE_VPC_PEERING_MISSING = "No valid VPC peering found in route table."
+    ROUTE_TABLE_VPC_PEERING_MISSING = (
+        "No Active route for VPC Peering Connection found in the route table."
+    )
     ROUTE_TABLE_IGW_MISSING = "Internet Gateway route missing in route table."
     ROUTE_TABLE_IGW_INACTIVE = "Internet Gateway route is not Active."
     CLUSTER_DEFINITION_NOT_SET = "No container definition."
@@ -55,7 +57,11 @@ class ValidationErrorSolutionHintTemplate(Enum):
     FIREWALL_INVALID_RULESETS = (
         "Set correct CIDR and port ranges for the offending firewall rules."
     )
-    ROUTE_TABLE_VPC_PEERING_MISSING = "Define a VPC connection in the route table."
+    ROUTE_TABLE_VPC_PEERING_MISSING = (
+        "Ensure that a route for VPC Peering Connection is present and Active in the route table. "
+        "If present but not Active, check if the VPC Peering Connection request is pending "
+        "acceptance by the owner of the Acceptor VPC."
+    )
     ROUTE_TABLE_IGW_MISSING = (
         f"Ensure that a route for destination {IGW_ROUTE_DESTINATION_CIDR_BLOCK} "
         "to an Internet Gateway target is added to the route table."
