@@ -10,6 +10,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 import boto3
+from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 from fbpcp.decorator.error_handler import error_handler
 from fbpcp.gateway.aws import AWSGateway
@@ -25,8 +26,9 @@ class S3Gateway(AWSGateway):
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(region, access_key_id, access_key_data, config)
-        # pyre-ignore
-        self.client = boto3.client("s3", region_name=self.region, **self.config)
+        self.client: BaseClient = boto3.client(
+            "s3", region_name=self.region, **self.config
+        )
 
     @error_handler
     def create_bucket(self, bucket: str, region: Optional[str] = None) -> None:
