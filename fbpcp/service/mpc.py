@@ -282,7 +282,41 @@ class MPCService:
         self, containers: List[ContainerInstance]
     ) -> List[ContainerInstance]:
         ids = [container.instance_id for container in containers]
-        return list(filter(None, self.container_svc.get_instances(ids)))
+        return list(
+            filter(
+                None,
+                map(
+                    self._get_updated_container,
+                    # TODO APIs of OneDocker service should be called here
+                    self.container_svc.get_instances(ids),
+                    containers,
+                ),
+            )
+        )
+
+    def _get_updated_container(
+        self,
+        queried_instance: Optional[ContainerInstance],
+        existing_instance: ContainerInstance,
+    ) -> Optional[ContainerInstance]:
+        # 1. If ECS returns an instance, return the instance to callers
+        # 2. If ECS could not find an instance and the status of existing instance is not stopped, return None to callers
+        # 3. If ECS cound not find an instance and the status of existing instance is stopped, return the existing instance to callers.
+        if queried_instance:
+            return queried_instance
+        elif existing_instance.status not in [
+            ContainerInstanceStatus.COMPLETED,
+            ContainerInstanceStatus.FAILED,
+        ]:
+            self.logger.error(
+                f"The unstopped container instance {existing_instance.instance_id} is missing from Cloud. None is returned to callers."
+            )
+            return queried_instance
+        else:
+            self.logger.info(
+                f"The stopped container instance {existing_instance.instance_id} is missing from Cloud. The existing container instance is returned."
+            )
+            return existing_instance
 
     def _get_instance_status(self, instance: MPCInstance) -> MPCInstanceStatus:
         if instance.status is MPCInstanceStatus.CANCELED:

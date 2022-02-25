@@ -122,7 +122,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
             ] = map_ecstask_to_containerinstance(resp_task_dict)
 
         for failure in response["failures"]:
-            self.logger.error(
+            self.logger.warning(
                 f"ECSGateway failed to describe a task {failure['arn']}, reason: {failure['reason']}"
             )
 

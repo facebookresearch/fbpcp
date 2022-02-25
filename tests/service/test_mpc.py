@@ -243,3 +243,36 @@ class TestMPCService(unittest.TestCase):
         self.mpc_service.instance_repository.update.assert_called_with(
             expected_mpc_instance
         )
+
+    def test_get_updated_instance(self):
+        # Arrange
+        queried_container = ContainerInstance(
+            TEST_INSTANCE_ID,  # noqa
+            TEST_SERVER_IPS[0],
+            ContainerInstanceStatus.COMPLETED,
+        )
+        existing_container_started = ContainerInstance(
+            TEST_INSTANCE_ID,
+            TEST_SERVER_IPS[0],
+            ContainerInstanceStatus.STARTED,
+        )
+        existing_container_completed = ContainerInstance(
+            TEST_INSTANCE_ID,
+            TEST_SERVER_IPS[0],
+            ContainerInstanceStatus.COMPLETED,
+        )
+
+        # Act and Assert
+        self.assertEqual(
+            queried_container,
+            self.mpc_service._get_updated_container(
+                queried_container, existing_container_started
+            ),
+        )
+        self.assertIsNone(
+            self.mpc_service._get_updated_container(None, existing_container_started)
+        )
+        self.assertEqual(
+            existing_container_completed,
+            self.mpc_service._get_updated_container(None, existing_container_completed),
+        )
