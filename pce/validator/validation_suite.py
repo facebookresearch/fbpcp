@@ -23,9 +23,13 @@ from pce.gateway.ec2 import PCEEC2Gateway
 from pce.gateway.ecs import ECSGateway
 from pce.gateway.iam import PCEIAMGateway
 from pce.gateway.logs_aws import LogsGateway
-from pce.validator.error_message_templates import (
+from pce.validator.errorhandling.error_message_templates import (
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
+)
+from pce.validator.errorhandling.warning_message_templates import (
+    ValidationWarningDescriptionTemplate,
+    ValidationWarningSolutionHintTemplate,
 )
 from pce.validator.pce_standard_constants import (
     CONTAINER_CPU,
@@ -39,10 +43,6 @@ from pce.validator.pce_standard_constants import (
 )
 from pce.validator.validator_step_names import (
     ValidationStepNames,
-)
-from pce.validator.warning_message_templates import (
-    ValidationWarningDescriptionTemplate,
-    ValidationWarningSolutionHintTemplate,
 )
 
 
