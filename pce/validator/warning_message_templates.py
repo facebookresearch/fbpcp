@@ -44,9 +44,7 @@ class ValidationWarningDescriptionTemplate(Enum):
 
 
 class ValidationWarningSolutionHintTemplate(Enum):
-    VPC_PEERING_PEERING_NOT_READY = (
-        "Please work with Acceptor VPC owner to accept peering request."
-    )
+    VPC_PEERING_PEERING_NOT_READY = "Please work with owner of Acceptor VPC (VPC ID: {accepter_vpc_id}) to accept peering request."
     MORE_POLICIES_THAN_EXPECTED = (
         "Consider removing additional policies to strengthen security."
     )

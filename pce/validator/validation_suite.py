@@ -144,7 +144,9 @@ class ValidationSuite:
                 VpcPeeringState.PENDING_ACCEPTANCE: ValidationResult(
                     ValidationResultCode.WARNING,
                     ValidationWarningDescriptionTemplate.VPC_PEERING_PEERING_NOT_READY.value,
-                    ValidationWarningSolutionHintTemplate.VPC_PEERING_PEERING_NOT_READY.value,
+                    ValidationWarningSolutionHintTemplate.VPC_PEERING_PEERING_NOT_READY.value.format(
+                        accepter_vpc_id=vpc_peering.accepter_vpc_id
+                    ),
                 ),
             },
         )
