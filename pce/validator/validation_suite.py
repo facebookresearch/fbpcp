@@ -137,7 +137,9 @@ class ValidationSuite:
         state_results = defaultdict(
             lambda: ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.UNKNOWN.value,
+                ValidationErrorDescriptionTemplate.VPC_PEERING_UNACCEPTABLE_STATE.value.format(
+                    status=vpc_peering.status
+                ),
             ),
             {
                 VpcPeeringState.ACTIVE: ValidationResult(ValidationResultCode.SUCCESS),

@@ -26,6 +26,9 @@ from pce.validator.pce_standard_constants import (
 class ValidationErrorDescriptionTemplate(Enum):
     UNKNOWN = "Unknown error"
     VPC_PEERING_NO_VPC_PEERING = "No VPC peering set."
+    # Unacceptable states include VpcPeeringState.REJECTED and VpcPeeringState.NOT_READY
+    # The latter maps any other state not explicitly listed in the VpcPeeringState Enum
+    VPC_PEERING_UNACCEPTABLE_STATE = "VPC Peering is in unacceptable state: {status}."
     VPC_PEERING_NO_VPC = "VPC not found."
     VPC_PEERING_NO_VPC_CIDR = "No VPC CIDR set."
     VPC_PEERING_NO_ROUTE_TABLE = "No route table set."
