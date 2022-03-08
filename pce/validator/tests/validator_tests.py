@@ -43,6 +43,7 @@ from pce.validator.validation_suite import (
     ValidationResultCode,
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
+    NetworkingValidationWarningDescriptionTemplate,
     ValidationWarningDescriptionTemplate,
     ValidationWarningSolutionHintTemplate,
     ClusterResourceType,
@@ -343,9 +344,9 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 ValidationResultCode.WARNING,
-                ValidationWarningDescriptionTemplate.FIREWALL_FLAGGED_RULESETS.value.format(
+                NetworkingValidationWarningDescriptionTemplate.NETWORKING_FIREWALL_FLAGGED_RULESETS.value.format(
                     warning_reasons=str(
-                        ValidationWarningDescriptionTemplate.FIREWALL_CIDR_EXCEED_EXPECTED_RANGE.value.format(
+                        NetworkingValidationWarningDescriptionTemplate.NETWORKING_FIREWALL_CIDR_EXCEED_EXPECTED_RANGE.value.format(
                             fr_vpc_id="create_mock_firewall_rule_set",
                             fri_cidr="12.4.0.0/16",
                             fri_from_port=initial_port,

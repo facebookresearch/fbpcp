@@ -41,6 +41,7 @@ from pce.validator.validator_step_names import (
     ValidationStepNames,
 )
 from pce.validator.warning_message_templates import (
+    NetworkingValidationWarningDescriptionTemplate,
     ValidationWarningDescriptionTemplate,
     ValidationWarningSolutionHintTemplate,
 )
@@ -145,7 +146,7 @@ class ValidationSuite:
                 VpcPeeringState.ACTIVE: ValidationResult(ValidationResultCode.SUCCESS),
                 VpcPeeringState.PENDING_ACCEPTANCE: ValidationResult(
                     ValidationResultCode.WARNING,
-                    ValidationWarningDescriptionTemplate.VPC_PEERING_PEERING_NOT_READY.value,
+                    NetworkingValidationWarningDescriptionTemplate.NETWORKING_VPC_PEERING_PEERING_NOT_READY.value,
                     ValidationWarningSolutionHintTemplate.VPC_PEERING_PEERING_NOT_READY.value.format(
                         accepter_vpc_id=vpc_peering.accepter_vpc_id
                     ),
@@ -194,7 +195,7 @@ class ValidationSuite:
                         or FIREWALL_RULE_FINAL_PORT < fri.to_port
                     ):
                         warning_reasons.append(
-                            ValidationWarningDescriptionTemplate.FIREWALL_CIDR_EXCEED_EXPECTED_RANGE.value.format(
+                            NetworkingValidationWarningDescriptionTemplate.NETWORKING_FIREWALL_CIDR_EXCEED_EXPECTED_RANGE.value.format(
                                 fr_vpc_id=fr.vpc_id,
                                 fri_cidr=fri.cidr,
                                 fri_from_port=fri.from_port,
@@ -269,7 +270,7 @@ class ValidationSuite:
         if warning_reasons:
             return ValidationResult(
                 ValidationResultCode.WARNING,
-                ValidationWarningDescriptionTemplate.FIREWALL_FLAGGED_RULESETS.value.format(
+                NetworkingValidationWarningDescriptionTemplate.NETWORKING_FIREWALL_FLAGGED_RULESETS.value.format(
                     warning_reasons=";".join(warning_reasons)
                 ),
             )
