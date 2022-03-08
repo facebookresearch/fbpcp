@@ -20,14 +20,17 @@ from pce.validator.pce_standard_constants import (
 # 2) run time components are still in pending status
 
 
-class ValidationWarningDescriptionTemplate(Enum):
-    VPC_PEERING_PEERING_NOT_READY = (
+class NetworkingValidationWarningDescriptionTemplate(Enum):
+    NETWORKING_VPC_PEERING_PEERING_NOT_READY = (
         "VPC Peering Connection request is pending acceptance."
     )
-    FIREWALL_CIDR_EXCEED_EXPECTED_RANGE = f"Ingress cidr {{fr_vpc_id}}:{{fri_cidr}}:{{fri_from_port}}-{{fri_to_port}} exceeds the expected port range {FIREWALL_RULE_INITIAL_PORT}-{FIREWALL_RULE_FINAL_PORT}"
-    FIREWALL_FLAGGED_RULESETS = (
+    NETWORKING_FIREWALL_CIDR_EXCEED_EXPECTED_RANGE = f"Ingress cidr {{fr_vpc_id}}:{{fri_cidr}}:{{fri_from_port}}-{{fri_to_port}} exceeds the expected port range {FIREWALL_RULE_INITIAL_PORT}-{FIREWALL_RULE_FINAL_PORT}"
+    NETWORKING_FIREWALL_FLAGGED_RULESETS = (
         "These issues are not fatal but are worth noticing: {warning_reasons}"
     )
+
+
+class ValidationWarningDescriptionTemplate(Enum):
     CLUSTER_DEFINITION_FLAGGED_VALUE = (
         "{resource_name} value '{value}' is not expected, should be '{expected_value}'."
     )
