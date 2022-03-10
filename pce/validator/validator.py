@@ -7,13 +7,14 @@
 
 
 Usage:
-    pce_validator --region=<region> --pce-id=<pce_id> [--key-id=<key_id>] [--key-data=<key_data>]
+    pce_validator --region=<region> --pce-id=<pce_id> [--key-id=<key_id>] [--key-data=<key_data>] [--role=<role>]
 
 Options:
     --region=<region>       (AWS) Region name
     --key-id=<key_id>       Key id
     --key-data=<key_data>   Key data
     --pce-id=<pce_id>       PCE id
+    --role=<role>           publisher, partner
 """
 
 
@@ -22,18 +23,21 @@ import sys
 
 from docopt import docopt
 from fbpcp.service.pce_aws import AWSPCEService
+from pce.entity.mpc_roles import MPCRoles
 from pce.validator.validation_suite import (
     ValidationSuite,
 )
-from schema import Schema, Optional, Or
+from schema import Schema, Optional, Or, Use, And
 
 
-def validate_pce(region: str, key_id: str, key_data: str, pce_id: str) -> None:
+def validate_pce(
+    region: str, key_id: str, key_data: str, pce_id: str, role: MPCRoles
+) -> None:
     pce_service = AWSPCEService(region, key_id, key_data, None)
     logging.info(f"Loading the PCE {pce_id}...")
     pce = pce_service.get_pce(pce_id)
     logging.info(f"PCE loaded: {pce}")
-    validator = ValidationSuite(region, key_id, key_data, None)
+    validator = ValidationSuite(region, key_id, key_data, None, role)
 
     failed_results = validator.validate_network_and_compute(pce)
     if failed_results:
@@ -55,6 +59,14 @@ def main() -> None:
             "--pce-id": str,
             Optional("--key-id"): Or(None, str),
             Optional("--key-data"): Or(None, str),
+            Optional("--role"): Or(
+                None,
+                And(
+                    Use(str.upper),
+                    lambda s: s in ("PUBLISHER", "PARTNER"),
+                    Use(MPCRoles),
+                ),
+            ),
         }
     )
     arguments = s.validate(docopt(__doc__))
@@ -63,7 +75,8 @@ def main() -> None:
     key_id = arguments["--key-id"]
     key_data = arguments["--key-data"]
     pce_id = arguments["--pce-id"]
-    validate_pce(region, key_id, key_data, pce_id)
+    role = arguments["--role"]
+    validate_pce(region, key_id, key_data, pce_id, role)
 
 
 if __name__ == "__main__":

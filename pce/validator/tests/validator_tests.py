@@ -26,6 +26,7 @@ from pce.entity.iam_role import (
     PolicyContents,
 )
 from pce.entity.log_group_aws import LogGroup
+from pce.entity.mpc_roles import MPCRoles
 from pce.validator.pce_standard_constants import (
     AvailabilityZone,
     CONTAINER_CPU,
@@ -37,6 +38,7 @@ from pce.validator.pce_standard_constants import (
     IGW_ROUTE_TARGET_PREFIX,
     TASK_POLICY,
     DEFAULT_PARTNER_VPC_CIDR,
+    DEFAULT_VPC_CIDR,
 )
 from pce.validator.validation_suite import (
     ValidationResult,
@@ -215,6 +217,22 @@ class TestValidator(TestCase):
                 ),
                 None,
             )
+
+    def test_validate_partner_cidr(self) -> None:
+        pce = MagicMock()
+        pce.pce_network.vpc.cidr = DEFAULT_PARTNER_VPC_CIDR
+        self.validator.role = MPCRoles.PARTNER
+        expected_result = ValidationResult(ValidationResultCode.SUCCESS)
+        actual_result = self.validator.validate_private_cidr(pce)
+        self.assertEquals(expected_result, actual_result)
+
+    def test_validate_publisher_cidr(self) -> None:
+        pce = MagicMock()
+        pce.pce_network.vpc.cidr = DEFAULT_VPC_CIDR
+        self.validator.role = MPCRoles.PUBLISHER
+        expected_result = ValidationResult(ValidationResultCode.SUCCESS)
+        actual_result = self.validator.validate_private_cidr(pce)
+        self.assertEquals(expected_result, actual_result)
 
     def _test_validate_firewall(
         self,
