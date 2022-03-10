@@ -19,6 +19,7 @@ from fbpcp.entity.route_table import Route, RouteState, RouteTargetType
 from fbpcp.entity.vpc_instance import Vpc
 from fbpcp.entity.vpc_peering import VpcPeeringState
 from fbpcp.service.pce_aws import PCE_ID_KEY
+from pce.entity.mpc_roles import MPCRoles
 from pce.gateway.ec2 import PCEEC2Gateway
 from pce.gateway.ecs import ECSGateway
 from pce.gateway.iam import PCEIAMGateway
@@ -36,6 +37,7 @@ from pce.validator.pce_standard_constants import (
     IGW_ROUTE_DESTINATION_CIDR_BLOCK,
     TASK_POLICY,
     DEFAULT_PARTNER_VPC_CIDR,
+    DEFAULT_VPC_CIDR,
 )
 from pce.validator.validator_step_names import (
     ValidationStepNames,
@@ -79,11 +81,13 @@ class ValidationSuite:
         key_id: Optional[str] = None,
         key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
+        role: Optional[MPCRoles] = None,
         ec2_gateway: Optional[PCEEC2Gateway] = None,
         iam_gateway: Optional[PCEIAMGateway] = None,
         ecs_gateway: Optional[ECSGateway] = None,
         logs_gateway: Optional[LogsGateway] = None,
     ) -> None:
+        self.role: MPCRoles = role or MPCRoles.PARTNER
         self.ec2_gateway: PCEEC2Gateway = ec2_gateway or PCEEC2Gateway(
             region, key_id, key_data, config
         )
@@ -99,6 +103,11 @@ class ValidationSuite:
         )
 
     def validate_private_cidr(self, pce: PCE) -> ValidationResult:
+        default_vpc_cidr = (
+            DEFAULT_PARTNER_VPC_CIDR
+            if self.role == MPCRoles.PARTNER
+            else DEFAULT_VPC_CIDR
+        )
         vpc = pce.pce_network.vpc
         if not vpc:
             return ValidationResult(
@@ -106,7 +115,7 @@ class ValidationSuite:
                 ValidationErrorDescriptionTemplate.VPC_PEERING_NO_VPC.value,
             )
         vpc_network = ipaddress.ip_network(vpc.cidr)
-        valid_network = ipaddress.ip_network(DEFAULT_PARTNER_VPC_CIDR)
+        valid_network = ipaddress.ip_network(default_vpc_cidr)
         is_valid = (
             vpc_network.is_private
             and (vpc_network[0] in valid_network)
