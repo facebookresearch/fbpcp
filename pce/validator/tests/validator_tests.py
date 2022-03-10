@@ -27,7 +27,7 @@ from pce.entity.iam_role import (
 )
 from pce.entity.log_group_aws import LogGroup
 from pce.entity.mpc_roles import MPCRoles
-from pce.validator.pce_standard_constants import (
+from pce.validator.message_templates.pce_standard_constants import (
     AvailabilityZone,
     CONTAINER_CPU,
     CONTAINER_IMAGE,

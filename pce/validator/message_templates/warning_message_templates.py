@@ -10,7 +10,7 @@
 
 from enum import Enum
 
-from pce.validator.pce_standard_constants import (
+from pce.validator.message_templates.pce_standard_constants import (
     FIREWALL_RULE_FINAL_PORT,
     FIREWALL_RULE_INITIAL_PORT,
 )

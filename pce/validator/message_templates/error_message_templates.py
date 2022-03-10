@@ -10,7 +10,7 @@
 
 from enum import Enum
 
-from pce.validator.pce_standard_constants import (
+from pce.validator.message_templates.pce_standard_constants import (
     CONTAINER_CPU,
     CONTAINER_IMAGE,
     CONTAINER_MEMORY,
