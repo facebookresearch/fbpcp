@@ -25,6 +25,7 @@ Options:
 
 import logging
 import os
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -86,6 +87,11 @@ def _run_executable(
     return_code = run_cmd(cmd, timeout)
     if return_code != 0:
         logger.error(f"Subprocess returned non-zero return code: {return_code}")
+
+        # shell exit code: 128 + N
+        # reference: https://www.gnu.org/software/bash/manual/html_node/Exit-Status.html
+        if return_code == signal.SIGSEGV + 128:
+            logger.info("Start to process core dump ...")
 
     net_end = psutil.net_io_counters()
     logger.info(
