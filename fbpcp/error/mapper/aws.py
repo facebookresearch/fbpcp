@@ -15,7 +15,8 @@ from fbpcp.error.pcp import ThrottlingError
 # reference: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html
 def map_aws_error(error: ClientError) -> PcpError:
     code = error.response["Error"]["Code"]
-    message = str(error)
+    response_metadata = error.response["ResponseMetadata"]
+    message = f"{error}\n\n Details: {response_metadata}\n"
 
     if code == "InvalidParameterException":
         return InvalidParameterError(message)

@@ -30,6 +30,10 @@ class TestErrorHandler(unittest.TestCase):
                         "Code": "ThrottlingException",
                         "Message": "test",
                     },
+                    "ResponseMetadata": {
+                        "RequestId": "test_id",
+                        "HTTPStatusCode": 400,
+                    },
                 },
                 "test",
             )

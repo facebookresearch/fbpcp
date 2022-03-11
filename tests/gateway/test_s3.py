@@ -104,7 +104,10 @@ class TestS3Gateway(unittest.TestCase):
         gw.client = BotoClient()
         error_code = "403"
         error_msg = "Permission denied"
-        error_response = {"Error": {"Code": error_code, "Message": error_msg}}
+        error_response = {
+            "Error": {"Code": error_code, "Message": error_msg},
+            "ResponseMetadata": {},
+        }
         gw.client.head_object = MagicMock(
             side_effect=ClientError(error_response, TEST_S3_OPERATION)
         )
