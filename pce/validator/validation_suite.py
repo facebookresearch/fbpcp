@@ -128,7 +128,7 @@ class ValidationSuite:
             if is_valid
             else ValidationResult(
                 ValidationResultCode.ERROR,
-                NetworkingErrorTemplate.NON_PRIVATE_VPC_CIDR.value.format(
+                NetworkingErrorTemplate.VPC_NON_PRIVATE_CIDR.value.format(
                     vpc_cidr=vpc.vpc_id
                 ),
                 ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value.format(
@@ -355,7 +355,7 @@ class ValidationSuite:
             if is_valid
             else ValidationResult(
                 ValidationResultCode.ERROR,
-                NetworkingErrorTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     region=pce.pce_network.region,
                     azs=",".join(sorted(used_azs)) if used_azs else "none",
                 ),

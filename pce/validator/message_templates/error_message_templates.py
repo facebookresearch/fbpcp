@@ -22,7 +22,7 @@ from pce.validator.message_templates.pce_standard_constants import (
 # PCE networking validation error messages
 class NetworkingErrorTemplate(Enum):
     # VPC
-    NON_PRIVATE_VPC_CIDR = "The CIDR of the vpc {vpc_cidr} is not a private range."
+    VPC_NON_PRIVATE_CIDR = "The CIDR of the vpc {vpc_cidr} is not a private range."
 
     # Firewall
     FIREWALL_CIDR_NOT_OVERLAPS_VPC = "VPC peering for VPC {peer_target_id} doesn't have an inbound rule to allow traffic to {vpc_id}:{vpc_cidr}."
@@ -32,7 +32,7 @@ class NetworkingErrorTemplate(Enum):
     FIREWALL_RULES_NOT_FOUND = "No firewall rules found tagged with {pce_id}."
 
     # Subnets
-    NOT_ALL_AZ_USED = "Subnets are not using all availability zones from {region}, currently using {azs}."
+    SUBNETS_NOT_ALL_AZ_USED = "Subnets are not using all availability zones from {region}, currently using {azs}."
 
     # Route table
     ROUTE_TABLE_IGW_MISSING = "Internet Gateway route missing in route table."
@@ -51,7 +51,7 @@ class NetworkingErrorTemplate(Enum):
     VPC_PEERING_UNACCEPTABLE_STATE = "VPC Peering is in unacceptable state: {status}."
 
     # Network unknown error
-    UNKNOWN = "Unknown error"
+    NETWORKING_UNKNOWN = "PCE Networking unknown error"
 
 
 # scenarios should raise error message are the ones will block advertiser run study
