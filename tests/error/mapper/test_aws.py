@@ -14,11 +14,16 @@ from fbpcp.error.pcp import ThrottlingError
 
 class TestMapAwsError(unittest.TestCase):
     def test_pcs_error(self):
+        request_id = "76f3e69f-0d46-436f-803a-5e88956b7308"
         err = ClientError(
             {
                 "Error": {
                     "Code": "Exception",
                     "Message": "test",
+                },
+                "ResponseMetadata": {
+                    "RequestId": request_id,
+                    "HTTPStatusCode": 400,
                 },
             },
             "test",
@@ -26,13 +31,19 @@ class TestMapAwsError(unittest.TestCase):
         err = map_aws_error(err)
 
         self.assertIsInstance(err, PcpError)
+        self.assertIn(request_id, str(err))
 
     def test_throttling_error(self):
+        request_id = "3e65a825-6a43-4261-b8a4-953972aa7065"
         err = ClientError(
             {
                 "Error": {
                     "Code": "ThrottlingException",
                     "Message": "test",
+                },
+                "ResponseMetadata": {
+                    "RequestId": request_id,
+                    "HTTPStatusCode": 400,
                 },
             },
             "test",
@@ -40,3 +51,4 @@ class TestMapAwsError(unittest.TestCase):
         err = map_aws_error(err)
 
         self.assertIsInstance(err, ThrottlingError)
+        self.assertIn(request_id, str(err))
