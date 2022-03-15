@@ -50,6 +50,7 @@ from pce.validator.validation_suite import (
     ValidationWarningSolutionHintTemplate,
     ClusterResourceType,
     ValidationSuite,
+    NetworkingErrorTemplate,
 )
 
 
@@ -208,7 +209,7 @@ class TestValidator(TestCase):
                 invalid_ip,
                 ValidationResult(
                     ValidationResultCode.ERROR,
-                    ValidationErrorDescriptionTemplate.NON_PRIVATE_VPC_CIDR.value.format(
+                    NetworkingErrorTemplate.NON_PRIVATE_VPC_CIDR.value.format(
                         vpc_cidr=TestValidator.TEST_VPC_ID
                     ),
                     ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value.format(
@@ -281,9 +282,9 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_reasons=str(
-                        ValidationErrorDescriptionTemplate.FIREWALL_CIDR_NOT_OVERLAPS_VPC.value.format(
+                        NetworkingErrorTemplate.FIREWALL_CIDR_NOT_OVERLAPS_VPC.value.format(
                             peer_target_id="target_VPC_PEERING_11.2.0.0/16",
                             vpc_id=TestValidator.TEST_VPC_ID,
                             vpc_cidr="10.1.0.0/16",
@@ -312,9 +313,9 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_reasons=str(
-                        ValidationErrorDescriptionTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
+                        NetworkingErrorTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
                             fr_vpc_id="create_mock_firewall_rule_set",
                             fri_cidr="12.4.0.0/16",
                             fri_from_port=initial_port,
@@ -384,7 +385,7 @@ class TestValidator(TestCase):
             [],
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.FIREWALL_RULES_NOT_FOUND.value.format(
+                NetworkingErrorTemplate.FIREWALL_RULES_NOT_FOUND.value.format(
                     pce_id=TestValidator.TEST_PCE_ID
                 ),
             ),
@@ -420,7 +421,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
-                description=ValidationErrorDescriptionTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
+                description=NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
                 solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             ),
         )
@@ -436,7 +437,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
-                description=ValidationErrorDescriptionTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
+                description=NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
                 solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             ),
         )
@@ -472,7 +473,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
-                description=ValidationErrorDescriptionTemplate.ROUTE_TABLE_IGW_MISSING.value,
+                description=NetworkingErrorTemplate.ROUTE_TABLE_IGW_MISSING.value,
                 solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
             ),
         )
@@ -486,7 +487,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
-                description=ValidationErrorDescriptionTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
+                description=NetworkingErrorTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
                 solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
             ),
         )
@@ -528,7 +529,7 @@ class TestValidator(TestCase):
             TestValidator.TEST_REGION_AZS,
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorTemplate.NOT_ALL_AZ_USED.value.format(
                     region=TestValidator.TEST_REGION,
                     azs=",".join(set(subnet_availability_zones)),
                 ),
@@ -554,7 +555,7 @@ class TestValidator(TestCase):
             TestValidator.TEST_REGION_AZS,
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorTemplate.NOT_ALL_AZ_USED.value.format(
                     region=TestValidator.TEST_REGION,
                     azs=",".join(sorted(set(subnet_availability_zones))),
                 ),
@@ -724,9 +725,9 @@ class TestValidator(TestCase):
             [
                 ValidationResult(
                     ValidationResultCode.ERROR,
-                    ValidationErrorDescriptionTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                    NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                         error_reasons=str(
-                            ValidationErrorDescriptionTemplate.FIREWALL_CIDR_NOT_OVERLAPS_VPC.value.format(
+                            NetworkingErrorTemplate.FIREWALL_CIDR_NOT_OVERLAPS_VPC.value.format(
                                 peer_target_id="target_VPC_PEERING_12.4.1.0/24",
                                 vpc_id=TestValidator.TEST_VPC_ID,
                                 vpc_cidr="10.1.0.0/16",

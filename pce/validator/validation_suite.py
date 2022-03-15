@@ -25,6 +25,7 @@ from pce.gateway.ecs import ECSGateway
 from pce.gateway.iam import PCEIAMGateway
 from pce.gateway.logs_aws import LogsGateway
 from pce.validator.message_templates.error_message_templates import (
+    NetworkingErrorTemplate,
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
 )
@@ -112,7 +113,7 @@ class ValidationSuite:
         if not vpc:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.VPC_PEERING_NO_VPC.value,
+                NetworkingErrorTemplate.VPC_PEERING_NO_VPC.value,
             )
         vpc_network = ipaddress.ip_network(vpc.cidr)
         valid_network = ipaddress.ip_network(default_vpc_cidr)
@@ -127,7 +128,7 @@ class ValidationSuite:
             if is_valid
             else ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.NON_PRIVATE_VPC_CIDR.value.format(
+                NetworkingErrorTemplate.NON_PRIVATE_VPC_CIDR.value.format(
                     vpc_cidr=vpc.vpc_id
                 ),
                 ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value.format(
@@ -141,13 +142,13 @@ class ValidationSuite:
         if not vpc_peering:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.VPC_PEERING_NO_VPC_PEERING.value,
+                NetworkingErrorTemplate.VPC_PEERING_NO_VPC_PEERING.value,
             )
 
         state_results = defaultdict(
             lambda: ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.VPC_PEERING_UNACCEPTABLE_STATE.value.format(
+                NetworkingErrorTemplate.VPC_PEERING_UNACCEPTABLE_STATE.value.format(
                     status=vpc_peering.status
                 ),
             ),
@@ -192,7 +193,7 @@ class ValidationSuite:
                         or FIREWALL_RULE_FINAL_PORT > fri.to_port
                     ):
                         error_reasons.append(
-                            ValidationErrorDescriptionTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
+                            NetworkingErrorTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
                                 fr_vpc_id=fr.vpc_id,
                                 fri_cidr=fri.cidr,
                                 fri_from_port=fri.from_port,
@@ -213,7 +214,7 @@ class ValidationSuite:
                         )
             if not peer_rule_found:
                 error_reasons.append(
-                    ValidationErrorDescriptionTemplate.FIREWALL_CIDR_NOT_OVERLAPS_VPC.value.format(
+                    NetworkingErrorTemplate.FIREWALL_CIDR_NOT_OVERLAPS_VPC.value.format(
                         peer_target_id=peer_route.route_target.route_target_id,
                         vpc_id=vpc.vpc_id,
                         vpc_cidr=vpc.cidr,
@@ -230,20 +231,20 @@ class ValidationSuite:
         if not vpc:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.VPC_PEERING_NO_VPC.value,
+                NetworkingErrorTemplate.VPC_PEERING_NO_VPC.value,
             )
         vpc_cidr = vpc.cidr
         if not vpc_cidr:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.VPC_PEERING_NO_VPC_CIDR.value,
+                NetworkingErrorTemplate.VPC_PEERING_NO_VPC_CIDR.value,
             )
         # Don't bother in validating route table if there are no firewall rules
         firewall_rulesets = pce.pce_network.firewall_rulesets
         if not firewall_rulesets:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.FIREWALL_RULES_NOT_FOUND.value.format(
+                NetworkingErrorTemplate.FIREWALL_RULES_NOT_FOUND.value.format(
                     pce_id=vpc.tags[PCE_ID_KEY]
                 ),
             )
@@ -251,7 +252,7 @@ class ValidationSuite:
         if not route_table:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.VPC_PEERING_NO_ROUTE_TABLE.value,
+                NetworkingErrorTemplate.VPC_PEERING_NO_ROUTE_TABLE.value,
             )
         peer_routes = [
             r
@@ -261,7 +262,7 @@ class ValidationSuite:
         if not peer_routes:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.FIREWALL_PEER_ROUTE_NOT_SET.value,
+                NetworkingErrorTemplate.FIREWALL_PEER_ROUTE_NOT_SET.value,
             )
 
         error_reasons, warning_reasons = self._check_inbound_peer_route_allowed(
@@ -271,7 +272,7 @@ class ValidationSuite:
         if error_reasons:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_reasons=";".join(error_reasons)
                 ),
                 ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value,
@@ -295,13 +296,13 @@ class ValidationSuite:
         if not vpc:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.VPC_PEERING_NO_VPC.value,
+                NetworkingErrorTemplate.VPC_PEERING_NO_VPC.value,
             )
         route_table = pce.pce_network.route_table
         if not route_table:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.VPC_PEERING_NO_ROUTE_TABLE.value,
+                NetworkingErrorTemplate.VPC_PEERING_NO_ROUTE_TABLE.value,
             )
 
         is_vpc_peering_valid = any(
@@ -313,7 +314,7 @@ class ValidationSuite:
         if not is_vpc_peering_valid:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
+                NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
                 ValidationErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             )
 
@@ -328,14 +329,14 @@ class ValidationSuite:
         if not igw_route:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.ROUTE_TABLE_IGW_MISSING.value,
+                NetworkingErrorTemplate.ROUTE_TABLE_IGW_MISSING.value,
                 ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
             )
 
         if igw_route.state != RouteState.ACTIVE:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
+                NetworkingErrorTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
                 ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
             )
 
@@ -354,7 +355,7 @@ class ValidationSuite:
             if is_valid
             else ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorTemplate.NOT_ALL_AZ_USED.value.format(
                     region=pce.pce_network.region,
                     azs=",".join(sorted(used_azs)) if used_azs else "none",
                 ),
