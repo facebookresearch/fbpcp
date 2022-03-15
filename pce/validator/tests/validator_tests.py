@@ -209,7 +209,7 @@ class TestValidator(TestCase):
                 invalid_ip,
                 ValidationResult(
                     ValidationResultCode.ERROR,
-                    NetworkingErrorTemplate.NON_PRIVATE_VPC_CIDR.value.format(
+                    NetworkingErrorTemplate.VPC_NON_PRIVATE_CIDR.value.format(
                         vpc_cidr=TestValidator.TEST_VPC_ID
                     ),
                     ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value.format(
@@ -529,7 +529,7 @@ class TestValidator(TestCase):
             TestValidator.TEST_REGION_AZS,
             ValidationResult(
                 ValidationResultCode.ERROR,
-                NetworkingErrorTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     region=TestValidator.TEST_REGION,
                     azs=",".join(set(subnet_availability_zones)),
                 ),
@@ -555,7 +555,7 @@ class TestValidator(TestCase):
             TestValidator.TEST_REGION_AZS,
             ValidationResult(
                 ValidationResultCode.ERROR,
-                NetworkingErrorTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     region=TestValidator.TEST_REGION,
                     azs=",".join(sorted(set(subnet_availability_zones))),
                 ),
