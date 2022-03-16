@@ -171,11 +171,12 @@ class ValidationSuite:
         peer_routes: List[Route],
         firewall_rulesets: List[FirewallRuleset],
         vpc: Vpc,
-    ) -> Tuple[List[str], List[str]]:
+    ) -> Tuple[List[str], List[str], List[str]]:
         """
         For each peer route check if there is an inbound rule for it. If there is, make sure the port range of the rule is within PCE standard range. The results are returned in 2 lists of messages, one for errors and one for warnings.
         """
         error_reasons = []
+        error_remediation = []
         warning_reasons = []
 
         for peer_route in peer_routes:
@@ -200,6 +201,13 @@ class ValidationSuite:
                                 fri_to_port=fri.to_port,
                             ),
                         )
+                        error_remediation.append(
+                            ValidationErrorSolutionHintTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
+                                sec_group=fr.id,
+                                from_port=FIREWALL_RULE_INITIAL_PORT,
+                                to_port=FIREWALL_RULE_FINAL_PORT,
+                            ),
+                        )
                     elif (
                         FIREWALL_RULE_INITIAL_PORT > fri.from_port
                         or FIREWALL_RULE_FINAL_PORT < fri.to_port
@@ -221,7 +229,7 @@ class ValidationSuite:
                     )
                 )
 
-        return error_reasons, warning_reasons
+        return error_reasons, error_remediation, warning_reasons
 
     def validate_firewall(self, pce: PCE) -> ValidationResult:
         """
@@ -265,9 +273,11 @@ class ValidationSuite:
                 NetworkingErrorTemplate.FIREWALL_PEER_ROUTE_NOT_SET.value,
             )
 
-        error_reasons, warning_reasons = self._check_inbound_peer_route_allowed(
-            peer_routes, firewall_rulesets, vpc
-        )
+        (
+            error_reasons,
+            error_remediation,
+            warning_reasons,
+        ) = self._check_inbound_peer_route_allowed(peer_routes, firewall_rulesets, vpc)
 
         if error_reasons:
             return ValidationResult(
@@ -275,7 +285,9 @@ class ValidationSuite:
                 NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_reasons=";".join(error_reasons)
                 ),
-                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value,
+                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                    error_remediation=";".join(error_remediation)
+                ),
             )
         if warning_reasons:
             return ValidationResult(

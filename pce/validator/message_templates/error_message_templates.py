@@ -26,8 +26,8 @@ class NetworkingErrorTemplate(Enum):
 
     # Firewall
     FIREWALL_CIDR_NOT_OVERLAPS_VPC = "VPC peering for VPC {peer_target_id} doesn't have an inbound rule to allow traffic to {vpc_id}:{vpc_cidr}."
-    FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE = f"Ingress cidr {{fr_vpc_id}}:{{fri_cidr}}:{{fri_from_port}}-{{fri_to_port}} can't contain the expected port range {FIREWALL_RULE_INITIAL_PORT}-{FIREWALL_RULE_FINAL_PORT}"
-    FIREWALL_INVALID_RULESETS = "Invalid firewall rulesets: {error_reasons}"
+    FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE = f"Ingress cidr {{fr_vpc_id}}:{{fri_cidr}}:{{fri_from_port}}-{{fri_to_port}} does not contain all required ports from {FIREWALL_RULE_INITIAL_PORT} to {FIREWALL_RULE_FINAL_PORT}"
+    FIREWALL_INVALID_RULESETS = "Invalid firewall rulesets: {error_reasons}."
     FIREWALL_PEER_ROUTE_NOT_SET = "No peer route found."
     FIREWALL_RULES_NOT_FOUND = "No firewall rules found tagged with {pce_id}."
 
@@ -70,9 +70,10 @@ class ValidationErrorDescriptionTemplate(Enum):
 
 
 class ValidationErrorSolutionHintTemplate(Enum):
-    FIREWALL_INVALID_RULESETS = (
-        "Set correct CIDR and port ranges for the offending firewall rules."
+    FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE = (
+        "Update the port range for {sec_group} to {from_port}-{to_port}."
     )
+    FIREWALL_INVALID_RULESETS = "To remediate: {error_remediation}"
     ROUTE_TABLE_VPC_PEERING_MISSING = (
         "Ensure that a route for VPC Peering Connection is present and Active in the route table. "
         "If present but not Active, check if the VPC Peering Connection request is pending "
