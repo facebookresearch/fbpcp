@@ -291,26 +291,28 @@ class TestValidator(TestCase):
                         )
                     )
                 ),
-                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value,
+                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                    error_remediation=""
+                ),
             ),
         )
 
     def test_validate_firewall_bad_port_range(self) -> None:
         initial_port = FIREWALL_RULE_INITIAL_PORT + 1
+        mock_rule_set = create_mock_firewall_rule_set(
+            [
+                create_mock_firewall_rule("10.2.0.0/16"),
+                create_mock_firewall_rule("12.4.0.0/16", initial_port),
+                create_mock_firewall_rule("10.3.0.0/16"),
+            ]
+        )
+
         self._test_validate_firewall(
             "10.1.0.0/16",
             [
                 create_mock_route("12.4.1.0/24", RouteTargetType.VPC_PEERING),
             ],
-            [
-                create_mock_firewall_rule_set(
-                    [
-                        create_mock_firewall_rule("10.2.0.0/16"),
-                        create_mock_firewall_rule("12.4.0.0/16", initial_port),
-                        create_mock_firewall_rule("10.3.0.0/16"),
-                    ]
-                )
-            ],
+            [mock_rule_set],
             ValidationResult(
                 ValidationResultCode.ERROR,
                 NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
@@ -323,7 +325,15 @@ class TestValidator(TestCase):
                         )
                     )
                 ),
-                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value,
+                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                    error_remediation=str(
+                        ValidationErrorSolutionHintTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
+                            sec_group=mock_rule_set.id,
+                            from_port=FIREWALL_RULE_INITIAL_PORT,
+                            to_port=FIREWALL_RULE_FINAL_PORT,
+                        )
+                    )
+                ),
             ),
         )
 
@@ -734,7 +744,9 @@ class TestValidator(TestCase):
                             )
                         )
                     ),
-                    ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value,
+                    ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                        error_remediation=""
+                    ),
                 ),
                 ValidationResult(
                     ValidationResultCode.ERROR,
