@@ -8,7 +8,9 @@
 from typing import List, Optional, Dict, Any
 
 import boto3
+from fbpcp.entity.vpc_peering import VpcPeering
 from fbpcp.gateway.aws import AWSGateway
+from fbpcp.mapper.aws import map_ec2vpcpeering_to_vpcpeering
 
 
 class PCEEC2Gateway(AWSGateway):
@@ -31,3 +33,19 @@ class PCEEC2Gateway(AWSGateway):
         response = self.client.describe_availability_zones()
 
         return [aws_az["ZoneName"] for aws_az in response["AvailabilityZones"]]
+
+    def describe_vpc_peering_connections_with_accepter_vpc_id(
+        self,
+        vpc_id: str,
+    ) -> Optional[VpcPeering]:
+        filters = [
+            {"Name": "accepter-vpc-info.vpc-id", "Values": [vpc_id]},
+        ]
+        response = self.client.describe_vpc_peering_connections(Filters=filters)
+        return (
+            map_ec2vpcpeering_to_vpcpeering(
+                response["VpcPeeringConnections"][0], vpc_id
+            )
+            if response["VpcPeeringConnections"]
+            else None
+        )
