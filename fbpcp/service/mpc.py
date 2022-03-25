@@ -127,10 +127,16 @@ class MPCService:
         server_ips: Optional[List[str]] = None,
         timeout: Optional[int] = None,
         version: str = DEFAULT_BINARY_VERSION,
+        env_vars: Optional[Dict[str, str]] = None,
     ) -> MPCInstance:
         return asyncio.run(
             self.start_instance_async(
-                instance_id, output_files, server_ips, timeout, version
+                instance_id,
+                output_files,
+                server_ips,
+                timeout,
+                version,
+                env_vars,
             )
         )
 
@@ -141,6 +147,7 @@ class MPCService:
         server_ips: Optional[List[str]] = None,
         timeout: Optional[int] = None,
         version: str = DEFAULT_BINARY_VERSION,
+        env_vars: Optional[Dict[str, str]] = None,
     ) -> MPCInstance:
         """To run a distributed MPC game
         Keyword arguments:
@@ -163,6 +170,7 @@ class MPCService:
             server_ips,
             timeout,
             version,
+            env_vars,
         )
 
         if len(instance.containers) != instance.num_workers:
@@ -239,6 +247,7 @@ class MPCService:
         ip_addresses: Optional[List[str]] = None,
         timeout: Optional[int] = None,
         version: str = DEFAULT_BINARY_VERSION,
+        env_vars: Optional[Dict[str, str]] = None,
     ) -> List[ContainerInstance]:
         if game_args is not None and len(game_args) != num_containers:
             raise ValueError(
@@ -268,6 +277,7 @@ class MPCService:
             version=version,
             cmd_args_list=cmd_args_list,
             timeout=timeout,
+            env_vars=env_vars,
         )
 
         self.logger.info(
