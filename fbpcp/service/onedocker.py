@@ -74,6 +74,19 @@ class OneDockerService(MetricsGetter):
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
     ) -> ContainerInstance:
+        """
+        This function statrts one container for running MPC games.
+
+        Args:
+            package_name:       Name of running package within docker image
+            task_definition:    Task definition required by docker containers. If specified, overrides OneDockerService's task definition
+                                when starting this container
+            version:            The version of the MPC binary to run. This parameter defaults to the 'latest' binary version.
+            cmd_args:           A string that is used to override the command in docker containers
+            env_vars:           environment variable overrides in docker containers
+            timeout:            container timeout. If specified, docker container would be forced to stop
+            tag:                Tag for docker containers
+        """
         return self.start_containers(
             package_name,
             task_definition,
@@ -97,16 +110,13 @@ class OneDockerService(MetricsGetter):
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
     ) -> List[ContainerInstance]:
-        """Spin up one container per element in input command list.
-        task_definition -- if specified, overrides OneDockerService's task definition
-                           when starting this container
-        """
         """Spin up cloud containers according to command arg list.
 
         Args:
             package_name:       Name of running package within docker image
             task_definition:    Task definition required by docker containers. If specified, overrides OneDockerService's task definition
                                 when starting this container
+            version:            The version of the MPC binary to run. This parameter defaults to the 'latest' binary version.
             cmd_args_list:      A list of command overrides in docker containers
             env_vars:           environment variable overrides in docker containers
             timeout:            container timeout. If specified, docker container would be forced to stop
