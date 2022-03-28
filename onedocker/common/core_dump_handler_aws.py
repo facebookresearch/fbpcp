@@ -9,6 +9,7 @@
 import logging
 import os
 import uuid
+from pathlib import Path
 from typing import Optional
 
 from fbpcp.service.storage import StorageService
@@ -37,8 +38,14 @@ class AWSCoreDumpHandler(CoreDumpHandler):
 
         # One core file is generated for each run
         file_path = os.path.join(cwd, file_list[0])
-        self.logger.info(f"Core dump file locates in {file_path}")
 
+        if not Path(file_path).is_file:
+            # If the file path points to a non-file type
+            # return None
+            self.logger.error(f"{file_path} is not a file.")
+            return None
+
+        self.logger.info(f"Core dump file locates in {file_path}")
         return file_path
 
     def upload_core_dump_file(self, core_dump_file_path: str, upload_dest: str) -> None:
