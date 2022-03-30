@@ -4,15 +4,20 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+# pyre-strict
+
 import os
 import signal
 import subprocess
-from typing import Optional
+from types import FrameType
+from typing import Optional, Callable
 
 
-def run_cmd(cmd: str, timeout: Optional[int]) -> int:
+def run_cmd(
+    cmd: str, timeout: Optional[int], preexec_fn: Optional[Callable[[], None]]
+) -> int:
     # The handler dealing signal SIGINT, which could be Ctrl + C from user's terminal
-    def _handler(signum, frame):
+    def _handler(signum: int, frame: Optional[FrameType]) -> None:
         raise InterruptedError
 
     signal.signal(signal.SIGINT, _handler)
@@ -22,7 +27,9 @@ def run_cmd(cmd: str, timeout: Optional[int]) -> int:
      every process in the same process group can be killed by OS if timeout occurs.
      note: setsid() will set the pgid to its pid.
     """
-    with subprocess.Popen(cmd, shell=True, start_new_session=True) as proc:
+    with subprocess.Popen(
+        cmd, shell=True, start_new_session=True, preexec_fn=preexec_fn
+    ) as proc:
         try:
             proc.communicate(timeout=timeout)
         except (subprocess.TimeoutExpired, InterruptedError) as e:

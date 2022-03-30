@@ -9,3 +9,6 @@ ONEDOCKER_REPOSITORY_PATH = "ONEDOCKER_REPOSITORY_PATH"
 
 # This is the local path that the binaries reside
 ONEDOCKER_EXE_PATH = "ONEDOCKER_EXE_PATH"
+
+# This is the path user specified to upload the core dump file to
+CORE_DUMP_REPOSITORY_PATH = "CORE_DUMP_REPOSITORY_PATH"
