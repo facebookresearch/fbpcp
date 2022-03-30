@@ -25,6 +25,7 @@ Options:
 
 import logging
 import os
+import resource
 import signal
 import subprocess
 import sys
@@ -37,7 +38,12 @@ import schema
 from docopt import docopt
 from fbpcp.service.storage_s3 import S3StorageService
 from fbpcp.util.s3path import S3Path
-from onedocker.common.env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
+from onedocker.common.core_dump_handler_aws import AWSCoreDumpHandler
+from onedocker.common.env import (
+    ONEDOCKER_EXE_PATH,
+    ONEDOCKER_REPOSITORY_PATH,
+    CORE_DUMP_REPOSITORY_PATH,
+)
 from onedocker.common.util import run_cmd
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
@@ -54,6 +60,12 @@ DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
 DEFAULT_BINARY_VERSION = "latest"
 
 logger: logging.Logger
+
+
+def _set_resource_limit() -> None:
+    """Set the core file size for the child process"""
+    core_size = resource.RLIM_INFINITY
+    resource.setrlimit(resource.RLIMIT_CORE, (core_size, core_size))
 
 
 def _prepare_executable(
@@ -81,17 +93,36 @@ def _run_executable(
 ) -> None:
     # run execution cmd
     cmd = _build_cmd(executable, exe_args)
+    env_core_dump_repo_path = os.getenv(CORE_DUMP_REPOSITORY_PATH)
+    preexec_fn = None
+    if env_core_dump_repo_path:
+        # set the resource limit before run
+        preexec_fn = _set_resource_limit
+    else:
+        logger.info(
+            f"The environment variable {CORE_DUMP_REPOSITORY_PATH} is not set, the core dump handling process will be skipped."
+        )
+
     logger.info(f"Running cmd: {cmd} ...")
     net_start = psutil.net_io_counters()
 
-    return_code = run_cmd(cmd, timeout)
+    return_code = run_cmd(cmd, timeout, preexec_fn)
     if return_code != 0:
         logger.error(f"Subprocess returned non-zero return code: {return_code}")
 
         # shell exit code: 128 + N
         # reference: https://www.gnu.org/software/bash/manual/html_node/Exit-Status.html
-        if return_code == signal.SIGSEGV + 128:
+        if return_code == signal.SIGSEGV + 128 and env_core_dump_repo_path:
             logger.info("Start to process core dump ...")
+
+            storage_svc = S3StorageService(S3Path(env_core_dump_repo_path).region)
+            core_dump_handler = AWSCoreDumpHandler(storage_svc)
+            core_dump_file_path = core_dump_handler.locate_core_dump_file()
+
+            if core_dump_file_path:
+                core_dump_handler.upload_core_dump_file(
+                    core_dump_file_path, env_core_dump_repo_path
+                )
 
     net_end = psutil.net_io_counters()
     logger.info(
