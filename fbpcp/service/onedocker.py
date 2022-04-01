@@ -49,8 +49,9 @@ class OneDockerService(MetricsGetter):
         """
         if container_svc is None:
             raise ValueError(f"Dependency is missing. container_svc={container_svc}, ")
-
         self.container_svc = container_svc
+        if task_definition:
+            self.container_svc.validate_container_definition(task_definition)
         self.task_definition = task_definition
         self.metrics: Final[Optional[MetricsEmitter]] = metrics
         self.logger: logging.Logger = logging.getLogger(__name__)
@@ -125,6 +126,8 @@ class OneDockerService(MetricsGetter):
         Returns:
             A list of the containers that were successfuly started
         """
+        if task_definition:
+            self.container_svc.validate_container_definition(task_definition)
         if not cmd_args_list:
             raise ValueError("Command Argument List shouldn't be None or Empty")
 

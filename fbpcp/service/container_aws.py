@@ -7,10 +7,11 @@
 # pyre-strict
 
 import logging
+import re
 from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.container_instance import ContainerInstance
-from fbpcp.error.pcp import PcpError
+from fbpcp.error.pcp import InvalidParameterError, PcpError
 from fbpcp.gateway.ecs import ECSGateway
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.service.container import ContainerService
@@ -120,3 +121,9 @@ class AWSContainerService(ContainerService):
     def get_current_instances_count(self) -> int:
         cluster = self.ecs_gateway.describe_cluster(self.cluster)
         return cluster.running_tasks + cluster.pending_tasks
+
+    def validate_container_definition(self, container_definition: str) -> None:
+        if not re.fullmatch(r"[\w-]+?:\d+#[\w-]+?", container_definition):
+            raise InvalidParameterError(
+                "Parameter container_definition must be in format <task definition name>:<revision>#<container name>"
+            )
