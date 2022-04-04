@@ -123,7 +123,7 @@ class AWSContainerService(ContainerService):
         return cluster.running_tasks + cluster.pending_tasks
 
     def validate_container_definition(self, container_definition: str) -> None:
-        if not re.fullmatch(r"[\w-]+?:\d+#[\w-]+?", container_definition):
+        if not re.fullmatch(r"[\w\-/:]+?:\d+#[\w\-/]+?", container_definition):
             raise InvalidParameterError(
                 "Parameter container_definition must be in format <task definition name>:<revision>#<container name>"
             )
