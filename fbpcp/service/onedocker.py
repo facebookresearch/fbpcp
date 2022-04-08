@@ -8,9 +8,11 @@
 
 import asyncio
 import logging
+from dataclasses import asdict
 from typing import Dict, List, Optional, Final
 
 from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
+from fbpcp.entity.certificate_request import CertificateRequest
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
 from fbpcp.metrics.emitter import MetricsEmitter
@@ -18,7 +20,6 @@ from fbpcp.metrics.getter import MetricsGetter
 from fbpcp.service.container import ContainerService
 from fbpcp.util.arg_builder import build_cmd_args
 from fbpcp.util.typing import checked_cast
-
 
 ONEDOCKER_CMD_PREFIX = (
     # patternlint-disable-next-line f-string-may-be-missing-leading-f
@@ -74,6 +75,7 @@ class OneDockerService(MetricsGetter):
         env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
+        certificate_request: Optional[CertificateRequest] = None,
     ) -> ContainerInstance:
         """
         This function statrts one container for running MPC games.
@@ -87,6 +89,8 @@ class OneDockerService(MetricsGetter):
             env_vars:           environment variable overrides in docker containers
             timeout:            container timeout. If specified, docker container would be forced to stop
             tag:                Tag for docker containers
+            certificate_request: An optional instance of CertificateRequest that contains the parameters required to create a TLS certificate
+
         """
         return self.start_containers(
             package_name,
@@ -96,6 +100,7 @@ class OneDockerService(MetricsGetter):
             env_vars,
             timeout,
             tag,
+            certificate_request,
         )[0]
 
     @error_counter(METRICS_START_CONTAINERS_ERROR_COUNT)
@@ -110,6 +115,7 @@ class OneDockerService(MetricsGetter):
         env_vars: Optional[Dict[str, str]] = None,
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
+        certificate_request: Optional[CertificateRequest] = None,
     ) -> List[ContainerInstance]:
         """Spin up cloud containers according to command arg list.
 
@@ -122,6 +128,7 @@ class OneDockerService(MetricsGetter):
             env_vars:           environment variable overrides in docker containers
             timeout:            container timeout. If specified, docker container would be forced to stop
             tag:                Tag for docker containers
+            certificate_request: An optional instance of CertificateRequest that contains the parameters required to create a TLS certificate
 
         Returns:
             A list of the containers that were successfuly started
@@ -132,7 +139,7 @@ class OneDockerService(MetricsGetter):
             raise ValueError("Command Argument List shouldn't be None or Empty")
 
         cmds = [
-            self._get_cmd(package_name, version, cmd_args, timeout)
+            self._get_cmd(package_name, version, cmd_args, timeout, certificate_request)
             for cmd_args in cmd_args_list
         ]
 
@@ -211,12 +218,12 @@ class OneDockerService(MetricsGetter):
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args: Optional[str] = None,
         timeout: Optional[int] = None,
+        certificate_request: Optional[CertificateRequest] = None,
     ) -> str:
-        runner_args = build_cmd_args(
-            exe_args=cmd_args,
-            version=version,
-            timeout=timeout,
-        )
+        args_dict = {"exe_args": cmd_args, "version": version, "timeout": timeout}
+        if certificate_request:
+            args_dict.update(asdict(certificate_request))
+        runner_args = build_cmd_args(**args_dict)
         return ONEDOCKER_CMD_PREFIX.format(
             package_name=package_name,
             runner_args=runner_args,
