@@ -20,6 +20,9 @@ Options:
     --exe_args=<exe_args>               The arguments the executable will use.
     --timeout=<timeout>                 Set timeout (in sec) to kill the task.
     --log_path=<path>                   Override the default path where logs are saved.
+    --key_algorithm=<key_algorithm>     key_algorithm if a TLS certificate is requested
+    --key_size=<key_size>               key_size if a TLS certificate is requested
+    --cert_path=<cert_path>             cert_path for certificate path of TLS certificate if requested
     --verbose                           Set logging level to DEBUG.
 """
 
@@ -36,6 +39,7 @@ from typing import Optional
 import psutil
 import schema
 from docopt import docopt
+from fbpcp.entity.certificate_request import CertificateRequest
 from fbpcp.service.storage_s3 import S3StorageService
 from fbpcp.util.s3path import S3Path
 from onedocker.common.core_dump_handler_aws import AWSCoreDumpHandler
@@ -139,9 +143,14 @@ def _run_package(
     version: str,
     timeout: int,
     exe_args: Optional[str] = None,
+    certificate_request: Optional[CertificateRequest] = None,
 ) -> None:
     logger.info(f"Starting to run {package_name}, version: {version}")
     executable = ""
+
+    if certificate_request:
+        _generate_certificate(certificate_request)
+
     try:
         executable = _prepare_executable(
             repository_path=repository_path,
@@ -225,6 +234,25 @@ def _read_config(
     return default_val
 
 
+def _get_certificate_request(
+    key_algorithm: str, key_size: int, cert_path: Optional[str]
+) -> Optional[CertificateRequest]:
+    if not key_algorithm or not key_size:
+        return None
+    else:
+        return CertificateRequest(
+            key_algorithm=key_algorithm,
+            key_size=key_size,
+            cert_path=cert_path,
+        )
+
+
+def _generate_certificate(certificate_request: CertificateRequest) -> None:
+    # TODO: Will be implemented in later diff
+    print(certificate_request)
+    return None
+
+
 def main() -> None:
     global logger
     s = schema.Schema(
@@ -233,9 +261,12 @@ def main() -> None:
             "--version": str,
             "--repository_path": schema.Or(None, schema.And(str, len)),
             "--exe_path": schema.Or(None, schema.And(str, len)),
-            "--exe_args": schema.Or(None, schema.Use(str, len)),
+            "--exe_args": schema.Or(None, schema.And(str, len)),
             "--timeout": schema.Or(None, schema.Use(int)),
             "--log_path": schema.Or(None, schema.Use(Path)),
+            "--key_algorithm": schema.Or(None, schema.And(str, len)),
+            "--key_size": schema.Or(None, schema.Use(int)),
+            "--cert_path": schema.Or(None, schema.And(str, len)),
             "--verbose": bool,
             "--help": bool,
         }
@@ -260,7 +291,11 @@ def main() -> None:
         ONEDOCKER_EXE_PATH,
         DEFAULT_EXE_FOLDER,
     )
-
+    certificate_request = _get_certificate_request(
+        key_algorithm=arguments["--key_algorithm"],
+        key_size=arguments["--key_size"],
+        cert_path=arguments["--cert_path"],
+    )
     _run_package(
         repository_path=repository_path,
         exe_path=exe_path,
@@ -268,6 +303,7 @@ def main() -> None:
         version=arguments["--version"],
         timeout=arguments["--timeout"],
         exe_args=arguments["--exe_args"],
+        certificate_request=certificate_request,
     )
 
 
