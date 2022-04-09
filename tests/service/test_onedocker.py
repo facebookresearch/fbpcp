@@ -26,6 +26,7 @@ TEST_TASK_DEF = "task_def"
 TEST_CMD_ARGS_LIST = ["--k1=v1", "--k2=v2"]
 TEST_TIMEOUT = 3600
 TEST_TAG = "test"
+TEST_CERTIFICATE_REQUEST = None
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
@@ -56,8 +57,20 @@ class TestOneDockerServiceSync(unittest.TestCase):
             return_value=mocked_container_info
         )
         calls = [
-            call(TEST_PACKAGE_NAME, TEST_VERSION, TEST_CMD_ARGS_LIST[0], TEST_TIMEOUT),
-            call(TEST_PACKAGE_NAME, TEST_VERSION, TEST_CMD_ARGS_LIST[1], TEST_TIMEOUT),
+            call(
+                TEST_PACKAGE_NAME,
+                TEST_VERSION,
+                TEST_CMD_ARGS_LIST[0],
+                TEST_TIMEOUT,
+                TEST_CERTIFICATE_REQUEST,
+            ),
+            call(
+                TEST_PACKAGE_NAME,
+                TEST_VERSION,
+                TEST_CMD_ARGS_LIST[1],
+                TEST_TIMEOUT,
+                TEST_CERTIFICATE_REQUEST,
+            ),
         ]
         self.onedocker_svc._get_cmd = MagicMock()
         returned_container_info = self.onedocker_svc.start_containers(
@@ -67,6 +80,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             version=TEST_VERSION,
             env_vars=TEST_ENV_VARS,
             timeout=TEST_TIMEOUT,
+            certificate_request=TEST_CERTIFICATE_REQUEST,
         )
         self.onedocker_svc._get_cmd.assert_has_calls(calls, any_order=False)
         self.assertEqual(returned_container_info, mocked_container_info)
@@ -101,8 +115,20 @@ class TestOneDockerServiceSync(unittest.TestCase):
         )
 
         calls = [
-            call(TEST_PACKAGE_NAME, TEST_VERSION, TEST_CMD_ARGS_LIST[0], TEST_TIMEOUT),
-            call(TEST_PACKAGE_NAME, TEST_VERSION, TEST_CMD_ARGS_LIST[1], TEST_TIMEOUT),
+            call(
+                TEST_PACKAGE_NAME,
+                TEST_VERSION,
+                TEST_CMD_ARGS_LIST[0],
+                TEST_TIMEOUT,
+                TEST_CERTIFICATE_REQUEST,
+            ),
+            call(
+                TEST_PACKAGE_NAME,
+                TEST_VERSION,
+                TEST_CMD_ARGS_LIST[1],
+                TEST_TIMEOUT,
+                TEST_CERTIFICATE_REQUEST,
+            ),
         ]
         self.onedocker_svc._get_cmd = MagicMock()
         self.onedocker_svc.start_containers(
@@ -111,6 +137,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             cmd_args_list=TEST_CMD_ARGS_LIST,
             version=TEST_VERSION,
             timeout=TEST_TIMEOUT,
+            certificate_request=TEST_CERTIFICATE_REQUEST,
         )
         self.onedocker_svc._get_cmd.assert_has_calls(calls, any_order=False)
 
