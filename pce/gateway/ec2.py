@@ -13,7 +13,7 @@ from fbpcp.gateway.aws import AWSGateway
 from fbpcp.mapper.aws import map_ec2vpcpeering_to_vpcpeering
 
 
-class PCEEC2Gateway(AWSGateway):
+class EC2Gateway(AWSGateway):
     def __init__(
         self,
         region: str,
