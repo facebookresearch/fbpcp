@@ -24,6 +24,9 @@ import sys
 from docopt import docopt
 from fbpcp.service.pce_aws import AWSPCEService
 from pce.entity.mpc_roles import MPCRoles
+from pce.validator.duplicate_pce_resources_checker import (
+    DuplicatePCEResourcesChecker,
+)
 from pce.validator.validation_suite import (
     ValidationSuite,
 )
@@ -33,6 +36,25 @@ from schema import Schema, Optional, Or, Use, And
 def validate_pce(
     region: str, key_id: str, key_data: str, pce_id: str, role: MPCRoles
 ) -> None:
+    duplicate_resource_checker = DuplicatePCEResourcesChecker(
+        region, key_id, key_data, None
+    )
+    duplicate_resources = duplicate_resource_checker.check_pce(pce_id)
+    if duplicate_resources:
+        logging.error(
+            f"Failed to load PCE due to duplicate resources tagged under same "
+            "pce id. Only one each of these resources can be tagged with the "
+            f"pce:pce-id ({pce_id}), and the others are mistagged. Look at "
+            "other properties of these resources (like id) for a hint to the "
+            "pce:pce-id the resource may correctly belong to. Details follow:"
+        )
+        for duplicate_resource in duplicate_resources:
+            logging.error(
+                f"Multiple {duplicate_resource.resource_name_plural} tagged "
+                f"with pce:pce-id ({pce_id}): {duplicate_resource.duplicate_resource_ids}"
+            )
+        sys.exit(1)
+
     pce_service = AWSPCEService(region, key_id, key_data, None)
     logging.info(f"Loading the PCE {pce_id}...")
     pce = pce_service.get_pce(pce_id)
