@@ -20,12 +20,10 @@ Options:
     --exe_args=<exe_args>               The arguments the executable will use.
     --timeout=<timeout>                 Set timeout (in sec) to kill the task.
     --log_path=<path>                   Override the default path where logs are saved.
-    --key_algorithm=<key_algorithm>     key_algorithm if a TLS certificate is requested
-    --key_size=<key_size>               key_size if a TLS certificate is requested
-    --cert_path=<cert_path>             cert_path for certificate path of TLS certificate if requested
+    --cert_params=<cert_params>         string format of CertificateRequest dictionary if a TLS certificate is requested
     --verbose                           Set logging level to DEBUG.
 """
-
+import ast
 import logging
 import os
 import resource
@@ -50,6 +48,7 @@ from onedocker.common.env import (
 )
 from onedocker.common.util import run_cmd
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
+from onedocker.service.certificate_self_signed import SelfSignedCertificateService
 
 
 # The default OneDocker repository path on S3
@@ -235,22 +234,26 @@ def _read_config(
 
 
 def _get_certificate_request(
-    key_algorithm: str, key_size: int, cert_path: Optional[str]
+    cert_params: Optional[str],
 ) -> Optional[CertificateRequest]:
-    if not key_algorithm or not key_size:
+    if not cert_params:
         return None
     else:
-        return CertificateRequest(
-            key_algorithm=key_algorithm,
-            key_size=key_size,
-            cert_path=cert_path,
+        # TODO add test case for this logic T116947687
+        return CertificateRequest(**ast.literal_eval(cert_params))
+
+
+def _generate_certificate(certificate_request: CertificateRequest) -> Optional[str]:
+    try:
+        logger.info("generating certificate")
+        cert_svc = SelfSignedCertificateService(certificate_request)
+        return cert_svc.generate_certificate()
+
+    except Exception as err:
+        logger.exception(
+            f"An error was raised while generating certificate for CertificateRequest {certificate_request}: {err}"
         )
-
-
-def _generate_certificate(certificate_request: CertificateRequest) -> None:
-    # TODO: Will be implemented in later diff
-    print(certificate_request)
-    return None
+        sys.exit(1)
 
 
 def main() -> None:
@@ -264,9 +267,7 @@ def main() -> None:
             "--exe_args": schema.Or(None, schema.And(str, len)),
             "--timeout": schema.Or(None, schema.Use(int)),
             "--log_path": schema.Or(None, schema.Use(Path)),
-            "--key_algorithm": schema.Or(None, schema.And(str, len)),
-            "--key_size": schema.Or(None, schema.Use(int)),
-            "--cert_path": schema.Or(None, schema.And(str, len)),
+            "--cert_params": schema.Or(None, schema.And(str, len)),
             "--verbose": bool,
             "--help": bool,
         }
@@ -291,11 +292,7 @@ def main() -> None:
         ONEDOCKER_EXE_PATH,
         DEFAULT_EXE_FOLDER,
     )
-    certificate_request = _get_certificate_request(
-        key_algorithm=arguments["--key_algorithm"],
-        key_size=arguments["--key_size"],
-        cert_path=arguments["--cert_path"],
-    )
+    certificate_request = _get_certificate_request(arguments["--cert_params"])
     _run_package(
         repository_path=repository_path,
         exe_path=exe_path,

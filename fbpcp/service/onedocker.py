@@ -222,7 +222,8 @@ class OneDockerService(MetricsGetter):
     ) -> str:
         args_dict = {"exe_args": cmd_args, "version": version, "timeout": timeout}
         if certificate_request:
-            args_dict.update(asdict(certificate_request))
+            # TODO add test case for this logic T116947556
+            args_dict["certificate_request"] = str(asdict(certificate_request))
         runner_args = build_cmd_args(**args_dict)
         return ONEDOCKER_CMD_PREFIX.format(
             package_name=package_name,
