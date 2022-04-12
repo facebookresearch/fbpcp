@@ -14,4 +14,10 @@ from typing import Optional
 class CertificateRequest:
     key_algorithm: str
     key_size: int
-    cert_path: Optional[str]
+    cert_path: Optional[str] = None
+    country_name: Optional[str] = None
+    state_or_province_name: Optional[str] = None
+    locality_name: Optional[str] = None
+    orgnization_name: Optional[str] = None
+    common_name: Optional[str] = None
+    dns_name: Optional[str] = None
