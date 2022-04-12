@@ -11,10 +11,10 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 from fbpcp.entity.vpc_peering import VpcPeering, VpcPeeringRole, VpcPeeringState
-from pce.gateway.ec2 import PCEEC2Gateway
+from pce.gateway.ec2 import EC2Gateway
 
 
-class TestPCEEC2Gateway(TestCase):
+class TestEC2Gateway(TestCase):
     REGION = "us-west-2"
     TEST_AWS_ACCOUNT_ID = "123456789012"
     TEST_ACCEPTER_VPC_ID = "vpc-12345"
@@ -25,7 +25,7 @@ class TestPCEEC2Gateway(TestCase):
         self.aws_ec2 = MagicMock()
         with patch("boto3.client") as mock_client:
             mock_client.return_value = self.aws_ec2
-            self.ec2 = PCEEC2Gateway(self.REGION)
+            self.ec2 = EC2Gateway(self.REGION)
 
     def test_describe_availability_zones(self) -> None:
         # Arrange
