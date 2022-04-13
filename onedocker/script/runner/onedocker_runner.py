@@ -23,7 +23,6 @@ Options:
     --cert_params=<cert_params>         string format of CertificateRequest dictionary if a TLS certificate is requested
     --verbose                           Set logging level to DEBUG.
 """
-import ast
 import logging
 import os
 import resource
@@ -233,16 +232,6 @@ def _read_config(
     return default_val
 
 
-def _get_certificate_request(
-    cert_params: Optional[str],
-) -> Optional[CertificateRequest]:
-    if not cert_params:
-        return None
-    else:
-        # TODO add test case for this logic T116947687
-        return CertificateRequest(**ast.literal_eval(cert_params))
-
-
 def _generate_certificate(certificate_request: CertificateRequest) -> Optional[str]:
     try:
         logger.info("generating certificate")
@@ -292,7 +281,7 @@ def main() -> None:
         ONEDOCKER_EXE_PATH,
         DEFAULT_EXE_FOLDER,
     )
-    certificate_request = _get_certificate_request(arguments["--cert_params"])
+    certificate_request = CertificateRequest.create_instance(arguments["--cert_params"])
     _run_package(
         repository_path=repository_path,
         exe_path=exe_path,
