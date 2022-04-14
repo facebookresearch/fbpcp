@@ -11,11 +11,24 @@ from enum import Enum
 
 
 class ValidationStepNames(Enum):
-    CIDR = "CIDR"
-    VPC_PEERING = "VPC peering"
-    FIREWALL = "Firewall"
-    ROUTE_TABLE = "Route table"
-    SUBNETS = "Subnets"
-    CLUSTER_DEFINITION = "Cluster definition"
-    ROLE = "IAM roles"
-    LOG_GROUP = "Log group"
+    """
+    Enumerates the names of validation steps, each step corresponding to a
+    method of pce.validator.ValidationSuite called validate_{code_name}
+    """
+
+    VPC_CIDR = ("VPC CIDR", "vpc_cidr")
+    VPC_PEERING = ("VPC peering", "vpc_peering")
+    FIREWALL = ("Firewall", "firewall")
+    ROUTE_TABLE = ("Route table", "route_table")
+    SUBNETS = ("Subnets", "subnets")
+    CLUSTER_DEFINITION = ("Cluster definition", "cluster_definition")
+    IAM_ROLES = ("IAM roles", "iam_roles")
+    LOG_GROUP = ("Log group", "log_group")
+
+    def __init__(self, formatted_name: str, code_name: str) -> None:
+        """
+        set the Enum member values under better attribute names for
+        easier access later eg ValidationStepNames.VPC_CIDR.code_name
+        """
+        self.formatted_name = formatted_name
+        self.code_name = code_name

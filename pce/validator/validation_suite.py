@@ -103,7 +103,7 @@ class ValidationSuite:
             region, key_id, key_data, config
         )
 
-    def validate_private_cidr(self, pce: PCE) -> ValidationResult:
+    def validate_vpc_cidr(self, pce: PCE) -> ValidationResult:
         default_vpc_cidr = (
             DEFAULT_PARTNER_VPC_CIDR
             if self.role == MPCRoles.PARTNER
@@ -455,19 +455,13 @@ class ValidationSuite:
         """
         with click.progressbar(
             [
-                (self.validate_private_cidr, ValidationStepNames.CIDR),
-                (self.validate_vpc_peering, ValidationStepNames.VPC_PEERING),
-                (self.validate_firewall, ValidationStepNames.FIREWALL),
-                (self.validate_route_table, ValidationStepNames.ROUTE_TABLE),
-                (self.validate_subnets, ValidationStepNames.SUBNETS),
                 (
-                    self.validate_cluster_definition,
-                    ValidationStepNames.CLUSTER_DEFINITION,
-                ),
-                (self.validate_roles, ValidationStepNames.ROLE),
-                (self.validate_log_group, ValidationStepNames.LOG_GROUP),
+                    self.__getattribute__(f"validate_{step.code_name}"),
+                    step.formatted_name,
+                )
+                for step in ValidationStepNames
             ],
-            item_show_func=lambda i: str(i[1].value) if i else "",
+            item_show_func=lambda i: str(i[1]) if i else "",
             label="Validating PCE...",
         ) as validation_functions:
             return [
@@ -500,7 +494,7 @@ class ValidationSuite:
             ]
         )
 
-    def validate_roles(self, pce: PCE) -> ValidationResult:
+    def validate_iam_roles(self, pce: PCE) -> ValidationResult:
         """
         Ensure that the container task execution role has the proper policy (`TASK_POLICY`) among those attached to it.
         """

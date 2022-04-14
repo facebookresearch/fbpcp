@@ -167,7 +167,7 @@ class TestValidator(TestCase):
         )
         self.maxDiff = None
 
-    def _test_validate_private_cidr(
+    def _test_validate_vpc_cidr(
         self,
         cidr: str,
         expected_result: Optional[ValidationResult],
@@ -182,30 +182,30 @@ class TestValidator(TestCase):
 
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
-                self.validator.validate_private_cidr(pce)
+                self.validator.validate_vpc_cidr(pce)
             self.assertEquals(expected_error_msg, str(ex.exception))
             return
 
-        actual_result = self.validator.validate_private_cidr(pce)
+        actual_result = self.validator.validate_vpc_cidr(pce)
         self.assertEquals(expected_result, actual_result)
 
-    def test_validate_private_cidr_non_valid(self) -> None:
+    def test_validate_vpc_cidr_non_valid(self) -> None:
         for invalid_ip in ["non_valid", "10.1.1.300"]:
-            self._test_validate_private_cidr(
+            self._test_validate_vpc_cidr(
                 invalid_ip,
                 None,
                 f"'{invalid_ip}' does not appear to be an IPv4 or IPv6 network",
             )
 
-    def test_validate_private_cidr_success(self) -> None:
+    def test_validate_vpc_cidr_success(self) -> None:
         for invalid_ip in ["10.1.0.0/16", "10.1.10.0/24", "10.1.128.128/28"]:
-            self._test_validate_private_cidr(
+            self._test_validate_vpc_cidr(
                 invalid_ip, ValidationResult(ValidationResultCode.SUCCESS)
             )
 
-    def test_validate_private_cidr_fail(self) -> None:
+    def test_validate_vpc_cidr_fail(self) -> None:
         for invalid_ip in ["10.0.0.0/7", "173.16.0.0/12", "192.168.0.0/15"]:
-            self._test_validate_private_cidr(
+            self._test_validate_vpc_cidr(
                 invalid_ip,
                 ValidationResult(
                     ValidationResultCode.ERROR,
@@ -224,7 +224,7 @@ class TestValidator(TestCase):
         pce.pce_network.vpc.cidr = DEFAULT_PARTNER_VPC_CIDR
         self.validator.role = MPCRoles.PARTNER
         expected_result = ValidationResult(ValidationResultCode.SUCCESS)
-        actual_result = self.validator.validate_private_cidr(pce)
+        actual_result = self.validator.validate_vpc_cidr(pce)
         self.assertEquals(expected_result, actual_result)
 
     def test_validate_publisher_cidr(self) -> None:
@@ -232,7 +232,7 @@ class TestValidator(TestCase):
         pce.pce_network.vpc.cidr = DEFAULT_VPC_CIDR
         self.validator.role = MPCRoles.PUBLISHER
         expected_result = ValidationResult(ValidationResultCode.SUCCESS)
-        actual_result = self.validator.validate_private_cidr(pce)
+        actual_result = self.validator.validate_vpc_cidr(pce)
         self.assertEquals(expected_result, actual_result)
 
     def _test_validate_firewall(
@@ -766,7 +766,7 @@ class TestValidator(TestCase):
             ],
         )
 
-    def _test_validate_roles(
+    def _test_validate_iam_roles(
         self,
         task_role_id: RoleId,
         task_role_policy: IAMRole,
@@ -789,17 +789,17 @@ class TestValidator(TestCase):
 
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
-                self.validator.validate_roles(pce)
+                self.validator.validate_iam_roles(pce)
             self.assertEquals(expected_error_msg, str(ex.exception))
             return
 
-        actual_result = self.validator.validate_roles(pce)
+        actual_result = self.validator.validate_iam_roles(pce)
         self.assertEquals(expected_result, actual_result)
 
-    def test_validate_roles_bad_task_policy(self) -> None:
+    def test_validate_iam_roles_bad_task_policy(self) -> None:
         bad_task_policy: PolicyContents = TASK_POLICY.copy()
         bad_task_policy["Version"] = "2020-01-01"
-        self._test_validate_roles(
+        self._test_validate_iam_roles(
             TestValidator.TEST_TASK_ROLE_ID,
             IAMRole(
                 TestValidator.TEST_TASK_ROLE_ID,
@@ -820,9 +820,9 @@ class TestValidator(TestCase):
             ),
         )
 
-    def test_validate_roles_no_attached_policies(self) -> None:
+    def test_validate_iam_roles_no_attached_policies(self) -> None:
         task_policy: PolicyContents = TASK_POLICY.copy()
-        self._test_validate_roles(
+        self._test_validate_iam_roles(
             TestValidator.TEST_TASK_ROLE_ID,
             IAMRole(
                 # This role is not attached to the container
@@ -841,10 +841,10 @@ class TestValidator(TestCase):
             ),
         )
 
-    def test_validate_roles_more_policies_than_expected(self) -> None:
+    def test_validate_iam_roles_more_policies_than_expected(self) -> None:
         additional_policy_name = "task_policy_name_additional"
         task_policy: PolicyContents = TASK_POLICY.copy()
-        self._test_validate_roles(
+        self._test_validate_iam_roles(
             TestValidator.TEST_TASK_ROLE_ID,
             IAMRole(
                 TestValidator.TEST_TASK_ROLE_ID,
