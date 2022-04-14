@@ -281,7 +281,11 @@ def main() -> None:
         ONEDOCKER_EXE_PATH,
         DEFAULT_EXE_FOLDER,
     )
-    certificate_request = CertificateRequest.create_instance(arguments["--cert_params"])
+    certificate_request = (
+        CertificateRequest.create_instance(arguments["--cert_params"])
+        if arguments["--cert_params"]
+        else None
+    )
     _run_package(
         repository_path=repository_path,
         exe_path=exe_path,
