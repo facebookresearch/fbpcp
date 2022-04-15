@@ -5,9 +5,11 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
+from shlex import quote
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import call, MagicMock, patch, ANY
 
+from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.onedocker import (
@@ -26,7 +28,11 @@ TEST_TASK_DEF = "task_def"
 TEST_CMD_ARGS_LIST = ["--k1=v1", "--k2=v2"]
 TEST_TIMEOUT = 3600
 TEST_TAG = "test"
-TEST_CERTIFICATE_REQUEST = None
+TEST_KEY_ALGORITHM = KeyAlgorithm.RSA
+TEST_KEY_SIZE = 4096
+TEST_PASSPHRASE = "test"
+TEST_ORGANIZATION_NAME = "Test Company"
+TEST_COUNTRY_NAME = "US"
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
@@ -48,31 +54,50 @@ class TestOneDockerServiceSync(unittest.TestCase):
             task_definition=TEST_TASK_DEF,
             package_name=TEST_PACKAGE_NAME,
             cmd_args=TEST_CMD_ARGS_LIST[0],
+            certificate_request=None,
         )
         self.assertEqual(returned_container_info, mocked_container_info)
 
     def test_start_containers(self):
+        # Arrange
         mocked_container_info = _get_pending_container_instances()
         self.container_svc.create_instances = MagicMock(
             return_value=mocked_container_info
         )
+        test_cert_request = CertificateRequest(
+            key_algorithm=TEST_KEY_ALGORITHM,
+            key_size=TEST_KEY_SIZE,
+            passphrase=TEST_PASSPHRASE,
+            cert_path=None,
+            private_key_name=None,
+            certificate_name=None,
+            country_name=TEST_COUNTRY_NAME,
+            state_or_province_name=None,
+            locality_name=None,
+            organization_name=None,
+            common_name=None,
+            dns_name=None,
+        )
+
         calls = [
             call(
                 TEST_PACKAGE_NAME,
                 TEST_VERSION,
                 TEST_CMD_ARGS_LIST[0],
                 TEST_TIMEOUT,
-                TEST_CERTIFICATE_REQUEST,
+                test_cert_request,
             ),
             call(
                 TEST_PACKAGE_NAME,
                 TEST_VERSION,
                 TEST_CMD_ARGS_LIST[1],
                 TEST_TIMEOUT,
-                TEST_CERTIFICATE_REQUEST,
+                test_cert_request,
             ),
         ]
         self.onedocker_svc._get_cmd = MagicMock()
+
+        # Act
         returned_container_info = self.onedocker_svc.start_containers(
             task_definition=TEST_TASK_DEF,
             package_name=TEST_PACKAGE_NAME,
@@ -80,8 +105,10 @@ class TestOneDockerServiceSync(unittest.TestCase):
             version=TEST_VERSION,
             env_vars=TEST_ENV_VARS,
             timeout=TEST_TIMEOUT,
-            certificate_request=TEST_CERTIFICATE_REQUEST,
+            certificate_request=test_cert_request,
         )
+
+        # Assert
         self.onedocker_svc._get_cmd.assert_has_calls(calls, any_order=False)
         self.assertEqual(returned_container_info, mocked_container_info)
 
@@ -96,6 +123,46 @@ class TestOneDockerServiceSync(unittest.TestCase):
         )
         self.assertEqual(expected_cmd_without_arguments, cmd_without_arguments)
         self.assertEqual(expected_cmd_with_arguments, cmd_with_arguments)
+
+    def test_get_cmd_with_certificate_request(self):
+        # Arrange
+        test_cert_request = CertificateRequest(
+            key_algorithm=TEST_KEY_ALGORITHM,
+            key_size=TEST_KEY_SIZE,
+            passphrase=TEST_PASSPHRASE,
+            cert_path=None,
+            private_key_name=None,
+            certificate_name=None,
+            country_name=TEST_COUNTRY_NAME,
+            state_or_province_name=None,
+            locality_name=None,
+            organization_name=None,
+            common_name=None,
+            dns_name=None,
+        )
+        import json
+
+        cert_params = json.dumps(
+            {
+                "key_algorithm": TEST_KEY_ALGORITHM.value,
+                "key_size": TEST_KEY_SIZE,
+                "passphrase": TEST_PASSPHRASE,
+                "country_name": TEST_COUNTRY_NAME,
+            }
+        )
+        expected_cmd = f"python3.8 -m onedocker.script.runner {TEST_PACKAGE_NAME} --exe_args={quote(str(TEST_CMD_ARGS_LIST[0]))} --version={quote(str(TEST_VERSION))} --timeout={quote(str(TEST_TIMEOUT))} --cert_params={quote(str(cert_params))}"
+
+        # Act
+        result = self.onedocker_svc._get_cmd(
+            TEST_PACKAGE_NAME,
+            TEST_VERSION,
+            TEST_CMD_ARGS_LIST[0],
+            TEST_TIMEOUT,
+            test_cert_request,
+        )
+
+        # Assert
+        self.assertEqual(result, expected_cmd)
 
     def test_stop_containers(self):
         containers = [
@@ -113,7 +180,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
         self.container_svc.create_instances = MagicMock(
             return_value=_get_pending_container_instances()
         )
-
+        TEST_CERTIFICATE_REQUEST = None
         calls = [
             call(
                 TEST_PACKAGE_NAME,
