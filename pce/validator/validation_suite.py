@@ -10,7 +10,7 @@ import ipaddress
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Iterable, Optional, Dict, Any, List, Tuple
 
 import click
 from fbpcp.entity.firewall_ruleset import FirewallRuleset
@@ -449,17 +449,24 @@ class ValidationSuite:
             )
         return ValidationResult(ValidationResultCode.SUCCESS)
 
-    def validate_network_and_compute(self, pce: PCE) -> List[ValidationResult]:
+    def validate_network_and_compute(
+        self, pce: PCE, skip_steps: Optional[List[ValidationStepNames]] = None
+    ) -> List[ValidationResult]:
         """
         Execute all existing validations returning warnings and errors encapsulated in `ValidationResult` objects
         """
+        validation_steps: Iterable[ValidationStepNames] = list(ValidationStepNames)
+        if skip_steps:
+            validation_steps = filter(
+                lambda step: step not in skip_steps, validation_steps
+            )
         with click.progressbar(
             [
                 (
                     self.__getattribute__(f"validate_{step.code_name}"),
                     step.formatted_name,
                 )
-                for step in ValidationStepNames
+                for step in validation_steps
             ],
             item_show_func=lambda i: str(i[1]) if i else "",
             label="Validating PCE...",

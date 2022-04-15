@@ -7,25 +7,30 @@
 
 
 Usage:
-    pce_validator --region=<region> --pce-id=<pce_id> [--key-id=<key_id>] [--key-data=<key_data>] [--role=<role>]
+    pce_validator --region=<region> --pce-id=<pce_id> [--key-id=<key_id>] [--key-data=<key_data>] [--role=<role>] [--skip-step=<skip-step>]...
 
-Options:
-    --region=<region>       (AWS) Region name
-    --key-id=<key_id>       Key id
-    --key-data=<key_data>   Key data
-    --pce-id=<pce_id>       PCE id
-    --role=<role>           publisher, partner
+Options ([+] can be repeated):
+    --region=<region>               (AWS) Region name
+    --key-id=<key_id>               Key id
+    --key-data=<key_data>           Key data
+    --pce-id=<pce_id>               PCE id
+    --role=<role>                   publisher, partner
+    --skip-step=<skip-step> [+]     name of a validation step to be skipped, eg vpc_peering
 """
 
 
 import logging
 import sys
+from typing import List
 
 from docopt import docopt
 from fbpcp.service.pce_aws import AWSPCEService
 from pce.entity.mpc_roles import MPCRoles
 from pce.validator.duplicate_pce_resources_checker import (
     DuplicatePCEResourcesChecker,
+)
+from pce.validator.message_templates.validator_step_names import (
+    ValidationStepNames,
 )
 from pce.validator.validation_suite import (
     ValidationSuite,
@@ -34,7 +39,12 @@ from schema import Schema, Optional, Or, Use, And
 
 
 def validate_pce(
-    region: str, key_id: str, key_data: str, pce_id: str, role: MPCRoles
+    region: str,
+    key_id: str,
+    key_data: str,
+    pce_id: str,
+    role: MPCRoles,
+    skip_steps: List[ValidationStepNames],
 ) -> None:
     duplicate_resource_checker = DuplicatePCEResourcesChecker(
         region, key_id, key_data, None
@@ -61,7 +71,7 @@ def validate_pce(
     logging.info(f"PCE loaded: {pce}")
     validator = ValidationSuite(region, key_id, key_data, None, role)
 
-    failed_results = validator.validate_network_and_compute(pce)
+    failed_results = validator.validate_network_and_compute(pce, skip_steps)
     if failed_results:
         logging.error(
             f"Validation failed for PCE {pce_id}:\n{ValidationSuite.summarize_errors(failed_results)}"
@@ -89,8 +99,18 @@ def main() -> None:
                     Use(MPCRoles),
                 ),
             ),
+            Optional("--skip-step"): Or(
+                None,
+                And(
+                    list,
+                    lambda step_list: all(
+                        [step in ValidationStepNames.code_names() for step in step_list]
+                    ),
+                ),
+            ),
         }
     )
+
     arguments = s.validate(docopt(__doc__))
 
     region = arguments["--region"]
@@ -98,7 +118,12 @@ def main() -> None:
     key_data = arguments["--key-data"]
     pce_id = arguments["--pce-id"]
     role = arguments["--role"]
-    validate_pce(region, key_id, key_data, pce_id, role)
+    skip_step_code_names = arguments["--skip-step"]
+    skip_steps = [
+        ValidationStepNames.from_code_name(code_name)
+        for code_name in skip_step_code_names
+    ]
+    validate_pce(region, key_id, key_data, pce_id, role, skip_steps)
 
 
 if __name__ == "__main__":

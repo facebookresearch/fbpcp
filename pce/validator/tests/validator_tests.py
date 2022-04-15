@@ -8,7 +8,7 @@
 
 from typing import Optional, List, Dict, Any
 from unittest import TestCase
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.firewall_ruleset import FirewallRuleset, FirewallRule
@@ -40,6 +40,7 @@ from pce.validator.message_templates.pce_standard_constants import (
     DEFAULT_PARTNER_VPC_CIDR,
     DEFAULT_VPC_CIDR,
 )
+from pce.validator.message_templates.validator_step_names import ValidationStepNames
 from pce.validator.validation_suite import (
     ValidationResult,
     ValidationResultCode,
@@ -917,3 +918,51 @@ class TestValidationSuite(TestCase):
             ValidationResult(ValidationResultCode.WARNING),
         ]
         self.assertFalse(ValidationSuite.contains_error_result(results))
+
+
+class TestValidationStepSkipping(TestCase):
+    @patch("pce.validator.validation_suite.PCE")
+    def setUp(self, MockPCE: MagicMock) -> None:
+        TEST_REGION = "us-east-1"
+        self.pce = MockPCE()
+        self.validator = ValidationSuite(TEST_REGION)
+
+    def _mock_all_validate_methods(self) -> None:
+        for step_code_name in ValidationStepNames.code_names():
+            setattr(
+                self.validator,
+                f"validate_{step_code_name}",
+                MagicMock(name=f"mock_validate_{step_code_name}"),
+            )
+
+    def test_all_steps_called(self) -> None:
+        # arrange
+        self._mock_all_validate_methods()
+        # act
+        _ = self.validator.validate_network_and_compute(self.pce)
+        # assert
+        for step_code_name in ValidationStepNames.code_names():
+            validation_function = getattr(self.validator, f"validate_{step_code_name}")
+            validation_function.assert_called_once()
+
+    def test_multiple_steps_skipped(self) -> None:
+        # arrange
+        self._mock_all_validate_methods()
+        skip_steps = [ValidationStepNames.VPC_CIDR, ValidationStepNames.LOG_GROUP]
+        filtered_validation_steps = filter(
+            lambda step: step not in skip_steps, ValidationStepNames
+        )
+        # act
+        _ = self.validator.validate_network_and_compute(
+            self.pce,
+            skip_steps=skip_steps,
+        )
+        # assert: correct validate_* methods called
+        for step_name in filtered_validation_steps:
+            validation_function = getattr(
+                self.validator, f"validate_{step_name.code_name}"
+            )
+            validation_function.assert_called_once()
+        # assert: skipped validate_* methods not called
+        self.validator.validate_vpc_cidr.assert_not_called()
+        self.validator.validate_log_group.assert_not_called()
