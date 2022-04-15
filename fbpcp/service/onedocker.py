@@ -8,7 +8,6 @@
 
 import asyncio
 import logging
-from dataclasses import asdict
 from typing import Dict, List, Optional, Final
 
 from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
@@ -222,8 +221,7 @@ class OneDockerService(MetricsGetter):
     ) -> str:
         args_dict = {"exe_args": cmd_args, "version": version, "timeout": timeout}
         if certificate_request:
-            # TODO add test case for this logic T116947556
-            args_dict["certificate_request"] = str(asdict(certificate_request))
+            args_dict["cert_params"] = certificate_request.convert_to_cert_params()
         runner_args = build_cmd_args(**args_dict)
         return ONEDOCKER_CMD_PREFIX.format(
             package_name=package_name,
