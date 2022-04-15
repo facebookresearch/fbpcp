@@ -6,10 +6,12 @@
 
 # pyre-strict
 
-import ast
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, fields
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
+
+from fbpcp.error.pcp import InvalidParameterError
 
 
 class KeyAlgorithm(Enum):
@@ -28,6 +30,7 @@ class CertificateRequest:
     passphrase: str
     cert_path: Optional[str]
     private_key_name: Optional[str]
+    certificate_name: Optional[str]
     country_name: Optional[str]
     state_or_province_name: Optional[str]
     locality_name: Optional[str]
@@ -36,28 +39,38 @@ class CertificateRequest:
     dns_name: Optional[str]
 
     @classmethod
+    def get_non_optional_fields(cls) -> List[str]:
+        fields_list = fields(cls)
+        return [
+            field.name for field in fields_list if field.type != Optional[field.type]
+        ]
+
+    @classmethod
     def create_instance(cls, cert_params: str) -> "CertificateRequest":
         try:
-            cert_params_dict = ast.literal_eval(cert_params)
+            cert_params_dict = json.loads(cert_params)
         except Exception as err:
-            raise Exception(
+            raise InvalidParameterError(
                 f"An error was raised when unpack cert_params for CertificateRequest {cert_params}: {err}"
             )
-        required_keys = {"key_algorithm", "key_size", "passphrase"}
+        required_keys = set(cls.get_non_optional_fields())
         if not required_keys.issubset(set(cert_params_dict.keys())):
-            raise Exception(
+            raise InvalidParameterError(
                 f"One of the required parameters {required_keys} is missing in cert_params: {cert_params_dict.keys()}"
             )
         key_algorithm_str = cert_params_dict["key_algorithm"]
         if not KeyAlgorithm.has_member(key_algorithm_str):
-            raise Exception(f"key_algorithm {key_algorithm_str} is not supported")
+            raise InvalidParameterError(
+                f"key_algorithm {key_algorithm_str} is not supported"
+            )
 
         return cls(
             key_algorithm=KeyAlgorithm[key_algorithm_str],
-            key_size=cert_params_dict["key_size"],
+            key_size=int(cert_params_dict["key_size"]),
             passphrase=cert_params_dict["passphrase"],
             cert_path=cert_params_dict.get("cert_path", None),
             private_key_name=cert_params_dict.get("private_key_name", None),
+            certificate_name=cert_params_dict.get("certificate_name", None),
             country_name=cert_params_dict.get("country_name", None),
             state_or_province_name=cert_params_dict.get("state_or_province_name", None),
             locality_name=cert_params_dict.get("locality_name", None),
@@ -65,3 +78,15 @@ class CertificateRequest:
             common_name=cert_params_dict.get("common_name", None),
             dns_name=cert_params_dict.get("dns_name", None),
         )
+
+    def convert_to_cert_params(self) -> str:
+        cert_dict = {}
+        for f in fields(self.__class__):
+            fname = f.name
+            fvalue = getattr(self, f.name)
+            if fname == "key_algorithm":
+                cert_dict[fname] = fvalue.value
+            elif fvalue is not None:
+                cert_dict[fname] = fvalue
+
+        return json.dumps(cert_dict)
