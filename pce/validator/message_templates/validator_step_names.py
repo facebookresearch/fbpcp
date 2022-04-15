@@ -8,6 +8,7 @@
 
 # patternlint-disable f-string-may-be-missing-leading-f
 from enum import Enum
+from typing import List
 
 
 class ValidationStepNames(Enum):
@@ -32,3 +33,16 @@ class ValidationStepNames(Enum):
         """
         self.formatted_name = formatted_name
         self.code_name = code_name
+
+    @staticmethod
+    def code_names() -> List[str]:
+        return [step.code_name for step in ValidationStepNames]
+
+    @staticmethod
+    def from_code_name(code_name: str) -> "ValidationStepNames":
+        for step_name in ValidationStepNames:
+            if step_name.code_name == code_name:
+                return step_name
+        raise ValueError(
+            f"No ValidationStepName member exists with code_name={code_name}"
+        )
