@@ -46,18 +46,15 @@ class SelfSignedCertificateService(CertificateService):
         # create dir for private key and certificate
         os.makedirs(self.cert_path, exist_ok=True)
 
-        # generate private key
-        private_key = self.crypt_gateway.generate_private_key(
+        # generate key pair
+        key_pair = self.crypt_gateway.generate_key_pair(
             self.cert_request.key_algorithm,
             self.cert_request.key_size,
+            self.cert_request.passphrase,
         )
 
         # write private key to file
-        key_byte = self.crypt_gateway.get_key_private_bytes(
-            private_key,
-            self.cert_request.passphrase,
-        )
-        self._write_bytes_to_file(self.private_key_path, key_byte)
+        self._write_bytes_to_file(self.private_key_path, key_pair.private_key_pem)
 
         # TODO implement the certificate signing part
 
