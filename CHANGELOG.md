@@ -124,3 +124,10 @@ Release PCE validator and update onedocker dependencies
 
 ### Description of changes
 * Update the API in MPC Service to take envrionment variables to support onedocker package repository overrides.
+
+## 0.2.7 -> 0.2.8
+### Types of changes
+* New feature (non-breaking change which adds functionality)
+
+### Description of changes
+* Added support for skipping some validation steps in PCE Validator with the --skip-step CLI params
