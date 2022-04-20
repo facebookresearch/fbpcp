@@ -5,12 +5,13 @@
 # LICENSE file in the root directory of this source tree.
 
 # pyre-strict
-from typing import Union
+from datetime import datetime, timedelta
+from typing import Union, Optional
 
+from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKeyWithSerialization
 from cryptography.hazmat.primitives.serialization import (
     load_pem_private_key,
     load_pem_public_key,
@@ -20,6 +21,8 @@ from onedocker.entity.key_pair_details import KeyPairDetails
 
 
 class CryptographyGateway:
+    SIGN_ALGORITHM = hashes.SHA256()
+
     def _convert_str_to_bytes(self, s: str) -> bytes:
         return s.encode("utf-8")
 
@@ -41,7 +44,7 @@ class CryptographyGateway:
         self,
         key_algorithm: KeyAlgorithm,
         key_size: int,
-    ) -> Union[RSAPrivateKeyWithSerialization]:
+    ) -> Union[rsa.RSAPrivateKeyWithSerialization]:
         if key_algorithm == KeyAlgorithm.RSA:
             # The public_exponent indicates what one mathematical property of the key generation will be. Official guide suggests always use 65537. (https://cryptography.io/en/latest/hazmat/primitives/asymmetric/rsa/)
             public_exponent = 65537
@@ -91,3 +94,60 @@ class CryptographyGateway:
     def load_public_key(self, key_pem: bytes) -> Union[rsa.RSAPublicKey]:
         public_key = load_pem_public_key(key_pem, default_backend())
         return public_key
+
+    def _generate_certificate(
+        self,
+        subject_name: x509.Name,
+        issuer_name: x509.Name,
+        private_key: Union[rsa.RSAPrivateKey],
+        public_key: Union[rsa.RSAPublicKey],
+        not_valid_before: datetime,
+        not_valid_after: datetime,
+        subject_alternative_name: Optional[x509.SubjectAlternativeName] = None,
+    ) -> x509.Certificate:
+        builder = x509.CertificateBuilder(
+            subject_name=subject_name,
+            issuer_name=issuer_name,
+            public_key=public_key,
+            serial_number=x509.random_serial_number(),
+            not_valid_before=not_valid_before,
+            not_valid_after=not_valid_after,
+        )
+        if subject_alternative_name:
+            builder.add_extension(
+                subject_alternative_name,
+                critical=False,
+            )
+
+        certificate = builder.sign(private_key, self.SIGN_ALGORITHM)
+        return certificate
+
+    def generate_certificate_pem(
+        self,
+        subject_name: x509.Name,
+        issuer_name: x509.Name,
+        key_pair_details: KeyPairDetails,
+        passphrase: str,
+        days_valid: int,
+        subject_alternative_name: Optional[x509.SubjectAlternativeName] = None,
+    ) -> bytes:
+        not_valid_before = datetime.utcnow()
+        not_valid_after = not_valid_before + timedelta(days=days_valid)
+
+        public_key = self.load_public_key(key_pair_details.public_key_pem)
+        private_key = self.load_private_key(
+            key_pair_details.private_key_pem, passphrase
+        )
+        certificate = self._generate_certificate(
+            subject_name=subject_name,
+            issuer_name=issuer_name,
+            private_key=private_key,
+            public_key=public_key,
+            not_valid_before=not_valid_before,
+            not_valid_after=not_valid_after,
+            subject_alternative_name=subject_alternative_name,
+        )
+        return self.get_certificate_pem(certificate)
+
+    def get_certificate_pem(self, certificate: x509.Certificate) -> bytes:
+        return certificate.public_bytes(serialization.Encoding.PEM)
