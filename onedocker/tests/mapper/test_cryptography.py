@@ -26,15 +26,15 @@ TEST_DNS_NAME = "localhost"
 
 
 class TestCryptographyMapper(unittest.TestCase):
-    def test_map_certificaterequest_to_x509name(self):
-        # Arrange
-        test_cert_request = CertificateRequest(
+    def setUp(self):
+        self.test_cert_request = CertificateRequest(
             key_algorithm=TEST_KEY_ALGORITHM,
             key_size=TEST_KEY_SIZE,
             passphrase=TEST_PASSPHRASE,
-            cert_path=None,
+            cert_folder=None,
             private_key_name=None,
             certificate_name=None,
+            days_valid=None,
             country_name=TEST_COUNTRY_NAME,
             state_or_province_name=TEST_STATE_OR_PROVINCE_NAME,
             locality_name=TEST_LOCALITY_NAME,
@@ -42,6 +42,10 @@ class TestCryptographyMapper(unittest.TestCase):
             common_name=TEST_COMMON_NAME,
             dns_name=TEST_DNS_NAME,
         )
+
+    def test_map_certificaterequest_to_x509name(self):
+        # Arrange
+
         expected_x509_name = x509.Name(
             [
                 x509.NameAttribute(NameOID.COUNTRY_NAME, TEST_COUNTRY_NAME),
@@ -55,32 +59,18 @@ class TestCryptographyMapper(unittest.TestCase):
         )
 
         # Act
-        test_x509_name = map_certificaterequest_to_x509name(test_cert_request)
+        test_x509_name = map_certificaterequest_to_x509name(self.test_cert_request)
 
         # Assert
         self.assertEqual(expected_x509_name, test_x509_name)
 
     def test_map_certificaterequest_to_x509subjectalternativename(self):
         # Arrange
-        test_cert_request = CertificateRequest(
-            key_algorithm=TEST_KEY_ALGORITHM,
-            key_size=TEST_KEY_SIZE,
-            passphrase=TEST_PASSPHRASE,
-            cert_path=None,
-            private_key_name=None,
-            certificate_name=None,
-            country_name=TEST_COUNTRY_NAME,
-            state_or_province_name=TEST_STATE_OR_PROVINCE_NAME,
-            locality_name=TEST_LOCALITY_NAME,
-            organization_name=TEST_ORGANIZATION_NAME,
-            common_name=TEST_COMMON_NAME,
-            dns_name=TEST_DNS_NAME,
-        )
         expected_x509_san = x509.SubjectAlternativeName([x509.DNSName(TEST_DNS_NAME)])
 
         # Act
         test_x509_san = map_certificaterequest_to_x509subjectalternativename(
-            test_cert_request
+            self.test_cert_request
         )
 
         # Assert

@@ -12,7 +12,7 @@ from fbpcp.entity.certificate_request import CertificateRequest
 
 class CertificateService(abc.ABC):
     @abc.abstractmethod
-    def __init__(self, cert_request: CertificateRequest) -> None:
+    def __init__(self, cert_request: CertificateRequest, exe_path: str) -> None:
         pass
 
     @abc.abstractmethod
