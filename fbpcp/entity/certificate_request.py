@@ -28,9 +28,10 @@ class CertificateRequest:
     key_algorithm: KeyAlgorithm
     key_size: int
     passphrase: str
-    cert_path: Optional[str]
+    cert_folder: Optional[str]
     private_key_name: Optional[str]
     certificate_name: Optional[str]
+    days_valid: Optional[int]
     country_name: Optional[str]
     state_or_province_name: Optional[str]
     locality_name: Optional[str]
@@ -68,9 +69,10 @@ class CertificateRequest:
             key_algorithm=KeyAlgorithm[key_algorithm_str],
             key_size=int(cert_params_dict["key_size"]),
             passphrase=cert_params_dict["passphrase"],
-            cert_path=cert_params_dict.get("cert_path", None),
+            cert_folder=cert_params_dict.get("cert_folder", None),
             private_key_name=cert_params_dict.get("private_key_name", None),
             certificate_name=cert_params_dict.get("certificate_name", None),
+            days_valid=cert_params_dict.get("days_valid", None),
             country_name=cert_params_dict.get("country_name", None),
             state_or_province_name=cert_params_dict.get("state_or_province_name", None),
             locality_name=cert_params_dict.get("locality_name", None),

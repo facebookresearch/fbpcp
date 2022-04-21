@@ -147,7 +147,7 @@ def _run_package(
     executable = ""
 
     if certificate_request:
-        _generate_certificate(certificate_request)
+        _generate_certificate(certificate_request, exe_path)
 
     try:
         executable = _prepare_executable(
@@ -232,10 +232,12 @@ def _read_config(
     return default_val
 
 
-def _generate_certificate(certificate_request: CertificateRequest) -> Optional[str]:
+def _generate_certificate(
+    certificate_request: CertificateRequest, exe_path: str
+) -> Optional[str]:
     try:
         logger.info("generating certificate")
-        cert_svc = SelfSignedCertificateService(certificate_request)
+        cert_svc = SelfSignedCertificateService(certificate_request, exe_path)
         return cert_svc.generate_certificate()
 
     except Exception as err:
