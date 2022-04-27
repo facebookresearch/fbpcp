@@ -86,7 +86,8 @@ def _prepare_executable(
     exe_name = _parse_package_name(package_name)
 
     executable = f"{exe_path}{exe_name}"
-    os.chmod(executable, 0o755)
+    if not os.access(executable, os.X_OK):
+        os.chmod(executable, 0o755)
     return executable
 
 
