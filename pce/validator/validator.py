@@ -26,6 +26,7 @@ from typing import List
 from docopt import docopt
 from fbpcp.service.pce_aws import AWSPCEService
 from pce.entity.mpc_roles import MPCRoles
+from pce.gateway.sts import STSGateway
 from pce.validator.duplicate_pce_resources_checker import (
     DuplicatePCEResourcesChecker,
 )
@@ -36,6 +37,16 @@ from pce.validator.validation_suite import (
     ValidationSuite,
 )
 from schema import Schema, Optional, Or, Use, And
+
+
+def get_arn(
+    region: str,
+    key_id: str,
+    key_data: str,
+) -> str:
+
+    sts_gateway: STSGateway = STSGateway(region, key_id, key_data, None)
+    return sts_gateway.get_caller_arn()
 
 
 def validate_pce(
@@ -69,6 +80,10 @@ def validate_pce(
     logging.info(f"Loading the PCE {pce_id}...")
     pce = pce_service.get_pce(pce_id)
     logging.info(f"PCE loaded: {pce}")
+
+    arn = get_arn(region, key_id, key_data)
+    logging.info(f"ARN: {arn}")
+
     validator = ValidationSuite(region, key_id, key_data, None, role)
 
     failed_results = validator.validate_network_and_compute(pce, skip_steps)
