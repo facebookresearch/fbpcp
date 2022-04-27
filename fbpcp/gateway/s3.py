@@ -6,6 +6,7 @@
 
 # pyre-strict
 
+import json
 import os
 from typing import Any, Dict, List, Optional
 
@@ -13,7 +14,10 @@ import boto3
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 from fbpcp.decorator.error_handler import error_handler
+from fbpcp.entity.policy_statement import PolicyStatement, PublicAccessBlockConfig
 from fbpcp.gateway.aws import AWSGateway
+from fbpcp.mapper.aws import map_awsstatement_to_policystatement
+from fbpcp.util.aws import convert_obj_to_list
 from tqdm.auto import tqdm
 
 
@@ -121,6 +125,24 @@ class S3Gateway(AWSGateway):
     ) -> None:
         source = {"Bucket": source_bucket, "Key": source_key}
         self.client.copy(source, dest_bucket, dest_key)
+
+    @error_handler
+    def get_policy_statements(self, bucket: str) -> List[PolicyStatement]:
+        policy = json.loads(self.client.get_bucket_policy(Bucket=bucket)["Policy"])
+        statements = convert_obj_to_list(policy["Statement"])
+        return [map_awsstatement_to_policystatement(stmt) for stmt in statements]
+
+    @error_handler
+    def get_public_access_block(self, bucket: str) -> PublicAccessBlockConfig:
+        response = self.client.get_public_access_block(Bucket=bucket)[
+            "PublicAccessBlockConfiguration"
+        ]
+        return PublicAccessBlockConfig(
+            response["BlockPublicAcls"],
+            response["IgnorePublicAcls"],
+            response["BlockPublicPolicy"],
+            response["RestrictPublicBuckets"],
+        )
 
     class ProgressPercentage(object):
         def __init__(self, file_name: str, file_size: int) -> None:

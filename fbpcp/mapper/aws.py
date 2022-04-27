@@ -14,6 +14,7 @@ from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.entity.firewall_ruleset import FirewallRule, FirewallRuleset
+from fbpcp.entity.policy_statement import PolicyStatement
 from fbpcp.entity.route_table import (
     RouteTable,
     Route,
@@ -24,7 +25,12 @@ from fbpcp.entity.route_table import (
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc, VpcState
 from fbpcp.entity.vpc_peering import VpcPeering, VpcPeeringRole, VpcPeeringState
-from fbpcp.util.aws import convert_list_to_dict, get_container_definition_id
+from fbpcp.util.aws import (
+    convert_list_to_dict,
+    get_container_definition_id,
+    convert_obj_to_list,
+    get_json_values,
+)
 
 
 def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
@@ -219,4 +225,17 @@ def map_ecstaskdefinition_to_containerdefinition(
         environment,
         task_role_id,
         tags,
+    )
+
+
+def map_awsstatement_to_policystatement(statement: Dict[str, Any]) -> PolicyStatement:
+    # resource is optional for s3 policy
+    resources = (
+        convert_obj_to_list(statement["Resource"]) if "Resource" in statement else []
+    )
+    return PolicyStatement(
+        effect=statement["Effect"],
+        principals=get_json_values(statement["Principal"]),
+        actions=convert_obj_to_list(statement["Action"]),
+        resources=resources,
     )

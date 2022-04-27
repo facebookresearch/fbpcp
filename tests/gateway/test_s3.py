@@ -80,6 +80,43 @@ class TestS3Gateway(unittest.TestCase):
         gw.client.copy.assert_called()
 
     @patch("boto3.client")
+    def test_get_policy_statements(self, BotoClient):
+        # Arrage
+        gw = S3Gateway(REGION)
+        gw.client = BotoClient()
+        response = {
+            "Policy": '{"Version":"2008-10-17","Statement":[]}',
+            "ResponseMetadata": {
+                "...": "...",
+            },
+        }
+        gw.client.get_bucket_policy = MagicMock(return_value=response)
+        # Act
+        policy_statements = gw.get_policy_statements(TEST_BUCKET)
+        # Assert
+        gw.client.get_bucket_policy.assert_called_with(Bucket=TEST_BUCKET)
+        self.assertEqual(len(policy_statements), 0)
+
+    @patch("boto3.client")
+    def test_get_public_access_block(self, BotoClient):
+        # Arrage
+        gw = S3Gateway(REGION)
+        gw.client = BotoClient()
+        response = {
+            "PublicAccessBlockConfiguration": {
+                "BlockPublicAcls": True,
+                "IgnorePublicAcls": True,
+                "BlockPublicPolicy": True,
+                "RestrictPublicBuckets": True,
+            }
+        }
+        gw.client.get_public_access_block = MagicMock(return_value=response)
+        # Act
+        gw.get_public_access_block(TEST_BUCKET)
+        # Assert
+        gw.client.get_public_access_block.assert_called_with(Bucket=TEST_BUCKET)
+
+    @patch("boto3.client")
     def test_object_exists(self, BotoClient):
         gw = S3Gateway(REGION)
         gw.client = BotoClient()
