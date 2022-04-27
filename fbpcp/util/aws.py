@@ -8,7 +8,7 @@
 
 
 from functools import reduce
-from typing import Dict, List, Optional, Tuple
+from typing import Union, Dict, List, Optional, Tuple, Any
 
 
 def convert_dict_to_list(
@@ -48,6 +48,24 @@ def convert_list_to_dict(
         return reduce(lambda x, y: {**x, **{y[key]: y[value]}}, target_list, {})
     else:
         return {}
+
+
+# pyre-ignore
+def convert_obj_to_list(obj: Any) -> List:
+    return obj if isinstance(obj, list) else [obj]
+
+
+def get_json_values(json_elem: Union[str, Dict[str, Any]]) -> List[str]:
+    """
+    Input examples: {"k1": ["v1", "v2"], "k2": "v3"}
+    Output examples: ["v1", "v2", "v3"]
+    """
+    if isinstance(json_elem, str):
+        return [json_elem]
+    ret = []
+    for val in json_elem.values():
+        ret.extend(convert_obj_to_list(val))
+    return ret
 
 
 def prepare_tags(tags: Dict[str, str]) -> Dict[str, str]:

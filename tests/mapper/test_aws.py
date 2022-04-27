@@ -10,6 +10,7 @@ from decimal import Decimal
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
 from fbpcp.entity.container_instance import ContainerInstanceStatus, ContainerInstance
+from fbpcp.entity.policy_statement import PolicyStatement
 from fbpcp.entity.route_table import (
     Route,
     RouteState,
@@ -23,6 +24,7 @@ from fbpcp.mapper.aws import (
     map_ec2subnet_to_subnet,
     map_cecost_to_cloud_cost,
     map_ec2route_to_route,
+    map_awsstatement_to_policystatement,
 )
 
 
@@ -319,3 +321,22 @@ class TestAWSMapper(unittest.TestCase):
         self.assertEqual(
             map_ec2route_to_route(igw_route_response), expected_parsed_route
         )
+
+    def test_map_awsstatement_to_policystatement(self):
+        # Arrange
+        statement = {
+            "Effect": "Allow",
+            "Principal": {"AWS": "account_id"},
+            "Action": ["s3:ListAllMyBuckets"],
+            "Resource": "arn:aws:s3:::*",
+        }
+        # Act
+        policy_stmt = map_awsstatement_to_policystatement(statement)
+        # Assert
+        expected_stmt = PolicyStatement(
+            effect="Allow",
+            principals=["account_id"],
+            actions=["s3:ListAllMyBuckets"],
+            resources=["arn:aws:s3:::*"],
+        )
+        self.assertEqual(policy_stmt, expected_stmt)
