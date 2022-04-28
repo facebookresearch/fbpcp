@@ -27,6 +27,6 @@ class STSGateway(AWSGateway):
     def get_caller_arn(
         self,
     ) -> str:
-        response = self.client.get_caller_arn()
+        response = self.client.get_caller_identity()
 
         return response["Arn"]

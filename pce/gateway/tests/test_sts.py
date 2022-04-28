@@ -31,7 +31,9 @@ class TestSTSGateway(TestCase):
             "Arn": "foo",
         }
 
-        self.aws_sts.get_caller_arn = MagicMock(return_value=client_return_response)
+        self.aws_sts.get_caller_identity = MagicMock(
+            return_value=client_return_response
+        )
 
         expected_arn = "foo"
 
@@ -40,4 +42,4 @@ class TestSTSGateway(TestCase):
 
         # Assert
         self.assertEqual(expected_arn, arn)
-        self.aws_sts.get_caller_arn.assert_called()
+        self.aws_sts.get_caller_identity.assert_called()
