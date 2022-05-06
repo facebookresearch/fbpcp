@@ -10,6 +10,7 @@ import os
 from typing import Any, Dict, Optional, List
 
 from fbpcp.entity.file_information import FileInfo
+from fbpcp.entity.policy_statement import PolicyStatement, PublicAccessBlockConfig
 from fbpcp.gateway.gcs import GCSGateway
 from fbpcp.service.storage import StorageService, PathType
 from fbpcp.util.gcspath import GCSPath
@@ -275,3 +276,9 @@ class GCSStorageService(StorageService):
             if blob_name.endswith("/"):
                 folders.append(blob_name)
         return folders
+
+    def get_bucket_policy_statements(self, bucket: str) -> List[PolicyStatement]:
+        raise NotImplementedError
+
+    def get_bucket_public_access_block(self, bucket: str) -> PublicAccessBlockConfig:
+        raise NotImplementedError
