@@ -12,6 +12,7 @@ from os.path import join, normpath, relpath
 from typing import Any, Dict, Optional, List
 
 from fbpcp.entity.file_information import FileInfo
+from fbpcp.entity.policy_statement import PolicyStatement, PublicAccessBlockConfig
 from fbpcp.gateway.s3 import S3Gateway
 from fbpcp.service.storage import PathType, StorageService
 from fbpcp.util.s3path import S3Path
@@ -210,3 +211,9 @@ class S3StorageService(StorageService):
     def list_folders(self, filename: str) -> List[str]:
         s3_path = S3Path(filename)
         return self.s3_gateway.list_folders(s3_path.bucket, s3_path.key)
+
+    def get_bucket_policy_statements(self, bucket: str) -> List[PolicyStatement]:
+        return self.s3_gateway.get_policy_statements(bucket)
+
+    def get_bucket_public_access_block(self, bucket: str) -> PublicAccessBlockConfig:
+        return self.s3_gateway.get_public_access_block(bucket)

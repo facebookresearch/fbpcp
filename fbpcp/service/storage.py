@@ -12,6 +12,7 @@ from enum import Enum
 from typing import List
 
 from fbpcp.entity.file_information import FileInfo
+from fbpcp.entity.policy_statement import PolicyStatement, PublicAccessBlockConfig
 
 
 class PathType(Enum):
@@ -61,4 +62,12 @@ class StorageService(abc.ABC):
 
     @abc.abstractmethod
     def list_folders(self, filename: str) -> List[str]:
+        pass
+
+    @abc.abstractmethod
+    def get_bucket_policy_statements(self, bucket: str) -> List[PolicyStatement]:
+        pass
+
+    @abc.abstractmethod
+    def get_bucket_public_access_block(self, bucket: str) -> PublicAccessBlockConfig:
         pass
