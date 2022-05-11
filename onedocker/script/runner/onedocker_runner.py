@@ -27,6 +27,7 @@ import logging
 import os
 import resource
 import signal
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -87,7 +88,7 @@ def _prepare_executable(
 
     executable = f"{exe_path}{exe_name}"
     if not os.access(executable, os.X_OK):
-        os.chmod(executable, 0o755)
+        os.chmod(executable, os.stat(executable).st_mode | stat.S_IEXEC)
     return executable
 
 
