@@ -56,6 +56,14 @@ class OneDockerService(MetricsGetter):
         self.metrics: Final[Optional[MetricsEmitter]] = metrics
         self.logger: logging.Logger = logging.getLogger(__name__)
 
+    def get_cluster(self) -> str:
+        """Get the cluster of the container service
+
+        Returns:
+            The container service's cluster name
+        """
+        return self.container_svc.get_cluster()
+
     def has_metrics(self) -> bool:
         return self.metrics is not None
 
