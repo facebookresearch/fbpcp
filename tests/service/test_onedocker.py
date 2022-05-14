@@ -33,6 +33,7 @@ TEST_KEY_SIZE = 4096
 TEST_PASSPHRASE = "test"
 TEST_ORGANIZATION_NAME = "Test Company"
 TEST_COUNTRY_NAME = "US"
+TEST_CLUSTER_STR = "Test Cluster"
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
@@ -243,6 +244,18 @@ class TestOneDockerServiceSync(unittest.TestCase):
         self.container_svc.get_instances.assert_called_with(
             [TEST_INSTANCE_ID_1, TEST_INSTANCE_ID_2]
         )
+
+    def test_get_cluster(self):
+        # Arrange
+        expected_result = TEST_CLUSTER_STR
+        self.container_svc.get_cluster.return_value = expected_result
+
+        # Act
+        cluster = self.onedocker_svc.get_cluster()
+
+        # Assert
+        self.assertEqual(cluster, expected_result)
+        self.container_svc.get_cluster.assert_called_with()
 
 
 class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
