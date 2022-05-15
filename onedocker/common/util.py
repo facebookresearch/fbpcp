@@ -10,7 +10,7 @@ import os
 import signal
 import subprocess
 from types import FrameType
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 
 def run_cmd(

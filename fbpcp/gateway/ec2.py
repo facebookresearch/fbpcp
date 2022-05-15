@@ -6,7 +6,7 @@
 
 # pyre-strict
 
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import boto3
 from fbpcp.decorator.error_handler import error_handler
@@ -17,10 +17,10 @@ from fbpcp.entity.vpc_instance import Vpc
 from fbpcp.entity.vpc_peering import VpcPeering
 from fbpcp.gateway.aws import AWSGateway
 from fbpcp.mapper.aws import (
-    map_ec2vpc_to_vpcinstance,
-    map_ec2subnet_to_subnet,
     map_ec2routetable_to_routetable,
     map_ec2securitygroup_to_firewallruleset,
+    map_ec2subnet_to_subnet,
+    map_ec2vpc_to_vpcinstance,
     map_ec2vpcpeering_to_vpcpeering,
 )
 from fbpcp.util.aws import convert_vpc_tags_to_filter

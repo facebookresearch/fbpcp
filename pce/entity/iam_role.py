@@ -6,7 +6,7 @@
 # pyre-strict
 
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 RoleId = str

@@ -8,8 +8,7 @@ import unittest
 
 from botocore.exceptions import ClientError
 from fbpcp.decorator.error_handler import error_handler
-from fbpcp.error.pcp import PcpError
-from fbpcp.error.pcp import ThrottlingError
+from fbpcp.error.pcp import PcpError, ThrottlingError
 from google.cloud.exceptions import TooManyRequests
 
 

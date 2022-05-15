@@ -7,11 +7,9 @@
 # pyre-strict
 
 from unittest import TestCase
-from unittest.mock import patch, call, MagicMock
+from unittest.mock import call, MagicMock, patch
 
-from pce.entity.iam_role import (
-    IAMRole,
-)
+from pce.entity.iam_role import IAMRole
 from pce.gateway.iam import IAMGateway
 
 REGION = "us-west-2"

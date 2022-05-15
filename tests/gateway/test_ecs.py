@@ -5,12 +5,12 @@
 # LICENSE file in the root directory of this source tree.
 
 import unittest
-from typing import Dict, Callable, List
+from typing import Callable, Dict, List
 from unittest.mock import call, MagicMock, patch
 
-from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
+from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_definition import ContainerDefinition
-from fbpcp.entity.container_instance import ContainerInstanceStatus, ContainerInstance
+from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.gateway.ecs import ECSGateway
 from fbpcp.util.aws import convert_list_to_dict, get_container_definition_id
 

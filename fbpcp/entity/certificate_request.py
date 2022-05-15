@@ -9,7 +9,7 @@
 import json
 from dataclasses import dataclass, fields
 from enum import Enum
-from typing import Optional, List
+from typing import List, Optional
 
 from fbpcp.error.pcp import InvalidParameterError
 

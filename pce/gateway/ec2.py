@@ -5,7 +5,7 @@
 
 # pyre-strict
 
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 import boto3
 from fbpcp.entity.vpc_peering import VpcPeering

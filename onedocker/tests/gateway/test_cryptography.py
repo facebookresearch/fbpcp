@@ -7,9 +7,7 @@
 import unittest
 
 from cryptography import x509
-from cryptography.hazmat.primitives.asymmetric.rsa import (
-    RSAPrivateKeyWithSerialization,
-)
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKeyWithSerialization
 from cryptography.x509.oid import NameOID
 from fbpcp.entity.certificate_request import KeyAlgorithm
 from onedocker.entity.key_pair_details import KeyPairDetails

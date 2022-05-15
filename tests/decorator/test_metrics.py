@@ -6,9 +6,9 @@
 
 import unittest
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import patch, ANY
+from unittest.mock import ANY, patch
 
-from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
+from fbpcp.decorator.metrics import duration_time, error_counter, request_counter
 from fbpcp.metrics.getter import MetricsGetter
 
 METRICS_NAME = "test_metrics"

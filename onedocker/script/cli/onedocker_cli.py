@@ -35,11 +35,8 @@ from fbpcp.service.container import ContainerService
 from fbpcp.service.log import LogService
 from fbpcp.service.onedocker import OneDockerService
 from fbpcp.service.storage import StorageService
-from fbpcp.util import reflect
-from fbpcp.util import yaml
-from onedocker.repository.onedocker_package import (
-    OneDockerPackageRepository,
-)
+from fbpcp.util import reflect, yaml
+from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
 logger = None
 onedocker_svc = None

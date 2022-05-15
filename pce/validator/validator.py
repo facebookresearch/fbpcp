@@ -27,16 +27,10 @@ from docopt import docopt
 from fbpcp.service.pce_aws import AWSPCEService
 from pce.entity.mpc_roles import MPCRoles
 from pce.gateway.sts import STSGateway
-from pce.validator.duplicate_pce_resources_checker import (
-    DuplicatePCEResourcesChecker,
-)
-from pce.validator.message_templates.validator_step_names import (
-    ValidationStepNames,
-)
-from pce.validator.validation_suite import (
-    ValidationSuite,
-)
-from schema import Schema, Optional, Or, Use, And
+from pce.validator.duplicate_pce_resources_checker import DuplicatePCEResourcesChecker
+from pce.validator.message_templates.validator_step_names import ValidationStepNames
+from pce.validator.validation_suite import ValidationSuite
+from schema import And, Optional, Or, Schema, Use
 
 
 def get_arn(

@@ -6,7 +6,7 @@
 
 # pyre-strict
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 import boto3
 from fbpcp.decorator.error_handler import error_handler

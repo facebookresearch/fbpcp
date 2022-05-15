@@ -7,15 +7,15 @@
 import unittest
 from shlex import quote
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import call, MagicMock, patch, ANY
+from unittest.mock import ANY, call, MagicMock, patch
 
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.onedocker import (
-    OneDockerService,
     METRICS_START_CONTAINERS_COUNT,
     METRICS_START_CONTAINERS_DURATION,
+    OneDockerService,
 )
 
 TEST_INSTANCE_ID_1 = "test-instance-id-1"

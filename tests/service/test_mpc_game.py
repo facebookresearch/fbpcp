@@ -6,10 +6,9 @@
 
 import unittest
 from typing import List
-from unittest.mock import Mock, MagicMock
+from unittest.mock import MagicMock, Mock
 
-from fbpcp.entity.mpc_game_config import MPCGameArgument
-from fbpcp.entity.mpc_game_config import MPCGameConfig
+from fbpcp.entity.mpc_game_config import MPCGameArgument, MPCGameConfig
 from fbpcp.entity.mpc_instance import MPCParty
 from fbpcp.service.mpc_game import MPCGameService
 

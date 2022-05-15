@@ -6,7 +6,7 @@
 
 # pyre-strict
 
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.entity.log_event import LogEvent

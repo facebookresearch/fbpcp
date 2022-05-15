@@ -6,25 +6,17 @@
 
 # pyre-strict
 
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
 from fbpcp.entity.container_definition import ContainerDefinition
-from fbpcp.entity.firewall_ruleset import FirewallRuleset, FirewallRule
-from fbpcp.entity.route_table import (
-    RouteTargetType,
-    Route,
-    RouteState,
-)
+from fbpcp.entity.firewall_ruleset import FirewallRule, FirewallRuleset
+from fbpcp.entity.route_table import Route, RouteState, RouteTargetType
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_peering import VpcPeeringState
 from fbpcp.service.pce_aws import PCE_ID_KEY
-from pce.entity.iam_role import (
-    IAMRole,
-    RoleId,
-    PolicyContents,
-)
+from pce.entity.iam_role import IAMRole, PolicyContents, RoleId
 from pce.entity.log_group_aws import LogGroup
 from pce.entity.mpc_roles import MPCRoles
 from pce.validator.message_templates.pce_standard_constants import (
@@ -32,26 +24,26 @@ from pce.validator.message_templates.pce_standard_constants import (
     CONTAINER_CPU,
     CONTAINER_IMAGE,
     CONTAINER_MEMORY,
+    DEFAULT_PARTNER_VPC_CIDR,
+    DEFAULT_VPC_CIDR,
     FIREWALL_RULE_FINAL_PORT,
     FIREWALL_RULE_INITIAL_PORT,
     IGW_ROUTE_DESTINATION_CIDR_BLOCK,
     IGW_ROUTE_TARGET_PREFIX,
     TASK_POLICY,
-    DEFAULT_PARTNER_VPC_CIDR,
-    DEFAULT_VPC_CIDR,
 )
 from pce.validator.message_templates.validator_step_names import ValidationStepNames
 from pce.validator.validation_suite import (
-    ValidationResult,
-    ValidationResultCode,
+    ClusterResourceType,
+    NetworkingErrorTemplate,
+    NetworkingValidationWarningDescriptionTemplate,
     ValidationErrorDescriptionTemplate,
     ValidationErrorSolutionHintTemplate,
-    NetworkingValidationWarningDescriptionTemplate,
+    ValidationResult,
+    ValidationResultCode,
+    ValidationSuite,
     ValidationWarningDescriptionTemplate,
     ValidationWarningSolutionHintTemplate,
-    ClusterResourceType,
-    ValidationSuite,
-    NetworkingErrorTemplate,
 )
 
 

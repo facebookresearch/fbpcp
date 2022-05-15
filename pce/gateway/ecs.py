@@ -5,7 +5,7 @@
 
 # pyre-strict
 
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 import boto3
 import botocore

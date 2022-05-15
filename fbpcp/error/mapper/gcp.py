@@ -6,9 +6,7 @@
 
 # pyre-strict
 
-from fbpcp.error.pcp import InvalidParameterError
-from fbpcp.error.pcp import PcpError
-from fbpcp.error.pcp import ThrottlingError
+from fbpcp.error.pcp import InvalidParameterError, PcpError, ThrottlingError
 from google.cloud.exceptions import GoogleCloudError
 
 

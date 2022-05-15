@@ -7,7 +7,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from fbpcp.entity.certificate_request import KeyAlgorithm, CertificateRequest
+from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from onedocker.service.certificate_self_signed import SelfSignedCertificateService
 
 TEST_CERT_FOLDER = "certificate_test"

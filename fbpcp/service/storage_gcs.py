@@ -7,12 +7,12 @@
 # pyre-strict
 import glob
 import os
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.file_information import FileInfo
 from fbpcp.entity.policy_statement import PolicyStatement, PublicAccessBlockConfig
 from fbpcp.gateway.gcs import GCSGateway
-from fbpcp.service.storage import StorageService, PathType
+from fbpcp.service.storage import PathType, StorageService
 from fbpcp.util.gcspath import GCSPath
 
 

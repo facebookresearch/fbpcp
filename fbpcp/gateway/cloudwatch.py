@@ -6,7 +6,7 @@
 
 # pyre-strict
 
-from typing import Optional, Dict, List, Any
+from typing import Any, Dict, List, Optional
 
 import boto3
 from botocore.client import BaseClient

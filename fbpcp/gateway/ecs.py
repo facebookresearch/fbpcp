@@ -7,12 +7,12 @@
 # pyre-strict
 
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List, Optional, Any, Final, Iterator, Tuple
+from typing import Any, Dict, Final, Iterator, List, Optional, Tuple
 
 import boto3
 from botocore.client import BaseClient
 from fbpcp.decorator.error_handler import error_handler
-from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
+from fbpcp.decorator.metrics import duration_time, error_counter, request_counter
 from fbpcp.entity.cluster_instance import Cluster
 from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstance
@@ -20,8 +20,8 @@ from fbpcp.error.pcp import PcpError
 from fbpcp.gateway.aws import AWSGateway
 from fbpcp.mapper.aws import (
     map_ecstask_to_containerinstance,
-    map_esccluster_to_clusterinstance,
     map_ecstaskdefinition_to_containerdefinition,
+    map_esccluster_to_clusterinstance,
 )
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter

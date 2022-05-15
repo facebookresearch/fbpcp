@@ -8,7 +8,7 @@
 
 
 from functools import reduce
-from typing import Union, Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 
 def convert_dict_to_list(

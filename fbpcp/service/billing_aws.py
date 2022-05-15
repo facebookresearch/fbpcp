@@ -7,7 +7,7 @@
 # pyre-strict
 
 from datetime import date
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from fbpcp.entity.cloud_cost import CloudCost
 from fbpcp.gateway.costexplorer import CostExplorerGateway

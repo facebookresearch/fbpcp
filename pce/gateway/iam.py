@@ -6,15 +6,11 @@
 # pyre-strict
 
 from re import sub
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 import boto3
 from fbpcp.gateway.aws import AWSGateway
-from pce.entity.iam_role import (
-    IAMRole,
-    RoleId,
-    RoleName,
-)
+from pce.entity.iam_role import IAMRole, RoleId, RoleName
 from pce.mapper.aws import map_attachedrolepolicies_to_rolepolicies
 
 

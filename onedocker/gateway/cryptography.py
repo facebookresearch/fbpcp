@@ -6,7 +6,7 @@
 
 # pyre-strict
 from datetime import datetime, timedelta
-from typing import Union, Optional
+from typing import Optional, Union
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend

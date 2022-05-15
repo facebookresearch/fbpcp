@@ -8,9 +8,9 @@
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Final
+from typing import Dict, Final, List, Optional
 
-from fbpcp.decorator.metrics import request_counter, duration_time, error_counter
+from fbpcp.decorator.metrics import duration_time, error_counter, request_counter
 from fbpcp.entity.certificate_request import CertificateRequest
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError

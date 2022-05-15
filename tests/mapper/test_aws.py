@@ -8,23 +8,18 @@ import unittest
 from decimal import Decimal
 
 from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
-from fbpcp.entity.cluster_instance import ClusterStatus, Cluster
-from fbpcp.entity.container_instance import ContainerInstanceStatus, ContainerInstance
+from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
+from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.entity.policy_statement import PolicyStatement
-from fbpcp.entity.route_table import (
-    Route,
-    RouteState,
-    RouteTarget,
-    RouteTargetType,
-)
+from fbpcp.entity.route_table import Route, RouteState, RouteTarget, RouteTargetType
 from fbpcp.entity.subnet import Subnet
 from fbpcp.mapper.aws import (
-    map_ecstask_to_containerinstance,
-    map_esccluster_to_clusterinstance,
-    map_ec2subnet_to_subnet,
+    map_awsstatement_to_policystatement,
     map_cecost_to_cloud_cost,
     map_ec2route_to_route,
-    map_awsstatement_to_policystatement,
+    map_ec2subnet_to_subnet,
+    map_ecstask_to_containerinstance,
+    map_esccluster_to_clusterinstance,
 )
 
 

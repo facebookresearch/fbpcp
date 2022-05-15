@@ -13,8 +13,8 @@ from fbpcp.entity.route_table import RouteTable
 from fbpcp.entity.vpc_instance import Vpc
 from fbpcp.entity.vpc_peering import VpcPeering
 from pce.validator.duplicate_pce_resources_checker import (
-    DuplicatePCEResourcesChecker,
     DuplicatePCEResource,
+    DuplicatePCEResourcesChecker,
 )
 from pce.validator.message_templates.resource_names import ResourceNamePlural
 

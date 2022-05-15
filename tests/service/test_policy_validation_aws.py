@@ -6,7 +6,7 @@
 
 import unittest
 
-from fbpcp.entity.policy_settings_config import PolicySettingsConfig, Effect
+from fbpcp.entity.policy_settings_config import Effect, PolicySettingsConfig
 from fbpcp.entity.policy_statement import PolicyStatement
 from fbpcp.service.policy_validation_aws import AWSPolicyValidationService
 

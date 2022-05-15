@@ -10,7 +10,7 @@ import ipaddress
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable, Optional, Dict, Any, List, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import click
 from fbpcp.entity.firewall_ruleset import FirewallRuleset
@@ -33,20 +33,18 @@ from pce.validator.message_templates.pce_standard_constants import (
     CONTAINER_CPU,
     CONTAINER_IMAGE,
     CONTAINER_MEMORY,
+    DEFAULT_PARTNER_VPC_CIDR,
+    DEFAULT_VPC_CIDR,
     FIREWALL_RULE_FINAL_PORT,
     FIREWALL_RULE_INITIAL_PORT,
     IGW_ROUTE_DESTINATION_CIDR_BLOCK,
     TASK_POLICY,
-    DEFAULT_PARTNER_VPC_CIDR,
-    DEFAULT_VPC_CIDR,
 )
-from pce.validator.message_templates.validator_step_names import (
-    ValidationStepNames,
-)
+from pce.validator.message_templates.validator_step_names import ValidationStepNames
 from pce.validator.message_templates.warning_message_templates import (
+    NetworkingValidationWarningDescriptionTemplate,
     ValidationWarningDescriptionTemplate,
     ValidationWarningSolutionHintTemplate,
-    NetworkingValidationWarningDescriptionTemplate,
 )
 
 

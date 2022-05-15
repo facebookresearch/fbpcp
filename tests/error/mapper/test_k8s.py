@@ -7,10 +7,8 @@
 import unittest
 
 from fbpcp.error.mapper.k8s import map_k8s_error
-from fbpcp.error.pcp import InvalidParameterError
-from fbpcp.error.pcp import PcpError
-from fbpcp.error.pcp import ThrottlingError
-from kubernetes.client.exceptions import ApiException, ApiValueError, ApiTypeError
+from fbpcp.error.pcp import InvalidParameterError, PcpError, ThrottlingError
+from kubernetes.client.exceptions import ApiException, ApiTypeError, ApiValueError
 
 
 class TestMapK8SError(unittest.TestCase):

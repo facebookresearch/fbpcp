@@ -42,9 +42,9 @@ from fbpcp.service.storage_s3 import S3StorageService
 from fbpcp.util.s3path import S3Path
 from onedocker.common.core_dump_handler_aws import AWSCoreDumpHandler
 from onedocker.common.env import (
+    CORE_DUMP_REPOSITORY_PATH,
     ONEDOCKER_EXE_PATH,
     ONEDOCKER_REPOSITORY_PATH,
-    CORE_DUMP_REPOSITORY_PATH,
 )
 from onedocker.common.util import run_cmd
 from onedocker.repository.onedocker_package import OneDockerPackageRepository

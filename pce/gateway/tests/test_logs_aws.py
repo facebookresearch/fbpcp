@@ -7,7 +7,7 @@
 # pyre-strict
 
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from pce.entity.log_group_aws import LogGroup
 from pce.gateway.logs_aws import LogsGateway

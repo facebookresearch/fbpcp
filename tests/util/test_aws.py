@@ -6,11 +6,7 @@
 
 import unittest
 
-from fbpcp.util.aws import (
-    convert_dict_to_list,
-    convert_list_to_dict,
-    prepare_tags,
-)
+from fbpcp.util.aws import convert_dict_to_list, convert_list_to_dict, prepare_tags
 
 TEST_DICT = {"k1": "v1", "k2": "v2"}
 TEST_LIST = [{"Name": "k1", "Value": "v1"}, {"Name": "k2", "Value": "v2"}]

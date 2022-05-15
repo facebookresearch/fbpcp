@@ -7,13 +7,13 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from fbpcp.entity.firewall_ruleset import FirewallRuleset, FirewallRule
+from fbpcp.entity.firewall_ruleset import FirewallRule, FirewallRuleset
 from fbpcp.entity.route_table import (
-    RouteTable,
     Route,
+    RouteState,
+    RouteTable,
     RouteTarget,
     RouteTargetType,
-    RouteState,
 )
 from fbpcp.entity.subnet import Subnet
 from fbpcp.entity.vpc_instance import Vpc, VpcState

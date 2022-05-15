@@ -7,7 +7,7 @@
 # pyre-strict
 
 import logging
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
 
 from fbpcp.entity.pce import PCE
 from fbpcp.entity.pce_compute import PCECompute

@@ -7,8 +7,7 @@
 # pyre-strict
 
 from unittest import TestCase
-from unittest.mock import MagicMock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from fbpcp.entity.vpc_peering import VpcPeering, VpcPeeringRole, VpcPeeringState
 from pce.gateway.ec2 import EC2Gateway

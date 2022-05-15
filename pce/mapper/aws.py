@@ -6,14 +6,9 @@
 
 # pyre-strict
 
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
-from pce.entity.iam_role import (
-    IAMRole,
-    RoleId,
-    PolicyName,
-    PolicyContents,
-)
+from pce.entity.iam_role import IAMRole, PolicyContents, PolicyName, RoleId
 
 
 def map_attachedrolepolicies_to_rolepolicies(

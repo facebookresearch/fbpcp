@@ -12,7 +12,7 @@ from uuid import uuid4
 from fbpcp.entity.cluster_instance import Cluster
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import InvalidParameterError, PcpError
-from fbpcp.service.container_aws import AWSContainerService, AWS_API_INPUT_SIZE_LIMIT
+from fbpcp.service.container_aws import AWS_API_INPUT_SIZE_LIMIT, AWSContainerService
 
 TEST_INSTANCE_ID_1 = "test-instance-id-1"
 TEST_INSTANCE_ID_2 = "test-instance-id-2"

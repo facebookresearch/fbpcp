@@ -9,7 +9,7 @@
 import os
 from os import path
 from os.path import join, normpath, relpath
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.file_information import FileInfo
 from fbpcp.entity.policy_statement import PolicyStatement, PublicAccessBlockConfig

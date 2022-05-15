@@ -7,7 +7,7 @@
 # pyre-strict
 
 from dataclasses import dataclass
-from typing import Optional, Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fbpcp.gateway.ec2 import EC2Gateway
 from fbpcp.gateway.ecs import ECSGateway
