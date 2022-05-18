@@ -130,7 +130,7 @@ def _run_executable(
 
     net_end = psutil.net_io_counters()
     logger.info(
-        f"Net usage: {net_end.bytes_sent - net_start.bytes_sent} bytes sent, {net_end.bytes_recv - net_start.bytes_recv} bytes received"
+        f"Net usage: {net_end.bytes_sent - net_start.bytes_sent} bytes sent, {net_end.bytes_recv - net_start.bytes_recv} bytes received"  # pyre-ignore[16]
     )
 
     sys.exit(return_code)
