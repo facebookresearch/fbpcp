@@ -35,10 +35,11 @@ from pce.validator.message_templates.pce_standard_constants import (
 from pce.validator.message_templates.validator_step_names import ValidationStepNames
 from pce.validator.validation_suite import (
     ClusterResourceType,
+    ComputeErrorSolutionHintTemplate,
+    ComputeErrorTemplate,
+    NetworkingErrorSolutionHintTemplate,
     NetworkingErrorTemplate,
     NetworkingValidationWarningDescriptionTemplate,
-    ValidationErrorDescriptionTemplate,
-    ValidationErrorSolutionHintTemplate,
     ValidationResult,
     ValidationResultCode,
     ValidationSuite,
@@ -205,7 +206,7 @@ class TestValidator(TestCase):
                     NetworkingErrorTemplate.VPC_NON_PRIVATE_CIDR.value.format(
                         vpc_cidr=TestValidator.TEST_VPC_ID
                     ),
-                    ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value.format(
+                    NetworkingErrorSolutionHintTemplate.VPC_NON_PRIVATE_CIDR.value.format(
                         default_vpc_cidr=DEFAULT_PARTNER_VPC_CIDR
                     ),
                 ),
@@ -284,7 +285,7 @@ class TestValidator(TestCase):
                         )
                     )
                 ),
-                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                NetworkingErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_remediation=""
                 ),
             ),
@@ -318,9 +319,9 @@ class TestValidator(TestCase):
                         )
                     )
                 ),
-                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                NetworkingErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_remediation=str(
-                        ValidationErrorSolutionHintTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
+                        NetworkingErrorSolutionHintTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
                             sec_group=mock_rule_set.id,
                             from_port=FIREWALL_RULE_INITIAL_PORT,
                             to_port=FIREWALL_RULE_FINAL_PORT,
@@ -425,7 +426,7 @@ class TestValidator(TestCase):
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
                 description=NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
-                solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
+                solution_hint=NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             ),
         )
 
@@ -441,7 +442,7 @@ class TestValidator(TestCase):
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
                 description=NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
-                solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
+                solution_hint=NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             ),
         )
 
@@ -477,7 +478,7 @@ class TestValidator(TestCase):
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
                 description=NetworkingErrorTemplate.ROUTE_TABLE_IGW_MISSING.value,
-                solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
+                solution_hint=NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
             ),
         )
 
@@ -491,7 +492,7 @@ class TestValidator(TestCase):
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
                 description=NetworkingErrorTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
-                solution_hint=ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
+                solution_hint=NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
             ),
         )
 
@@ -536,7 +537,7 @@ class TestValidator(TestCase):
                     region=TestValidator.TEST_REGION,
                     azs=",".join(set(subnet_availability_zones)),
                 ),
-                ValidationErrorSolutionHintTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorSolutionHintTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     azs=",".join(
                         sorted(
                             set(TestValidator.TEST_REGION_AZS)
@@ -562,7 +563,7 @@ class TestValidator(TestCase):
                     region=TestValidator.TEST_REGION,
                     azs=",".join(sorted(set(subnet_availability_zones))),
                 ),
-                ValidationErrorSolutionHintTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorSolutionHintTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     azs=",".join(
                         sorted(
                             set(TestValidator.TEST_REGION_AZS)
@@ -611,10 +612,10 @@ class TestValidator(TestCase):
             CONTAINER_IMAGE,
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
+                ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
                     error_reasons=",".join(
                         [
-                            ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_WRONG_VALUE.value.format(
+                            ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUE.value.format(
                                 resource_name=ClusterResourceType.CPU.name.title(),
                                 value=cpu,
                                 expected_value=CONTAINER_CPU,
@@ -622,7 +623,7 @@ class TestValidator(TestCase):
                         ]
                     )
                 ),
-                ValidationErrorSolutionHintTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value,
+                ComputeErrorSolutionHintTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value,
             ),
         )
 
@@ -737,16 +738,16 @@ class TestValidator(TestCase):
                             )
                         )
                     ),
-                    ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                    NetworkingErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
                         error_remediation=""
                     ),
                 ),
                 ValidationResult(
                     ValidationResultCode.ERROR,
-                    ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
+                    ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
                         error_reasons=",".join(
                             [
-                                ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_WRONG_VALUE.value.format(
+                                ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUE.value.format(
                                     resource_name=ClusterResourceType.CPU.name.title(),
                                     value=cpu,
                                     expected_value=CONTAINER_CPU,
@@ -754,7 +755,7 @@ class TestValidator(TestCase):
                             ]
                         )
                     ),
-                    ValidationErrorSolutionHintTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value,
+                    ComputeErrorSolutionHintTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value,
                 ),
             ],
         )
@@ -802,11 +803,11 @@ class TestValidator(TestCase):
             ),
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.ROLE_WRONG_POLICY.value.format(
+                ComputeErrorTemplate.ROLE_WRONG_POLICY.value.format(
                     policy_names=TestValidator.TEST_POLICY_TASK_ROLE_NAME,
                     role_name=TestValidator.TEST_TASK_ROLE_ID,
                 ),
-                ValidationErrorSolutionHintTemplate.ROLE_WRONG_POLICY.value.format(
+                ComputeErrorSolutionHintTemplate.ROLE_WRONG_POLICY.value.format(
                     role_name=TestValidator.TEST_TASK_ROLE_ID,
                     role_policy=TASK_POLICY,
                 ),
@@ -824,10 +825,10 @@ class TestValidator(TestCase):
             ),
             ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
+                ComputeErrorTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
                     role_names=",".join((TestValidator.TEST_TASK_ROLE_ID,))
                 ),
-                ValidationErrorSolutionHintTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
+                ComputeErrorSolutionHintTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
                     role_names=",".join((TestValidator.TEST_TASK_ROLE_ID,)),
                     pce_id=TestValidator.TEST_PCE_ID,
                 ),

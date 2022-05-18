@@ -54,9 +54,9 @@ class NetworkingErrorTemplate(Enum):
     NETWORKING_UNKNOWN = "PCE Networking unknown error"
 
 
-# scenarios should raise error message are the ones will block advertiser run study
-# new error message should follow above standard
-class ValidationErrorDescriptionTemplate(Enum):
+# PCE Compute validation error messages
+class ComputeErrorTemplate(Enum):
+    # Container cluster
     CLUSTER_DEFINITION_NOT_SET = "No container definition."
     CLUSTER_DEFINITION_WRONG_VALUES = (
         "Container values incorrectly set: {error_reasons}"
@@ -66,19 +66,32 @@ class ValidationErrorDescriptionTemplate(Enum):
     )
     ROLE_WRONG_POLICY = "None of the policies ({policy_names}) attached to the role {role_name} conform to standard."
     ROLE_POLICIES_NOT_FOUND = "Policies not attached to {role_names}."
-    UNKNOWN = "Unknown error"
+
+    # Compute unknown error
+    UNKNOWN = "PCE Compute Unknown error"
 
 
-class ValidationErrorSolutionHintTemplate(Enum):
-    FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE = (
-        "Update the port range for {sec_group} to {from_port}-{to_port}."
-    )
-    FIREWALL_INVALID_RULESETS = "To remediate: {error_remediation}"
+# PCE Networking solution hint
+class NetworkingErrorSolutionHintTemplate(Enum):
+    # VPC
     ROUTE_TABLE_VPC_PEERING_MISSING = (
         "Ensure that a route for VPC Peering Connection is present and Active in the route table. "
         "If present but not Active, check if the VPC Peering Connection request is pending "
         "acceptance by the owner of the Acceptor VPC."
     )
+
+    # Firewall
+    FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE = (
+        "Update the port range for {sec_group} to {from_port}-{to_port}."
+    )
+    FIREWALL_INVALID_RULESETS = "To remediate: {error_remediation}"
+
+    # Subnets
+    SUBNETS_NOT_ALL_AZ_USED = (
+        "Set the subnets so that all availability zones are used, {azs} are missing."
+    )
+
+    # Route table
     ROUTE_TABLE_IGW_MISSING = (
         f"Ensure that a route for destination {IGW_ROUTE_DESTINATION_CIDR_BLOCK} "
         "to an Internet Gateway target is added to the route table."
@@ -87,11 +100,13 @@ class ValidationErrorSolutionHintTemplate(Enum):
         "Ensure that the Internet Gateway route in the routing table is in the Active state. "
         "Recreate the Internet Gateway resource if needed or reach out to AWS Support for troubleshooting."
     )
+    # VPC Peering
+    VPC_NON_PRIVATE_CIDR = "Set a private CIDR {default_vpc_cidr} for the vpc."
+
+
+class ComputeErrorSolutionHintTemplate(Enum):
+    # Compute Cluster
     CLUSTER_DEFINITION_WRONG_VALUES = f"Please set container values (cpu, memory, image) as ({CONTAINER_CPU},{CONTAINER_MEMORY},'{CONTAINER_IMAGE}')"
-    NON_PRIVATE_VPC_CIDR = "Set a private CIDR {default_vpc_cidr} for the vpc."
-    NOT_ALL_AZ_USED = (
-        "Set the subnets so that all availability zones are used, {azs} are missing."
-    )
     ROLE_WRONG_POLICY = "Set the policy of {role_name} to {role_policy}."
     ROLE_POLICIES_NOT_FOUND = (
         "Make sure there are policies attached to {role_names} in the pce {pce_id}."

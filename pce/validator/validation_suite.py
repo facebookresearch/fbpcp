@@ -26,8 +26,9 @@ from pce.gateway.iam import IAMGateway
 from pce.gateway.logs_aws import LogsGateway
 from pce.validator.message_templates.error_message_templates import (
     NetworkingErrorTemplate,
-    ValidationErrorDescriptionTemplate,
-    ValidationErrorSolutionHintTemplate,
+    ComputeErrorTemplate,
+    NetworkingErrorSolutionHintTemplate,
+    ComputeErrorSolutionHintTemplate,
 )
 from pce.validator.message_templates.pce_standard_constants import (
     CONTAINER_CPU,
@@ -129,7 +130,7 @@ class ValidationSuite:
                 NetworkingErrorTemplate.VPC_NON_PRIVATE_CIDR.value.format(
                     vpc_cidr=vpc.vpc_id
                 ),
-                ValidationErrorSolutionHintTemplate.NON_PRIVATE_VPC_CIDR.value.format(
+                NetworkingErrorSolutionHintTemplate.VPC_NON_PRIVATE_CIDR.value.format(
                     default_vpc_cidr=DEFAULT_PARTNER_VPC_CIDR
                 ),
             )
@@ -211,7 +212,7 @@ class ValidationSuite:
                             ),
                         )
                         error_remediation.append(
-                            ValidationErrorSolutionHintTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
+                            NetworkingErrorSolutionHintTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
                                 sec_group=fr.id,
                                 from_port=FIREWALL_RULE_INITIAL_PORT,
                                 to_port=FIREWALL_RULE_FINAL_PORT,
@@ -294,7 +295,7 @@ class ValidationSuite:
                 NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_reasons=";".join(error_reasons)
                 ),
-                ValidationErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
+                NetworkingErrorSolutionHintTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_remediation=";".join(error_remediation)
                 ),
             )
@@ -336,7 +337,7 @@ class ValidationSuite:
             return ValidationResult(
                 ValidationResultCode.ERROR,
                 NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
-                ValidationErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
+                NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             )
 
         igw_route = None
@@ -351,14 +352,14 @@ class ValidationSuite:
             return ValidationResult(
                 ValidationResultCode.ERROR,
                 NetworkingErrorTemplate.ROUTE_TABLE_IGW_MISSING.value,
-                ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
+                NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
             )
 
         if igw_route.state != RouteState.ACTIVE:
             return ValidationResult(
                 ValidationResultCode.ERROR,
                 NetworkingErrorTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
-                ValidationErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
+                NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
             )
 
         return ValidationResult(ValidationResultCode.SUCCESS)
@@ -380,7 +381,7 @@ class ValidationSuite:
                     region=pce.pce_network.region,
                     azs=",".join(sorted(used_azs)) if used_azs else "none",
                 ),
-                ValidationErrorSolutionHintTemplate.NOT_ALL_AZ_USED.value.format(
+                NetworkingErrorSolutionHintTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     azs=",".join(sorted(region_azs - used_azs)),
                 ),
             )
@@ -394,7 +395,7 @@ class ValidationSuite:
         if not c:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_NOT_SET.value,
+                ComputeErrorTemplate.CLUSTER_DEFINITION_NOT_SET.value,
             )
         message_by_level = defaultdict(list)
         for resource, expected_value, level in (
@@ -417,7 +418,7 @@ class ValidationSuite:
             value = getattr(c, resource.value)
             if value != expected_value:
                 message_template = (
-                    ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_WRONG_VALUE.value
+                    ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUE.value
                     if ValidationResultCode.ERROR == level
                     else ValidationWarningDescriptionTemplate.CLUSTER_DEFINITION_FLAGGED_VALUE.value
                 )
@@ -431,10 +432,10 @@ class ValidationSuite:
         if message_by_level[ValidationResultCode.ERROR]:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
+                ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
                     error_reasons=",".join(message_by_level[ValidationResultCode.ERROR])
                 ),
-                ValidationErrorSolutionHintTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value,
+                ComputeErrorSolutionHintTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value,
             )
         elif message_by_level[ValidationResultCode.WARNING]:
             return ValidationResult(
@@ -507,7 +508,7 @@ class ValidationSuite:
         if not c:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_NOT_SET.value,
+                ComputeErrorTemplate.CLUSTER_DEFINITION_NOT_SET.value,
             )
 
         policies = self.iam_gateway.get_policies_for_role(c.task_role_id)
@@ -516,10 +517,10 @@ class ValidationSuite:
             pce_id = c.tags[PCE_ID_KEY]
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
+                ComputeErrorTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
                     role_names=c.task_role_id
                 ),
-                ValidationErrorSolutionHintTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
+                ComputeErrorSolutionHintTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
                     role_names=c.task_role_id, pce_id=pce_id
                 ),
             )
@@ -533,11 +534,11 @@ class ValidationSuite:
         if not policy_name_found:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.ROLE_WRONG_POLICY.value.format(
+                ComputeErrorTemplate.ROLE_WRONG_POLICY.value.format(
                     role_name=c.task_role_id,
                     policy_names=",".join(policies.attached_policy_contents.keys()),
                 ),
-                ValidationErrorSolutionHintTemplate.ROLE_WRONG_POLICY.value.format(
+                ComputeErrorSolutionHintTemplate.ROLE_WRONG_POLICY.value.format(
                     role_name=c.task_role_id,
                     role_policy=TASK_POLICY,
                 ),
@@ -561,7 +562,7 @@ class ValidationSuite:
         if not c:
             return ValidationResult(
                 ValidationResultCode.ERROR,
-                ValidationErrorDescriptionTemplate.CLUSTER_DEFINITION_NOT_SET.value,
+                ComputeErrorTemplate.CLUSTER_DEFINITION_NOT_SET.value,
             )
 
         log_group_name_from_task = self.ecs_gateway.extract_log_group_name(c.id)
