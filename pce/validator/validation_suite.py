@@ -25,10 +25,10 @@ from pce.gateway.ecs import ECSGateway
 from pce.gateway.iam import IAMGateway
 from pce.gateway.logs_aws import LogsGateway
 from pce.validator.message_templates.error_message_templates import (
-    NetworkingErrorTemplate,
+    ComputeErrorSolutionHintTemplate,
     ComputeErrorTemplate,
     NetworkingErrorSolutionHintTemplate,
-    ComputeErrorSolutionHintTemplate,
+    NetworkingErrorTemplate,
 )
 from pce.validator.message_templates.pce_standard_constants import (
     CONTAINER_CPU,
