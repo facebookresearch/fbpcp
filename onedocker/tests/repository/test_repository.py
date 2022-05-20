@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 
+import hashlib
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -72,6 +73,29 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         )
         self.assertEqual(test_list_folders, versions)
 
+    def test_onedockerrepo_generate_checksum(self):
+        # Arrange
+        expected_file_contents = "Test File Contents"
+        expected_file_checksum = hashlib.sha512(
+            expected_file_contents.encode("utf8")
+        ).hexdigest()
+        expected_file_path = f"{self.repository_path}{TEST_PACKAGE_NAME}/{TEST_VERSION}/{TEST_PACKAGE_NAME.split('/')[-1]}"
+        self.onedocker_repository.storage_svc.read = MagicMock(
+            return_value=expected_file_contents,
+        )
+
+        # Act
+        actual_file_checksum = self.onedocker_repository.generate_checksum(
+            package_name=TEST_PACKAGE_NAME,
+            version=TEST_VERSION,
+        )
+
+        # Assert
+        self.assertEqual(expected_file_checksum, actual_file_checksum)
+        self.onedocker_repository.storage_svc.read.assert_called_with(
+            expected_file_path
+        )
+
     def test_onedockerrepo_get_package_info_not_found(self):
         # Arrange
         self.onedocker_repository.storage_svc.file_exists = MagicMock(
@@ -86,7 +110,14 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         # Arrange
         package_path = f"{self.repository_path}{TEST_PACKAGE_NAME}/{TEST_VERSION}/{TEST_PACKAGE_NAME.split('/')[-1]}"
 
+        expected_file_contents = "Test File Contents"
+        expected_file_checksum = hashlib.sha512(
+            expected_file_contents.encode("utf8")
+        ).hexdigest()
         self.onedocker_repository.storage_svc.file_exists = MagicMock(return_value=True)
+        self.onedocker_repository.storage_svc.read = MagicMock(
+            return_value=expected_file_contents,
+        )
 
         file_info = FileInfo(
             file_name="foo",
@@ -103,6 +134,7 @@ class TestOneDockerPackageRepository(unittest.TestCase):
             version=TEST_VERSION,
             last_modified=file_info.last_modified,
             package_size=file_info.file_size,
+            checksum=expected_file_checksum,
         )
 
         # Act

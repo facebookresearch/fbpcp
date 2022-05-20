@@ -15,3 +15,4 @@ class PackageInfo:
     version: str
     last_modified: str
     package_size: int
+    checksum: str

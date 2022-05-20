@@ -5,7 +5,8 @@
 # LICENSE file in the root directory of this source tree.
 
 # pyre-strict
-from typing import List, Optional
+import hashlib
+from typing import List
 
 from fbpcp.service.storage import StorageService
 from onedocker.entity.package_info import PackageInfo
@@ -19,6 +20,17 @@ class OneDockerPackageRepository:
     def _build_package_path(self, package_name: str, version: str) -> str:
         return f"{self.repository_path}{package_name}/{version}/{package_name.split('/')[-1]}"
 
+    def _read_contents(self, package_name: str, version: str) -> str:
+        file_path = self._build_package_path(package_name, version)
+        return self.storage_svc.read(file_path)
+
+    def _generate_checksum_local(self, source: str) -> str:
+        with open(source, "rb") as file_binary:
+            content = bytearray()
+            for line in file_binary.readlines():
+                content += line
+        return hashlib.sha512(content).hexdigest()
+
     def upload(self, package_name: str, version: str, source: str) -> None:
         package_path = self._build_package_path(package_name, version)
         self.storage_svc.copy(source, package_path)
@@ -27,26 +39,13 @@ class OneDockerPackageRepository:
         package_path = self._build_package_path(package_name, version)
         self.storage_svc.copy(package_path, destination)
 
-    def get_package_versions(
-        self,
-        package_name: str,
-    ) -> List[str]:
+    def generate_checksum(self, package_name: str, version: str) -> str:
+        encoded_content = self._read_contents(package_name, version).encode("utf8")
+        return hashlib.sha512(encoded_content).hexdigest()
+
+    def get_package_versions(self, package_name: str) -> List[str]:
         package_parent_path = f"{self.repository_path}{package_name}/"
         return self.storage_svc.list_folders(package_parent_path)
-
-    def _read_contents(
-        self,
-        package_name: str,
-        version: str,
-        file_name: Optional[str] = None,
-    ) -> str:
-
-        if file_name is None:
-            file_path = self._build_package_path(package_name, version)
-        else:
-            file_path = f"{self.repository_path}{package_name}/{version}/{file_name}"
-
-        return self.storage_svc.read(file_path)
 
     def get_package_info(self, package_name: str, version: str) -> PackageInfo:
         package_path = self._build_package_path(package_name, version)
@@ -62,4 +61,5 @@ class OneDockerPackageRepository:
             version=version,
             last_modified=file_info.last_modified,
             package_size=file_info.file_size,
+            checksum=self.generate_checksum(package_name, version),
         )
