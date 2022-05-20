@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 # pyre-strict
-from typing import List
+from typing import List, Optional
 
 from fbpcp.service.storage import StorageService
 from onedocker.entity.package_info import PackageInfo
@@ -33,6 +33,20 @@ class OneDockerPackageRepository:
     ) -> List[str]:
         package_parent_path = f"{self.repository_path}{package_name}/"
         return self.storage_svc.list_folders(package_parent_path)
+
+    def _read_contents(
+        self,
+        package_name: str,
+        version: str,
+        file_name: Optional[str] = None,
+    ) -> str:
+
+        if file_name is None:
+            file_path = self._build_package_path(package_name, version)
+        else:
+            file_path = f"{self.repository_path}{package_name}/{version}/{file_name}"
+
+        return self.storage_svc.read(file_path)
 
     def get_package_info(self, package_name: str, version: str) -> PackageInfo:
         package_path = self._build_package_path(package_name, version)
