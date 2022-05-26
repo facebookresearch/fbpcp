@@ -131,3 +131,10 @@ Release PCE validator and update onedocker dependencies
 
 ### Description of changes
 * Added support for skipping some validation steps in PCE Validator with the --skip-step CLI params
+
+## 0.2.8 -> 0.2.9
+### Types of changes
+* New feature (non-breaking change which adds functionality)
+
+### Description of changes
+* Add get_cluster function to OneDocker Service. Moves towards converting container_svc from public to private attribute.
