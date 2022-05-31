@@ -16,10 +16,10 @@ DEFAULT_CHECKSUM_TYPES = [ChecksumType.MD5, ChecksumType.SHA256, ChecksumType.BL
 
 
 class AttestationService:
-    def __init__(self, storage_svc: StorageService, repository_path: str) -> None:
+    def __init__(self, storage_svc: StorageService, repository: str) -> None:
         self.checksum_generator = LocalChecksumGenerator()
         self.storage_svc = storage_svc
-        self.repository_path = repository_path
+        self.repository = repository
 
     def _format_package_info(
         self,
@@ -33,26 +33,12 @@ class AttestationService:
         package_info["Checksums"] = checksums
         return package_info
 
-    def _upload_checksum(
+    def upload_checksum(
         self,
         path_to_binary: str,
         package_name: str,
         version: str,
-        checksums: Dict[str, str],
-    ) -> None:
-
-        file_path = f"{self.repository_path}{package_name}/{version}.json"
-        package_info = self._format_package_info(package_name, version, checksums)
-        file_contents = json.dumps(package_info, indent=4)
-
-        self.storage_svc.write(file_path, file_contents)
-
-    def track_package(
-        self,
-        path_to_binary: str,
-        package_name: str,
-        version: str,
-        checksum_algorithms: Union[List[ChecksumType], None] = None,
+        checksum_algorithms: List[ChecksumType],
     ) -> None:
         checksum_types = (
             checksum_algorithms
@@ -64,9 +50,9 @@ class AttestationService:
             path_to_binary=path_to_binary,
             checksum_algorithms=checksum_types,
         )
-        self._upload_checksum(
-            path_to_binary=path_to_binary,
-            package_name=package_name,
-            version=version,
-            checksums=checksums,
-        )
+
+        file_path = f"{self.repository}{package_name}/{version}.json"
+        package_info = self._format_package_info(package_name, version, checksums)
+        file_contents = json.dumps(package_info, indent=4)
+
+        self.storage_svc.write(file_path, file_contents)

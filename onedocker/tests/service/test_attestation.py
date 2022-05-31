@@ -16,7 +16,7 @@ from onedocker.service.checksum import LocalChecksumGenerator
 class TestAttestationService(unittest.TestCase):
     @patch.object(LocalChecksumGenerator, "generate_checksums")
     @patch.object(S3StorageService, "write")
-    def test_track_package_s3(
+    def test_upload_checksum_s3(
         self, MockS3StorageServiceWrite, MockLocalChecksumGeneratorGenerateChecksum
     ):
         # Arrange
@@ -51,7 +51,7 @@ class TestAttestationService(unittest.TestCase):
         expected_file_path = f"{repository_path}ls/latest.json"
 
         # Act
-        attestation_service.track_package(
+        attestation_service.upload_checksum(
             path_to_binary=test_path,
             package_name=test_package_name,
             version=test_version,
