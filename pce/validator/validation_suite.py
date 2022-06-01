@@ -58,11 +58,12 @@ class ValidationResultCode(Enum):
 @dataclass
 class ValidationResult:
     validation_result_code: ValidationResultCode = ValidationResultCode.ERROR
+    validation_step_name: Optional[str] = None
     description: Optional[str] = None
     solution_hint: Optional[str] = None
 
     def __str__(self) -> str:
-        return f"{self.description}{f' {self.solution_hint}' if self.solution_hint else ''}"
+        return f"ValidationStepName.{self.validation_step_name}: {self.description}{f' {self.solution_hint}' if self.solution_hint else ''}"
 
     def __hash__(self) -> int:
         return hash(self.__str__())
@@ -112,6 +113,7 @@ class ValidationSuite:
         if not vpc:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.VPC_CIDR.code_name,
                 NetworkingErrorTemplate.VPC_PEERING_NO_VPC.value,
             )
         vpc_network = ipaddress.ip_network(vpc.cidr)
@@ -123,10 +125,13 @@ class ValidationSuite:
         )
 
         return (
-            ValidationResult(ValidationResultCode.SUCCESS)
+            ValidationResult(
+                ValidationResultCode.SUCCESS, ValidationStepNames.VPC_CIDR.code_name
+            )
             if is_valid
             else ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.VPC_CIDR.code_name,
                 NetworkingErrorTemplate.VPC_NON_PRIVATE_CIDR.value.format(
                     vpc_cidr=vpc.vpc_id
                 ),
@@ -152,20 +157,26 @@ class ValidationSuite:
         if not vpc_peering:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.VPC_PEERING.code_name,
                 NetworkingErrorTemplate.VPC_PEERING_NO_VPC_PEERING.value,
             )
 
         state_results = defaultdict(
             lambda: ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.VPC_PEERING.code_name,
                 NetworkingErrorTemplate.VPC_PEERING_UNACCEPTABLE_STATE.value.format(
                     status=vpc_peering.status
                 ),
             ),
             {
-                VpcPeeringState.ACTIVE: ValidationResult(ValidationResultCode.SUCCESS),
+                VpcPeeringState.ACTIVE: ValidationResult(
+                    ValidationResultCode.SUCCESS,
+                    ValidationStepNames.VPC_PEERING.code_name,
+                ),
                 VpcPeeringState.PENDING_ACCEPTANCE: ValidationResult(
                     ValidationResultCode.WARNING,
+                    ValidationStepNames.VPC_PEERING.code_name,
                     NetworkingValidationWarningDescriptionTemplate.NETWORKING_VPC_PEERING_PEERING_NOT_READY.value,
                     ValidationWarningSolutionHintTemplate.VPC_PEERING_PEERING_NOT_READY.value.format(
                         accepter_vpc_id=vpc_peering.accepter_vpc_id
@@ -249,12 +260,14 @@ class ValidationSuite:
         if not vpc:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.VPC_PEERING_NO_VPC.value,
             )
         vpc_cidr = vpc.cidr
         if not vpc_cidr:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.VPC_PEERING_NO_VPC_CIDR.value,
             )
         # Don't bother in validating route table if there are no firewall rules
@@ -262,6 +275,7 @@ class ValidationSuite:
         if not firewall_rulesets:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.FIREWALL_RULES_NOT_FOUND.value.format(
                     pce_id=vpc.tags[PCE_ID_KEY]
                 ),
@@ -270,6 +284,7 @@ class ValidationSuite:
         if not route_table:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.VPC_PEERING_NO_ROUTE_TABLE.value,
             )
         peer_routes = [
@@ -280,6 +295,7 @@ class ValidationSuite:
         if not peer_routes:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.FIREWALL_PEER_ROUTE_NOT_SET.value,
             )
 
@@ -292,6 +308,7 @@ class ValidationSuite:
         if error_reasons:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_reasons=";".join(error_reasons)
                 ),
@@ -302,12 +319,15 @@ class ValidationSuite:
         if warning_reasons:
             return ValidationResult(
                 ValidationResultCode.WARNING,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingValidationWarningDescriptionTemplate.NETWORKING_FIREWALL_FLAGGED_RULESETS.value.format(
                     warning_reasons=";".join(warning_reasons)
                 ),
             )
 
-        return ValidationResult(ValidationResultCode.SUCCESS)
+        return ValidationResult(
+            ValidationResultCode.SUCCESS, ValidationStepNames.FIREWALL.code_name
+        )
 
     def validate_route_table(self, pce: PCE) -> ValidationResult:
         """
@@ -318,12 +338,14 @@ class ValidationSuite:
         if not vpc:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.ROUTE_TABLE.code_name,
                 NetworkingErrorTemplate.VPC_PEERING_NO_VPC.value,
             )
         route_table = pce.pce_network.route_table
         if not route_table:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.ROUTE_TABLE.code_name,
                 NetworkingErrorTemplate.VPC_PEERING_NO_ROUTE_TABLE.value,
             )
 
@@ -336,6 +358,7 @@ class ValidationSuite:
         if not is_vpc_peering_valid:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.ROUTE_TABLE.code_name,
                 NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
                 NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             )
@@ -351,6 +374,7 @@ class ValidationSuite:
         if not igw_route:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.ROUTE_TABLE.code_name,
                 NetworkingErrorTemplate.ROUTE_TABLE_IGW_MISSING.value,
                 NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
             )
@@ -358,11 +382,14 @@ class ValidationSuite:
         if igw_route.state != RouteState.ACTIVE:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.ROUTE_TABLE.code_name,
                 NetworkingErrorTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
                 NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
             )
 
-        return ValidationResult(ValidationResultCode.SUCCESS)
+        return ValidationResult(
+            ValidationResultCode.SUCCESS, ValidationStepNames.ROUTE_TABLE.code_name
+        )
 
     def validate_subnets(self, pce: PCE) -> ValidationResult:
         """
@@ -373,10 +400,13 @@ class ValidationSuite:
         # There can't be a case where AZs are used and are not among the region AZs
         is_valid = region_azs == used_azs
         return (
-            ValidationResult(ValidationResultCode.SUCCESS)
+            ValidationResult(
+                ValidationResultCode.SUCCESS, ValidationStepNames.SUBNETS.code_name
+            )
             if is_valid
             else ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.SUBNETS.code_name,
                 NetworkingErrorTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     region=pce.pce_network.region,
                     azs=",".join(sorted(used_azs)) if used_azs else "none",
@@ -395,6 +425,7 @@ class ValidationSuite:
         if not c:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.CLUSTER_DEFINITION.code_name,
                 ComputeErrorTemplate.CLUSTER_DEFINITION_NOT_SET.value,
             )
         message_by_level = defaultdict(list)
@@ -432,6 +463,7 @@ class ValidationSuite:
         if message_by_level[ValidationResultCode.ERROR]:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.CLUSTER_DEFINITION.code_name,
                 ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
                     error_reasons=",".join(message_by_level[ValidationResultCode.ERROR])
                 ),
@@ -440,13 +472,17 @@ class ValidationSuite:
         elif message_by_level[ValidationResultCode.WARNING]:
             return ValidationResult(
                 ValidationResultCode.WARNING,
+                ValidationStepNames.CLUSTER_DEFINITION.code_name,
                 ValidationWarningDescriptionTemplate.CLUSTER_DEFINITION_FLAGGED_VALUES.value.format(
                     warning_reasons=",".join(
                         message_by_level[ValidationResultCode.WARNING]
                     )
                 ),
             )
-        return ValidationResult(ValidationResultCode.SUCCESS)
+        return ValidationResult(
+            ValidationResultCode.SUCCESS,
+            ValidationStepNames.CLUSTER_DEFINITION.code_name,
+        )
 
     def validate_network_and_compute(
         self, pce: PCE, skip_steps: Optional[List[ValidationStepNames]] = None
@@ -508,6 +544,7 @@ class ValidationSuite:
         if not c:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.IAM_ROLES.code_name,
                 ComputeErrorTemplate.CLUSTER_DEFINITION_NOT_SET.value,
             )
 
@@ -517,6 +554,7 @@ class ValidationSuite:
             pce_id = c.tags[PCE_ID_KEY]
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.IAM_ROLES.code_name,
                 ComputeErrorTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
                     role_names=c.task_role_id
                 ),
@@ -534,6 +572,7 @@ class ValidationSuite:
         if not policy_name_found:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.IAM_ROLES.code_name,
                 ComputeErrorTemplate.ROLE_WRONG_POLICY.value.format(
                     role_name=c.task_role_id,
                     policy_names=",".join(policies.attached_policy_contents.keys()),
@@ -547,6 +586,7 @@ class ValidationSuite:
         if len(policies.attached_policy_contents.values()) > 1:
             return ValidationResult(
                 ValidationResultCode.WARNING,
+                ValidationStepNames.IAM_ROLES.code_name,
                 ValidationWarningDescriptionTemplate.MORE_POLICIES_THAN_EXPECTED.value.format(
                     policy_names=",".join(
                         policies.attached_policy_contents.keys() - {policy_name_found}
@@ -555,13 +595,16 @@ class ValidationSuite:
                 ),
                 ValidationWarningSolutionHintTemplate.MORE_POLICIES_THAN_EXPECTED.value,
             )
-        return ValidationResult(ValidationResultCode.SUCCESS)
+        return ValidationResult(
+            ValidationResultCode.SUCCESS, ValidationStepNames.IAM_ROLES.code_name
+        )
 
     def validate_log_group(self, pce: PCE) -> ValidationResult:
         c = pce.pce_compute.container_definition
         if not c:
             return ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.LOG_GROUP.code_name,
                 ComputeErrorTemplate.CLUSTER_DEFINITION_NOT_SET.value,
             )
 
@@ -569,6 +612,7 @@ class ValidationSuite:
         if not log_group_name_from_task:
             return ValidationResult(
                 ValidationResultCode.WARNING,
+                ValidationStepNames.LOG_GROUP.code_name,
                 ValidationWarningDescriptionTemplate.CLOUDWATCH_LOGS_NOT_CONFIGURED_IN_TASK_DEFINITION.value,
             )
 
@@ -577,10 +621,13 @@ class ValidationSuite:
         )
 
         if log_group and log_group.log_group_name:
-            return ValidationResult(ValidationResultCode.SUCCESS)
+            return ValidationResult(
+                ValidationResultCode.SUCCESS, ValidationStepNames.LOG_GROUP.code_name
+            )
 
         return ValidationResult(
             ValidationResultCode.WARNING,
+            ValidationStepNames.LOG_GROUP.code_name,
             ValidationWarningDescriptionTemplate.CLOUDWATCH_LOGS_NOT_FOUND.value.format(
                 log_group_name_from_task=log_group_name_from_task
             ),

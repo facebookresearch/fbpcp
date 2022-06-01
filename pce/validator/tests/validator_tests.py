@@ -194,7 +194,10 @@ class TestValidator(TestCase):
     def test_validate_vpc_cidr_success(self) -> None:
         for invalid_ip in ["10.1.0.0/16", "10.1.10.0/24", "10.1.128.128/28"]:
             self._test_validate_vpc_cidr(
-                invalid_ip, ValidationResult(ValidationResultCode.SUCCESS)
+                invalid_ip,
+                ValidationResult(
+                    ValidationResultCode.SUCCESS, ValidationStepNames.VPC_CIDR.code_name
+                ),
             )
 
     def test_validate_vpc_cidr_fail(self) -> None:
@@ -203,6 +206,7 @@ class TestValidator(TestCase):
                 invalid_ip,
                 ValidationResult(
                     ValidationResultCode.ERROR,
+                    ValidationStepNames.VPC_CIDR.code_name,
                     NetworkingErrorTemplate.VPC_NON_PRIVATE_CIDR.value.format(
                         vpc_cidr=TestValidator.TEST_VPC_ID
                     ),
@@ -217,7 +221,9 @@ class TestValidator(TestCase):
         pce = MagicMock()
         pce.pce_network.vpc.cidr = DEFAULT_PARTNER_VPC_CIDR
         self.validator.role = MPCRoles.PARTNER
-        expected_result = ValidationResult(ValidationResultCode.SUCCESS)
+        expected_result = ValidationResult(
+            ValidationResultCode.SUCCESS, ValidationStepNames.VPC_CIDR.code_name
+        )
         actual_result = self.validator.validate_vpc_cidr(pce)
         self.assertEquals(expected_result, actual_result)
 
@@ -225,7 +231,9 @@ class TestValidator(TestCase):
         pce = MagicMock()
         pce.pce_network.vpc.cidr = DEFAULT_VPC_CIDR
         self.validator.role = MPCRoles.PUBLISHER
-        expected_result = ValidationResult(ValidationResultCode.SUCCESS)
+        expected_result = ValidationResult(
+            ValidationResultCode.SUCCESS, ValidationStepNames.VPC_CIDR.code_name
+        )
         actual_result = self.validator.validate_vpc_cidr(pce)
         self.assertEquals(expected_result, actual_result)
 
@@ -276,6 +284,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_reasons=str(
                         NetworkingErrorTemplate.FIREWALL_CIDR_NOT_OVERLAPS_VPC.value.format(
@@ -309,6 +318,7 @@ class TestValidator(TestCase):
             [mock_rule_set],
             ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                     error_reasons=str(
                         NetworkingErrorTemplate.FIREWALL_CIDR_CANT_CONTAIN_EXPECTED_RANGE.value.format(
@@ -346,7 +356,9 @@ class TestValidator(TestCase):
                     ]
                 )
             ],
-            ValidationResult(ValidationResultCode.SUCCESS),
+            ValidationResult(
+                ValidationResultCode.SUCCESS, ValidationStepNames.FIREWALL.code_name
+            ),
         )
 
     def test_validate_firewall_exceeding_port_range(self) -> None:
@@ -367,6 +379,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 ValidationResultCode.WARNING,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingValidationWarningDescriptionTemplate.NETWORKING_FIREWALL_FLAGGED_RULESETS.value.format(
                     warning_reasons=str(
                         NetworkingValidationWarningDescriptionTemplate.NETWORKING_FIREWALL_CIDR_EXCEED_EXPECTED_RANGE.value.format(
@@ -389,6 +402,7 @@ class TestValidator(TestCase):
             [],
             ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.FIREWALL.code_name,
                 NetworkingErrorTemplate.FIREWALL_RULES_NOT_FOUND.value.format(
                     pce_id=TestValidator.TEST_PCE_ID
                 ),
@@ -425,6 +439,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
+                validation_step_name=ValidationStepNames.ROUTE_TABLE.code_name,
                 description=NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
                 solution_hint=NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             ),
@@ -441,6 +456,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
+                validation_step_name=ValidationStepNames.ROUTE_TABLE.code_name,
                 description=NetworkingErrorTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
                 solution_hint=NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_VPC_PEERING_MISSING.value,
             ),
@@ -453,7 +469,9 @@ class TestValidator(TestCase):
                 create_mock_route("10.1.0.0/16", RouteTargetType.VPC_PEERING),
                 create_mock_valid_igw_route(),
             ],
-            ValidationResult(ValidationResultCode.SUCCESS),
+            ValidationResult(
+                ValidationResultCode.SUCCESS, ValidationStepNames.ROUTE_TABLE.code_name
+            ),
         )
 
     def test_validate_route_table_no_igw(self) -> None:
@@ -477,6 +495,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
+                validation_step_name=ValidationStepNames.ROUTE_TABLE.code_name,
                 description=NetworkingErrorTemplate.ROUTE_TABLE_IGW_MISSING.value,
                 solution_hint=NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_IGW_MISSING.value,
             ),
@@ -491,6 +510,7 @@ class TestValidator(TestCase):
             ],
             ValidationResult(
                 validation_result_code=ValidationResultCode.ERROR,
+                validation_step_name=ValidationStepNames.ROUTE_TABLE.code_name,
                 description=NetworkingErrorTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
                 solution_hint=NetworkingErrorSolutionHintTemplate.ROUTE_TABLE_IGW_INACTIVE.value,
             ),
@@ -533,6 +553,7 @@ class TestValidator(TestCase):
             TestValidator.TEST_REGION_AZS,
             ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.SUBNETS.code_name,
                 NetworkingErrorTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     region=TestValidator.TEST_REGION,
                     azs=",".join(set(subnet_availability_zones)),
@@ -559,6 +580,7 @@ class TestValidator(TestCase):
             TestValidator.TEST_REGION_AZS,
             ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.SUBNETS.code_name,
                 NetworkingErrorTemplate.SUBNETS_NOT_ALL_AZ_USED.value.format(
                     region=TestValidator.TEST_REGION,
                     azs=",".join(sorted(set(subnet_availability_zones))),
@@ -578,7 +600,9 @@ class TestValidator(TestCase):
         self._test_validate_subnet(
             TestValidator.TEST_REGION_AZS,
             TestValidator.TEST_REGION_AZS,
-            ValidationResult(ValidationResultCode.SUCCESS),
+            ValidationResult(
+                ValidationResultCode.SUCCESS, ValidationStepNames.SUBNETS.code_name
+            ),
         )
 
     def _test_validate_cluster_definition(
@@ -612,6 +636,7 @@ class TestValidator(TestCase):
             CONTAINER_IMAGE,
             ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.CLUSTER_DEFINITION.code_name,
                 ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
                     error_reasons=",".join(
                         [
@@ -632,7 +657,10 @@ class TestValidator(TestCase):
             CONTAINER_CPU,
             CONTAINER_MEMORY,
             CONTAINER_IMAGE,
-            ValidationResult(ValidationResultCode.SUCCESS),
+            ValidationResult(
+                ValidationResultCode.SUCCESS,
+                ValidationStepNames.CLUSTER_DEFINITION.code_name,
+            ),
         )
 
     def test_validate_cluster_definition_wrong_image(self) -> None:
@@ -643,6 +671,7 @@ class TestValidator(TestCase):
             image,
             ValidationResult(
                 ValidationResultCode.WARNING,
+                ValidationStepNames.CLUSTER_DEFINITION.code_name,
                 ValidationWarningDescriptionTemplate.CLUSTER_DEFINITION_FLAGGED_VALUES.value.format(
                     warning_reasons=",".join(
                         [
@@ -729,6 +758,7 @@ class TestValidator(TestCase):
             [
                 ValidationResult(
                     ValidationResultCode.ERROR,
+                    ValidationStepNames.FIREWALL.code_name,
                     NetworkingErrorTemplate.FIREWALL_INVALID_RULESETS.value.format(
                         error_reasons=str(
                             NetworkingErrorTemplate.FIREWALL_CIDR_NOT_OVERLAPS_VPC.value.format(
@@ -744,6 +774,7 @@ class TestValidator(TestCase):
                 ),
                 ValidationResult(
                     ValidationResultCode.ERROR,
+                    ValidationStepNames.CLUSTER_DEFINITION.code_name,
                     ComputeErrorTemplate.CLUSTER_DEFINITION_WRONG_VALUES.value.format(
                         error_reasons=",".join(
                             [
@@ -803,6 +834,7 @@ class TestValidator(TestCase):
             ),
             ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.IAM_ROLES.code_name,
                 ComputeErrorTemplate.ROLE_WRONG_POLICY.value.format(
                     policy_names=TestValidator.TEST_POLICY_TASK_ROLE_NAME,
                     role_name=TestValidator.TEST_TASK_ROLE_ID,
@@ -825,6 +857,7 @@ class TestValidator(TestCase):
             ),
             ValidationResult(
                 ValidationResultCode.ERROR,
+                ValidationStepNames.IAM_ROLES.code_name,
                 ComputeErrorTemplate.ROLE_POLICIES_NOT_FOUND.value.format(
                     role_names=",".join((TestValidator.TEST_TASK_ROLE_ID,))
                 ),
@@ -849,6 +882,7 @@ class TestValidator(TestCase):
             ),
             ValidationResult(
                 ValidationResultCode.WARNING,
+                ValidationStepNames.IAM_ROLES.code_name,
                 ValidationWarningDescriptionTemplate.MORE_POLICIES_THAN_EXPECTED.value.format(
                     policy_names=additional_policy_name,
                     role_id=TestValidator.TEST_TASK_ROLE_ID,
@@ -866,6 +900,7 @@ class TestValidator(TestCase):
 
         expected_result = ValidationResult(
             ValidationResultCode.WARNING,
+            ValidationStepNames.LOG_GROUP.code_name,
             ValidationWarningDescriptionTemplate.CLOUDWATCH_LOGS_NOT_FOUND.value.format(
                 log_group_name_from_task=TestValidator.TEST_NONEXIST_LOG_GROUP_NAME
             ),
@@ -881,7 +916,9 @@ class TestValidator(TestCase):
         self.logs_gateway.describe_log_group = create_mock_log_group(
             log_group_name=TestValidator.TEST_LOG_GROUP_NAME
         )
-        expected_result = ValidationResult(ValidationResultCode.SUCCESS)
+        expected_result = ValidationResult(
+            ValidationResultCode.SUCCESS, ValidationStepNames.LOG_GROUP.code_name
+        )
         actual_result = self.validator.validate_log_group(pce)
         self.assertEquals(expected_result, actual_result)
 
@@ -890,6 +927,7 @@ class TestValidator(TestCase):
         self.ecs_gateway.extract_log_group_name = MagicMock(return_value=None)
         expected_result = ValidationResult(
             ValidationResultCode.WARNING,
+            ValidationStepNames.LOG_GROUP.code_name,
             ValidationWarningDescriptionTemplate.CLOUDWATCH_LOGS_NOT_CONFIGURED_IN_TASK_DEFINITION.value,
         )
 
