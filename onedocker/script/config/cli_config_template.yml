@@ -14,4 +14,5 @@ onedocker-cli:
         attribute_name: value #TODO: change this to actual construction attribute name and value
   setting:
     repository_path: repositorypath/ #TODO: change this to the path to your repository, example: https://PATH.s3.REGION.amazonaws.com/
+    checksum_repository_path: checksumrepositorypath/  #TODO: [OPTIONAL] change this to the path to your repository, example: https://PATH.s3.REGION.amazonaws.com/
     task_definition: taskdefinition #TODO: change this to your task_definition
