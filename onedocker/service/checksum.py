@@ -35,7 +35,7 @@ class LocalChecksumGenerator:
 
     def generate_checksums(
         self,
-        path_to_binary: str,
+        binary_path: str,
         checksum_algorithms: List[ChecksumType],
     ) -> Dict[str, str]:
         """
@@ -43,8 +43,8 @@ class LocalChecksumGenerator:
             generate_checksums("/usr/bin/ls")
         """
         if len(checksum_algorithms) == 0:
-            raise ValueError("No hashing function(s) have been set")
-        encoded_contents = self._read_local_file(path_to_binary)
+            raise ValueError("No hashing function(s) have been provided")
+        encoded_contents = self._read_local_file(binary_path)
         checksums = {}
         for checksum_algorithm in checksum_algorithms:
             checksums.update(
