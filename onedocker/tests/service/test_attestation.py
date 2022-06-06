@@ -133,3 +133,119 @@ class TestAttestationService(unittest.TestCase):
         mockS3StorageServiceFileExists.assert_called_once_with(
             expected_file_path,
         )
+
+    @patch.object(LocalChecksumGenerator, "generate_checksums")
+    @patch.object(S3StorageService, "file_exists")
+    @patch.object(S3StorageService, "read")
+    def test_verify_binary_s3_nonmatching_algorithm(
+        self,
+        MockS3StorageServiceRead,
+        MockS3StorageServiceFileExists,
+        MockLocalChecksumGeneratorGenerateChecksum,
+    ):
+        # Arrange
+        file_contents = (
+            "{\n"
+            + '    "Package Name": "ls",\n'
+            + '    "Package Version": "latest",\n'
+            + '    "Checksums": {\n'
+            + '        "MD5": "valid_md5_checksum_goes_here",\n'
+            + '        "SHA256": "valid_sha256_checksum_goes_here"\n'
+            + "    }\n}"
+        )
+        MockS3StorageServiceRead.return_value = file_contents
+        MockS3StorageServiceFileExists.return_value = True
+
+        checksums = {
+            "BLAKE2B": "valid_blake2b_checksum_goes_here",
+        }
+        MockLocalChecksumGeneratorGenerateChecksum.return_value = checksums
+
+        repository_path = (
+            "https://onedocker-runner-unittest-asacheti.s3.us-west-2.amazonaws.com/"
+        )
+        attestation_service = AttestationService(
+            S3StorageService("us-west-2"),
+            repository_path,
+        )
+
+        test_path = "/usr/bin/ls"
+        test_package_name = "ls"
+        test_version = "latest"
+        test_algorithm = ChecksumType.BLAKE2B
+        expected_file_path = f"{repository_path}ls/latest.json"
+
+        # Act
+        with self.assertRaises(ValueError):
+            attestation_service.verify_binary(
+                binary_path=test_path,
+                package_name=test_package_name,
+                version=test_version,
+                checksum_algorithm=test_algorithm,
+            )
+
+        # Assert
+        MockLocalChecksumGeneratorGenerateChecksum.assert_called_once_with(
+            binary_path=test_path,
+            checksum_algorithms=[test_algorithm],
+        )
+        MockS3StorageServiceRead.assert_called_once_with(
+            expected_file_path,
+        )
+        MockS3StorageServiceFileExists.assert_called_once_with(
+            expected_file_path,
+        )
+
+    @patch.object(LocalChecksumGenerator, "generate_checksums")
+    @patch.object(S3StorageService, "file_exists")
+    @patch.object(S3StorageService, "read")
+    def test_verify_binary_s3_bad_name(
+        self,
+        MockS3StorageServiceRead,
+        MockS3StorageServiceFileExists,
+        MockLocalChecksumGeneratorGenerateChecksum,
+    ):
+        # Arrange
+        file_contents = (
+            "{\n"
+            + '    "Package Name": "badls",\n'
+            + '    "Package Version": "latest",\n'
+            + '    "Checksums": {\n'
+            + '        "MD5": "valid_md5_checksum_goes_here",\n'
+            + '        "SHA256": "valid_sha256_checksum_goes_here"\n'
+            + "    }\n}"
+        )
+        MockS3StorageServiceRead.return_value = file_contents
+        MockS3StorageServiceFileExists.return_value = True
+
+        repository_path = (
+            "https://onedocker-runner-unittest-asacheti.s3.us-west-2.amazonaws.com/"
+        )
+        attestation_service = AttestationService(
+            S3StorageService("us-west-2"),
+            repository_path,
+        )
+
+        test_path = "/usr/bin/ls"
+        test_package_name = "ls"
+        test_version = "latest"
+        test_algorithm = ChecksumType.MD5
+        expected_file_path = f"{repository_path}ls/latest.json"
+
+        # Act
+        with self.assertRaises(ValueError):
+            attestation_service.verify_binary(
+                binary_path=test_path,
+                package_name=test_package_name,
+                version=test_version,
+                checksum_algorithm=test_algorithm,
+            )
+
+        # Assert
+        assert not MockLocalChecksumGeneratorGenerateChecksum.called
+        MockS3StorageServiceRead.assert_called_once_with(
+            expected_file_path,
+        )
+        MockS3StorageServiceFileExists.assert_called_once_with(
+            expected_file_path,
+        )
