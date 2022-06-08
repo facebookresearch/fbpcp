@@ -20,6 +20,7 @@ TEST_INSTANCE_ID_DNE = "test-instance-id-dne"
 TEST_REGION = "us-west-2"
 TEST_KEY_ID = "test-key-id"
 TEST_KEY_DATA = "test-key-data"
+TEST_SESSION_TOKEN = "test-session-token"
 TEST_CLUSTER = "test-cluster"
 TEST_SUBNETS = ["test-subnet0", "test-subnet1"]
 TEST_IP_ADDRESS = "127.0.0.1"
@@ -206,3 +207,35 @@ class TestAWSContainerService(unittest.TestCase):
         # this is something we've seen in real runs
         with self.assertRaises(InvalidParameterError):
             self.container_svc.validate_container_definition("pl-task-fake-business:2#")
+
+    def test_auth_keys_with_session_token(self):
+        container_aws = AWSContainerService(
+            region=TEST_REGION,
+            cluster=TEST_CLUSTER,
+            subnets=TEST_SUBNETS,
+            access_key_id=TEST_KEY_ID,
+            access_key_data=TEST_KEY_DATA,
+            session_token=TEST_SESSION_TOKEN,
+        )
+        expected_config = {
+            "aws_access_key_id": TEST_KEY_ID,
+            "aws_secret_access_key": TEST_KEY_DATA,
+            "aws_session_token": TEST_SESSION_TOKEN,
+        }
+
+        self.assertEqual(container_aws.ecs_gateway.config, expected_config)
+
+    def test_auth_keys(self):
+        container_aws = AWSContainerService(
+            region=TEST_REGION,
+            cluster=TEST_CLUSTER,
+            subnets=TEST_SUBNETS,
+            access_key_id=TEST_KEY_ID,
+            access_key_data=TEST_KEY_DATA,
+        )
+        expected_config = {
+            "aws_access_key_id": TEST_KEY_ID,
+            "aws_secret_access_key": TEST_KEY_DATA,
+        }
+
+        self.assertEqual(container_aws.ecs_gateway.config, expected_config)
