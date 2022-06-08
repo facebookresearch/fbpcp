@@ -16,7 +16,9 @@ TEST_BUCKET = "test-bucket"
 TEST_FILE = "test-file"
 TEST_ACCESS_KEY_ID = "test-access-key-id"
 TEST_ACCESS_KEY_DATA = "test-access-key-data"
+TEST_SESSION_TOKEN = "test-session-token"
 TEST_S3_OPERATION = "head_object"
+TEST_DEFAULT_CONFIG = {}
 REGION = "us-west-1"
 
 
@@ -178,3 +180,43 @@ class TestS3Gateway(unittest.TestCase):
         ]
         self.assertEqual(key_list, expected_key_list)
         gw.client.get_paginator("list_object_v2").paginate.assert_called()
+
+    @patch("boto3.client")
+    def test_auth_keys(self, mock_boto_client):
+        gateway = S3Gateway(REGION, TEST_ACCESS_KEY_ID, TEST_ACCESS_KEY_DATA)
+        expected_config = {
+            "aws_access_key_id": TEST_ACCESS_KEY_ID,
+            "aws_secret_access_key": TEST_ACCESS_KEY_DATA,
+        }
+
+        mock_boto_client.assert_called_with(
+            "s3",
+            region_name=REGION,
+            aws_access_key_id=TEST_ACCESS_KEY_ID,
+            aws_secret_access_key=TEST_ACCESS_KEY_DATA,
+        )
+        self.assertEqual(gateway.config, expected_config)
+
+    @patch("boto3.client")
+    def test_session_auth_keys(self, mock_boto_client):
+        gateway = S3Gateway(
+            REGION,
+            TEST_ACCESS_KEY_ID,
+            TEST_ACCESS_KEY_DATA,
+            TEST_DEFAULT_CONFIG,
+            TEST_SESSION_TOKEN,
+        )
+        expected_config = {
+            "aws_access_key_id": TEST_ACCESS_KEY_ID,
+            "aws_secret_access_key": TEST_ACCESS_KEY_DATA,
+            "aws_session_token": TEST_SESSION_TOKEN,
+        }
+
+        mock_boto_client.assert_called_with(
+            "s3",
+            region_name=REGION,
+            aws_access_key_id=TEST_ACCESS_KEY_ID,
+            aws_secret_access_key=TEST_ACCESS_KEY_DATA,
+            aws_session_token=TEST_SESSION_TOKEN,
+        )
+        self.assertEqual(gateway.config, expected_config)

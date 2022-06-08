@@ -28,8 +28,9 @@ class S3Gateway(AWSGateway):
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
+        session_token: Optional[str] = None,
     ) -> None:
-        super().__init__(region, access_key_id, access_key_data, config)
+        super().__init__(region, access_key_id, access_key_data, config, session_token)
         self.client: BaseClient = boto3.client(
             "s3", region_name=self.region, **self.config
         )
