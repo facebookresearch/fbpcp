@@ -30,13 +30,14 @@ class AWSContainerService(ContainerService):
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
         metrics: Optional[MetricsEmitter] = None,
+        session_token: Optional[str] = None,
     ) -> None:
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.region = region
         self.cluster = cluster
         self.subnets = subnets
         self.ecs_gateway = ECSGateway(
-            region, access_key_id, access_key_data, config, metrics
+            region, access_key_id, access_key_data, config, metrics, session_token
         )
 
     def get_region(

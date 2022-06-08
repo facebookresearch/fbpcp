@@ -39,8 +39,9 @@ class ECSGateway(AWSGateway, MetricsGetter):
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
         metrics: Optional[MetricsEmitter] = None,
+        session_token: Optional[str] = None,
     ) -> None:
-        super().__init__(region, access_key_id, access_key_data, config)
+        super().__init__(region, access_key_id, access_key_data, config, session_token)
 
         self.client: BaseClient = self.create_ecs_client()
         self.metrics: Final[Optional[MetricsEmitter]] = metrics
