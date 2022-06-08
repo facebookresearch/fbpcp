@@ -156,7 +156,7 @@ class TestOnedockerRunner(unittest.TestCase):
             MockOneDockerPackageRepositoryDownload.assert_called_once_with(
                 "ls",
                 "latest",
-                "/root/onedocker/package/ls",
+                "/usr/bin/ls",
             )
 
     @patch.object(OneDockerPackageRepository, "download")
@@ -191,7 +191,7 @@ class TestOnedockerRunner(unittest.TestCase):
             MockOneDockerPackageRepositoryDownload.assert_called_once_with(
                 "ls",
                 "latest",
-                "/root/onedocker/package/ls",
+                "/usr/bin/ls",
             )
 
     def test_main_bad_cert(self):

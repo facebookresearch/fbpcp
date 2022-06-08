@@ -79,7 +79,7 @@ def _prepare_executable(
 ) -> str:
     # download executable from s3
     if repository_path.upper() != "LOCAL":
-        _download_executables(repository_path, package_name, version)
+        _download_executables(repository_path, exe_path, package_name, version)
     else:
         logger.info("Local repository, skip download ...")
 
@@ -195,12 +195,12 @@ def _build_cmd(executable: str, exe_args: Optional[str]) -> str:
 
 def _download_executables(
     repository_path: str,
+    executable_path: str,
     package_name: str,
     version: str,
 ) -> None:
     exe_name = _parse_package_name(package_name)
-    # TODO: Remove the hard coded path
-    exe_local_path = DEFAULT_EXE_FOLDER + exe_name
+    exe_local_path = executable_path + exe_name
     exe_s3_path = f"{repository_path}{package_name}/{version}/{exe_name}"
     storage_svc = S3StorageService(S3Path(repository_path).region)
     onedocker_package_repository = OneDockerPackageRepository(
