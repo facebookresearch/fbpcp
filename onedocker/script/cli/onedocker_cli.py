@@ -11,9 +11,9 @@ CLI for uploading an executable to one docker repo
 
 Usage:
     onedocker-cli upload --config=<config> --package_name=<package_name> --package_dir=<package_dir> [--version=<version> --enable_attestation] [options]
-    onedocker-cli test --package_name=<package_name> --cmd_args=<cmd_args> --config=<config> [--timeout=<timeout> --version=<version>][options]
-    onedocker-cli show --package_name=<package_name> --config=<config> [--version=<version>] [options]
-    onedocker-cli stop --container=<container_id> --config=<config> [options]
+    onedocker-cli test --config=<config> --package_name=<package_name> --cmd_args=<cmd_args> [--version=<version> --timeout=<timeout>][options]
+    onedocker-cli show --config=<config> --package_name=<package_name> [--version=<version>] [options]
+    onedocker-cli stop --config=<config> --container=<container_id> [options]
 
 Options:
     -h --help                Show this help
