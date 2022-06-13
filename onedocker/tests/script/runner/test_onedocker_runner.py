@@ -13,7 +13,10 @@ from docopt import docopt
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.error.pcp import InvalidParameterError
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
-from onedocker.script.runner.onedocker_runner import __doc__ as __onedocker_doc__, main
+from onedocker.script.runner.onedocker_runner import (
+    __doc__ as __onedocker_runner_doc__,
+    main,
+)
 from onedocker.service.certificate_self_signed import SelfSignedCertificateService
 
 
@@ -38,7 +41,7 @@ class TestOnedockerRunner(unittest.TestCase):
 
     def test_simple_args(self):
         # Arrange
-        doc = __onedocker_doc__
+        doc = __onedocker_runner_doc__
 
         # Act
         args = docopt(doc, ["test_package", "--version=1.0"])
@@ -55,7 +58,7 @@ class TestOnedockerRunner(unittest.TestCase):
 
     def test_complex_args(self):
         # Arrange
-        doc = __onedocker_doc__
+        doc = __onedocker_runner_doc__
 
         # Act
         args = docopt(
