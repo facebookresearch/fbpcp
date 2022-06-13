@@ -95,11 +95,11 @@ class TestOnedockerRunner(unittest.TestCase):
             "argv",
             [
                 "onedocker-runner",
-                "ls",
+                "echo",
                 "--version=latest",
                 "--repository_path=local",
                 "--exe_path=/usr/bin/",
-                "--exe_args=-l",
+                "--exe_args=test_message",
             ],
         ):
             with self.assertRaises(SystemExit) as cm:
@@ -138,12 +138,12 @@ class TestOnedockerRunner(unittest.TestCase):
             "argv",
             [
                 "onedocker-runner",
-                "ls",
+                "echo",
                 "--version=latest",
                 "--repository_path=https://onedocker-runner-unittest-asacheti.s3.us-west-2.amazonaws.com/",
                 "--timeout=1200",
                 "--exe_path=/usr/bin/",
-                "--exe_args=-l",
+                "--exe_args=test_message",
             ],
         ):
             with self.assertRaises(SystemExit) as cm:
@@ -154,9 +154,9 @@ class TestOnedockerRunner(unittest.TestCase):
             self.assertEqual(cm.exception.code, 0)
             # TODO: Update path once function is not hard coded
             MockOneDockerPackageRepositoryDownload.assert_called_once_with(
-                "ls",
+                "echo",
                 "latest",
-                "/usr/bin/ls",
+                "/usr/bin/echo",
             )
 
     @patch.object(OneDockerPackageRepository, "download")
@@ -172,10 +172,10 @@ class TestOnedockerRunner(unittest.TestCase):
             "argv",
             [
                 "onedocker-runner",
-                "ls",
+                "echo",
                 "--version=latest",
                 "--exe_path=/usr/bin/",
-                "--exe_args=-l",
+                "--exe_args=test_message",
                 f"--cert_params={self.test_cert_params}"
                 # "--verbose",
             ],
@@ -189,9 +189,9 @@ class TestOnedockerRunner(unittest.TestCase):
             SelfSignedCertificateServiceGenerateCertificate.assert_called_once_with()
             # TODO: Update path once function is not hard coded
             MockOneDockerPackageRepositoryDownload.assert_called_once_with(
-                "ls",
+                "echo",
                 "latest",
-                "/usr/bin/ls",
+                "/usr/bin/echo",
             )
 
     def test_main_bad_cert(self):
@@ -208,7 +208,7 @@ class TestOnedockerRunner(unittest.TestCase):
             "argv",
             [
                 "onedocker-runner",
-                "ls",
+                "echo",
                 "--version=latest",
                 "--exe_path=/usr/bin/",
                 "--exe_args=measurement/private_measurement/pcp/oss/onedocker/tests/script/runner",
