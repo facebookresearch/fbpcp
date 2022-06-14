@@ -4,14 +4,48 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
+import sys
 import unittest
+from unittest.mock import MagicMock, patch
 
+import yaml
 from docopt import docopt
-from onedocker.script.cli.onedocker_cli import __doc__ as __onedocker_cli_doc__
+from fbpcp.service.container_aws import AWSContainerService
+from fbpcp.service.log_cloudwatch import CloudWatchLogService
+from fbpcp.util import yaml as util_yaml
+from onedocker.repository.onedocker_package import OneDockerPackageRepository
+from onedocker.script.cli.onedocker_cli import __doc__ as __onedocker_cli_doc__, main
 
 
 class TestOnedockerCli(unittest.TestCase):
     def setUp(self):
+        test_config_file_contents = """
+            onedocker-cli:
+                dependency:
+                    StorageService:
+                        class: fbpcp.service.storage_s3.S3StorageService
+                        constructor:
+                            region: "us-west-2"
+                    ContainerService:
+                        class: fbpcp.service.container_aws.AWSContainerService
+                        constructor:
+                            region: us-west-2
+                            cluster: pl-cluster-test
+                    LogService:
+                        class: fbpcp.service.log_cloudwatch.CloudWatchLogService
+                        constructor:
+                            region: us-west-2
+                            log_group: /ecs/onedocker-cli-test
+                setting:
+                    repository_path: "https://onedocker-checksum-test.s3.us-west-2.amazonaws.com/binaries/"
+                    checksum_repository_path: "https://onedocker-checksum-test.s3.us-west-2.amazonaws.com/checksums/"
+                    task_definition: onedocker-cli-test:2#onedocker-cli-test
+            """
+        self.test_config_dict = yaml.load(
+            test_config_file_contents, Loader=yaml.SafeLoader
+        )
+
         self.package_name = "foo"
         self.package_dir = "test/bar/"
         self.version = "baz"
@@ -36,6 +70,38 @@ class TestOnedockerCli(unittest.TestCase):
             "--timeout": None,
             "--container": None,
         }
+
+        # mock objects for functions
+        self.mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=self.test_config_dict),
+        ).start()
+
+        self.mockOsPathExists = patch.object(
+            os.path,
+            "exists",
+            MagicMock(return_value=True),
+        ).start()
+
+        self.mockODPRUpload = patch.object(
+            OneDockerPackageRepository,
+            "upload",
+            MagicMock(return_value=None),
+        ).start()
+
+        self.mockContainerService = patch.object(
+            AWSContainerService,
+            "__init__",
+            MagicMock(return_value=None),
+        ).start()
+        self.mockLogService = patch.object(
+            CloudWatchLogService,
+            "__init__",
+            MagicMock(return_value=None),
+        ).start()
+
+        self.addCleanup(patch.stopall)
 
     def test_docopt_args_upload(self):
         # Arrange
@@ -150,3 +216,25 @@ class TestOnedockerCli(unittest.TestCase):
 
         # Assert
         self.assertDictEqual(expected_args, args)
+
+    def test_upload(self):
+        # Arrange & Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "upload",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+                "--package_dir=" + self.package_dir,
+                "--version=" + self.version,
+            ],
+        ):
+            main()
+
+        # Assert
+        self.mockYamlLoad.assert_called_once()
+        self.mockODPRUpload.assert_called_once_with(
+            self.package_name, self.version, self.package_dir
+        )
