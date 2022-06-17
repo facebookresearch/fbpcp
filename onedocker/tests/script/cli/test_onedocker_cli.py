@@ -16,6 +16,7 @@ from fbpcp.service.log_cloudwatch import CloudWatchLogService
 from fbpcp.util import yaml as util_yaml
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.script.cli.onedocker_cli import __doc__ as __onedocker_cli_doc__, main
+from onedocker.service.attestation import AttestationService
 
 
 class TestOnedockerCli(unittest.TestCase):
@@ -88,6 +89,12 @@ class TestOnedockerCli(unittest.TestCase):
             OneDockerPackageRepository,
             "upload",
             MagicMock(return_value=None),
+        ).start()
+
+        self.mockAttestationServiceTrackBinary = patch.object(
+            AttestationService,
+            "track_binary",
+            MagicMock(),
         ).start()
 
         self.mockContainerService = patch.object(
@@ -237,4 +244,30 @@ class TestOnedockerCli(unittest.TestCase):
         self.mockYamlLoad.assert_called_once()
         self.mockODPRUpload.assert_called_once_with(
             self.package_name, self.version, self.package_dir
+        )
+
+    def test_upload_attestation_service(self):
+        # Arrange & Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "upload",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+                "--package_dir=" + self.package_dir,
+                "--version=" + self.version,
+                "--enable_attestation",
+            ],
+        ):
+            main()
+
+        # Assert
+        self.mockYamlLoad.assert_called_once()
+        self.mockODPRUpload.assert_called_once_with(
+            self.package_name, self.version, self.package_dir
+        )
+        self.mockAttestationServiceTrackBinary.assert_called_once_with(
+            self.package_dir, self.package_name, self.version
         )
