@@ -17,6 +17,7 @@ from onedocker.script.runner.onedocker_runner import (
     __doc__ as __onedocker_runner_doc__,
     main,
 )
+from onedocker.service.attestation import AttestationService
 from onedocker.service.certificate_self_signed import SelfSignedCertificateService
 
 
@@ -133,9 +134,15 @@ class TestOnedockerRunner(unittest.TestCase):
             # Assert
             self.assertEqual(cm.exception.code, 1)
 
+    @patch.object(AttestationService, "verify_binary")
     @patch.object(OneDockerPackageRepository, "download")
-    def test_main(self, MockOneDockerPackageRepositoryDownload):
+    def test_main(
+        self,
+        mockOneDockerPackageRepositoryDownload,
+        mockAttestationServiceVerifyBinary,
+    ):
         # Arrange
+        mockAttestationServiceVerifyBinary.return_value = None
         with patch.object(
             sys,
             "argv",
@@ -155,8 +162,7 @@ class TestOnedockerRunner(unittest.TestCase):
 
             # Assert
             self.assertEqual(cm.exception.code, 0)
-            # TODO: Update path once function is not hard coded
-            MockOneDockerPackageRepositoryDownload.assert_called_once_with(
+            mockOneDockerPackageRepositoryDownload.assert_called_once_with(
                 "echo",
                 "latest",
                 "/usr/bin/echo",
@@ -167,7 +173,7 @@ class TestOnedockerRunner(unittest.TestCase):
     def test_main_good_cert(
         self,
         SelfSignedCertificateServiceGenerateCertificate,
-        MockOneDockerPackageRepositoryDownload,
+        mockOneDockerPackageRepositoryDownload,
     ):
         # Arrange
         with patch.object(
@@ -179,8 +185,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 "--version=latest",
                 "--exe_path=/usr/bin/",
                 "--exe_args=test_message",
-                f"--cert_params={self.test_cert_params}"
-                # "--verbose",
+                f"--cert_params={self.test_cert_params}",
             ],
         ):
             with self.assertRaises(SystemExit) as cm:
@@ -190,8 +195,7 @@ class TestOnedockerRunner(unittest.TestCase):
             # Assert
             self.assertEqual(cm.exception.code, 0)
             SelfSignedCertificateServiceGenerateCertificate.assert_called_once_with()
-            # TODO: Update path once function is not hard coded
-            MockOneDockerPackageRepositoryDownload.assert_called_once_with(
+            mockOneDockerPackageRepositoryDownload.assert_called_once_with(
                 "echo",
                 "latest",
                 "/usr/bin/echo",
@@ -215,8 +219,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 "--version=latest",
                 "--exe_path=/usr/bin/",
                 "--exe_args=measurement/private_measurement/pcp/oss/onedocker/tests/script/runner",
-                f"--cert_params={wrong_cert_params}"
-                # "--verbose",
+                f"--cert_params={wrong_cert_params}",
             ],
         ):
             with patch(
@@ -231,6 +234,8 @@ class TestOnedockerRunner(unittest.TestCase):
 def getenv(key):
     if key == "ONEDOCKER_REPOSITORY_PATH":
         return "https://onedocker-runner-unittest-asacheti.s3.us-west-2.amazonaws.com/"
+    elif key == "ONEDOCKER_CHECKSUM_REPOSITORY_PATH":
+        return "https://onedocker-checksum-test.s3.us-west-2.amazonaws.com/checksums/"
     elif key == "CORE_DUMP_REPOSITORY_PATH":
         return "~/fbsource/fbcode/measurement/private_measurement/pcp/oss/onedocker/tests/script/runner/core_dump/"
     else:
