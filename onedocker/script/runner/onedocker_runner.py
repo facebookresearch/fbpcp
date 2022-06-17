@@ -71,6 +71,10 @@ def _set_resource_limit() -> None:
     resource.setrlimit(resource.RLIMIT_CORE, (core_size, core_size))
 
 
+def _build_executable_path(exe_path: str, exe_name: str) -> str:
+    return f"{exe_path}{exe_name}"
+
+
 def _prepare_executable(
     repository_path: str,
     exe_path: str,
@@ -85,8 +89,8 @@ def _prepare_executable(
 
     # grant execute permission to the downloaded executable file
     exe_name = _parse_package_name(package_name)
+    executable = _build_executable_path(exe_path, exe_name)
 
-    executable = f"{exe_path}{exe_name}"
     if not os.access(executable, os.X_OK):
         os.chmod(executable, os.stat(executable).st_mode | stat.S_IEXEC)
     return executable
