@@ -11,8 +11,10 @@ from unittest.mock import MagicMock, patch
 
 import yaml
 from docopt import docopt
+from fbpcp.entity.container_instance import ContainerInstanceStatus
 from fbpcp.service.container_aws import AWSContainerService
 from fbpcp.service.log_cloudwatch import CloudWatchLogService
+from fbpcp.service.onedocker import OneDockerService
 from fbpcp.util import yaml as util_yaml
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.script.cli.onedocker_cli import __doc__ as __onedocker_cli_doc__, main
@@ -54,6 +56,7 @@ class TestOnedockerCli(unittest.TestCase):
         self.timeout = "100"
         self.cmd_args = "-h"
         self.container = "secret_container"
+
         self.base_args = {
             "upload": False,
             "test": False,
@@ -270,4 +273,61 @@ class TestOnedockerCli(unittest.TestCase):
         )
         self.mockAttestationServiceTrackBinary.assert_called_once_with(
             self.package_dir, self.package_name, self.version
+        )
+
+    @patch.object(CloudWatchLogService, "get_log_path")
+    @patch.object(OneDockerService, "wait_for_pending_container")
+    @patch.object(OneDockerService, "start_container")
+    @patch.object(CloudWatchLogService, "fetch")
+    @patch.object(AWSContainerService, "get_instance")
+    def test_test(
+        self,
+        mockAWSContainerServiceGetInstance,
+        mockCloudWatchLogServiceFetch,
+        mockOnedockerServiceStartContainer,
+        mockOnedockerServiceWaitForPendingContainer,
+        mockCloudWatchLogServiceGetLogPath,
+    ):
+        # Arrange
+        mockCloudWatchLogServiceGetLogPath.return_value = (
+            "Clearly/Bogus/File/Path/Here/"
+        )
+        mockCloudWatchLogServiceFetch.return_value = []
+
+        mockContainerInstance = MagicMock(instance_id=1)
+
+        mockContainerInstance.status.side_effect = [
+            ContainerInstanceStatus.STARTED,
+            ContainerInstanceStatus.STARTED,
+            ContainerInstanceStatus.COMPLETED,
+        ]
+        mockOnedockerServiceStartContainer.return_value = mockContainerInstance
+        mockOnedockerServiceWaitForPendingContainer.return_value = mockContainerInstance
+        mockAWSContainerServiceGetInstance.return_value = mockContainerInstance
+
+        # Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "test",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+                "--version=" + self.version,
+                "--cmd_args=" + self.cmd_args,
+            ],
+        ):
+            main()
+
+        # Assert
+        self.mockYamlLoad.assert_called_once()
+        mockOnedockerServiceStartContainer.assert_called_once_with(
+            package_name=self.package_name,
+            version=self.version,
+            cmd_args=self.cmd_args,
+            timeout=18000,
+        )
+        mockCloudWatchLogServiceGetLogPath.assert_called_once_with(
+            mockContainerInstance
         )
