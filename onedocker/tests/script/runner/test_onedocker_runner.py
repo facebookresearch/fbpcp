@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import os
 import sys
 import unittest
 from unittest.mock import patch
@@ -230,6 +229,29 @@ class TestOnedockerRunner(unittest.TestCase):
                 with self.assertRaises(InvalidParameterError):
                     main()
 
+    def test_main_env(self):
+        # Arrange & Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-runner",
+                "echo",
+                "--version=latest",
+                '--exe_args="Test Message"',
+                "--exe_path=/usr/bin/",
+                "--repository_path=local",
+            ],
+        ):
+            with patch(
+                "os.getenv",
+                side_effect=lambda x: getenv(x),
+            ):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                # Assert
+                self.assertEqual(cm.exception.code, 0)
+
 
 def getenv(key):
     if key == "ONEDOCKER_REPOSITORY_PATH":
@@ -239,4 +261,4 @@ def getenv(key):
     elif key == "CORE_DUMP_REPOSITORY_PATH":
         return "~/fbsource/fbcode/measurement/private_measurement/pcp/oss/onedocker/tests/script/runner/core_dump/"
     else:
-        return os.getenv(key)
+        return None
