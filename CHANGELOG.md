@@ -145,3 +145,10 @@ Release PCE validator and update onedocker dependencies
 
 ### Description of changes
 * Add optional session_token field to the AWSContainerService and S3StorageService
+
+## 0.2.10 -> 0.2.11
+### Types of changes
+* Third-party library version updates
+
+### Description of changes
+* Update the cryptography version to match the internal version used.

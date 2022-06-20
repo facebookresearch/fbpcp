@@ -20,7 +20,7 @@ install_requires = [
     "psutil==5.8.0",
     "click==7.1.2",
     "kubernetes==12.0.1",
-    "cryptography==36.0.2",
+    "cryptography==3.3.2",
 ]
 
 with open("README.md", encoding="utf-8") as f:
@@ -28,7 +28,7 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="fbpcp",
-    version="0.2.10",
+    version="0.2.11",
     description="Facebook Private Computation Platform",
     author="Facebook",
     author_email="researchtool-help@fb.com",
