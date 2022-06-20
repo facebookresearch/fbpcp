@@ -79,20 +79,35 @@ def _build_executable_path(exe_path: str, exe_name: str) -> str:
 
 def _prepare_executable(
     repository_path: str,
+    checksum_repository_path: str,
+    checksum_type: ChecksumType,
     exe_path: str,
     package_name: str,
     version: str,
 ) -> str:
+    # package details
+    exe_name = _parse_package_name(package_name)
+    executable = _build_executable_path(exe_path, exe_name)
+
     # download executable from s3
     if repository_path.upper() != "LOCAL":
         _download_executables(repository_path, exe_path, package_name, version)
+
+        # verify exectuable integrity
+        if checksum_repository_path:
+            _attest_executable(
+                executable,
+                checksum_repository_path,
+                checksum_type,
+                package_name,
+                version,
+            )
+        else:
+            logger.info("No Checksum Path specified skipping verification")
     else:
         logger.info("Local repository, skip download ...")
 
     # grant execute permission to the downloaded executable file
-    exe_name = _parse_package_name(package_name)
-    executable = _build_executable_path(exe_path, exe_name)
-
     if not os.access(executable, os.X_OK):
         os.chmod(executable, os.stat(executable).st_mode | stat.S_IEXEC)
     return executable
@@ -144,6 +159,8 @@ def _run_executable(
 
 def _run_package(
     repository_path: str,
+    checksum_repository_path: str,
+    checksum_type: ChecksumType,
     exe_path: str,
     package_name: str,
     version: str,
@@ -160,6 +177,8 @@ def _run_package(
     try:
         executable = _prepare_executable(
             repository_path=repository_path,
+            checksum_repository_path=checksum_repository_path,
+            checksum_type=checksum_type,
             exe_path=exe_path,
             package_name=package_name,
             version=version,
@@ -307,6 +326,9 @@ def main() -> None:
         ONEDOCKER_REPOSITORY_PATH,
         DEFAULT_REPOSITORY_PATH,
     )
+    # [TODO] Update to not be hardcoded
+    # This will be tied to cli args in a future diff
+    checksum_repository_path = ""
     exe_path = _read_config(
         "exe_path",
         arguments["--exe_path"],
@@ -318,8 +340,14 @@ def main() -> None:
         if arguments["--cert_params"]
         else None
     )
+    # [TODO] Update to not be hardoced
+    # This will be tied to cli args in a future diff
+    checksum_type = ChecksumType.BLAKE2B
+
     _run_package(
         repository_path=repository_path,
+        checksum_repository_path=checksum_repository_path,
+        checksum_type=checksum_type,
         exe_path=exe_path,
         package_name=arguments["<package_name>"],
         version=arguments["--version"],
