@@ -16,6 +16,7 @@ from fbpcp.service.container_aws import AWSContainerService
 from fbpcp.service.log_cloudwatch import CloudWatchLogService
 from fbpcp.service.onedocker import OneDockerService
 from fbpcp.util import yaml as util_yaml
+from onedocker.entity.package_info import PackageInfo
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.script.cli.onedocker_cli import __doc__ as __onedocker_cli_doc__, main
 from onedocker.service.attestation import AttestationService
@@ -57,6 +58,13 @@ class TestOnedockerCli(unittest.TestCase):
         self.cmd_args = "-h"
         self.container = "secret_container"
 
+        self.package_info = PackageInfo(
+            package_name=self.package_name,
+            version=self.version,
+            last_modified="Sun Jan 01 01:01:05 2022",
+            package_size=1048576,
+        )
+
         self.base_args = {
             "upload": False,
             "test": False,
@@ -92,6 +100,16 @@ class TestOnedockerCli(unittest.TestCase):
             OneDockerPackageRepository,
             "upload",
             MagicMock(return_value=None),
+        ).start()
+        self.mockODPRGetPackageVersions = patch.object(
+            OneDockerPackageRepository,
+            "get_package_versions",
+            MagicMock(return_value=[self.version]),
+        ).start()
+        self.mockODPRGetPackageInfo = patch.object(
+            OneDockerPackageRepository,
+            "get_package_info",
+            MagicMock(return_value=self.package_info),
         ).start()
 
         self.mockAttestationServiceTrackBinary = patch.object(
@@ -330,4 +348,44 @@ class TestOnedockerCli(unittest.TestCase):
         )
         mockCloudWatchLogServiceGetLogPath.assert_called_once_with(
             mockContainerInstance
+        )
+
+    def test_show(self):
+        # Arrange & Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "show",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+                "--version=" + self.version,
+            ],
+        ):
+            main()
+
+        self.mockYamlLoad.assert_called_once()
+        self.mockODPRGetPackageInfo.assert_called_once_with(
+            self.package_name, self.version
+        )
+
+    def test_show_no_version(self):
+        # Arrange & Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "show",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+            ],
+        ):
+            main()
+
+        self.mockYamlLoad.assert_called_once()
+        self.mockODPRGetPackageVersions.assert_called_once_with(self.package_name)
+        self.mockODPRGetPackageInfo.assert_called_once_with(
+            self.package_name, self.version
         )
