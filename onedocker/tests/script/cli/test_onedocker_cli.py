@@ -389,3 +389,27 @@ class TestOnedockerCli(unittest.TestCase):
         self.mockODPRGetPackageInfo.assert_called_once_with(
             self.package_name, self.version
         )
+
+    @patch.object(OneDockerService, "stop_containers")
+    def test_stop(self, mockOnedockerServiceStopContainers):
+        # Arrange
+        mockOnedockerServiceStopContainers.return_value = [None]
+
+        # Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "stop",
+                "--config=" + self.config_file,
+                "--container=" + self.container,
+            ],
+        ):
+            main()
+
+        # Assert
+        self.mockYamlLoad.assert_called_once()
+        mockOnedockerServiceStopContainers.assert_called_once_with(
+            [self.container],
+        )
