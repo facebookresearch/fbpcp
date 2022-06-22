@@ -30,7 +30,7 @@ class CryptographyGateway:
         self,
         key_algorithm: KeyAlgorithm,
         key_size: int,
-        passphrase: str,
+        passphrase: Optional[str],
     ) -> KeyPairDetails:
         private_key = self._generate_private_key(key_algorithm, key_size)
         private_key_pem = self.get_private_key_pem(private_key, passphrase)
@@ -60,24 +60,28 @@ class CryptographyGateway:
     def get_private_key_pem(
         self,
         private_key: Union[rsa.RSAPrivateKeyWithSerialization],
-        passphrase: str,
+        passphrase: Optional[str],
     ) -> bytes:
         key_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.TraditionalOpenSSL,
             encryption_algorithm=serialization.BestAvailableEncryption(
                 self._convert_str_to_bytes(passphrase)
-            ),
+            )
+            if passphrase is not None
+            else serialization.NoEncryption(),
         )
         return key_pem
 
     def load_private_key(
         self,
         key_pem: bytes,
-        passphrase: str,
+        passphrase: Optional[str],
     ) -> Union[rsa.RSAPrivateKey]:
         private_key = load_pem_private_key(
-            key_pem, self._convert_str_to_bytes(passphrase), default_backend()
+            key_pem,
+            self._convert_str_to_bytes(passphrase) if passphrase is not None else None,
+            default_backend(),
         )
         return private_key
 
@@ -127,7 +131,7 @@ class CryptographyGateway:
         subject_name: x509.Name,
         issuer_name: x509.Name,
         key_pair_details: KeyPairDetails,
-        passphrase: str,
+        passphrase: Optional[str],
         days_valid: int,
         subject_alternative_name: Optional[x509.SubjectAlternativeName] = None,
     ) -> bytes:

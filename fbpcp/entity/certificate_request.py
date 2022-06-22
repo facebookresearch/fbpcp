@@ -27,7 +27,7 @@ class KeyAlgorithm(Enum):
 class CertificateRequest:
     key_algorithm: KeyAlgorithm
     key_size: int
-    passphrase: str
+    passphrase: Optional[str]
     cert_folder: Optional[str]
     private_key_name: Optional[str]
     certificate_name: Optional[str]
