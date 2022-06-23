@@ -16,7 +16,7 @@ install_requires = [
     "tqdm==4.55.1",
     "google-cloud-storage==1.30.0",
     "docopt==0.6.2",
-    "schema==0.7.0",
+    "schema==0.7.5",
     "psutil==5.8.0",
     "click==7.1.2",
     "kubernetes==12.0.1",
