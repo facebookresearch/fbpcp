@@ -21,7 +21,7 @@ class TestAttestationService(unittest.TestCase):
         )
         checksum_path = f"{self.repository_path}ls/latest.json"
         self.test_package = {
-            "local_path": "/usr/bin/ls",
+            "binary_path": "/usr/bin/ls",
             "checksum_path": checksum_path,
             "name": "ls",
             "version": "latest",
@@ -60,14 +60,14 @@ class TestAttestationService(unittest.TestCase):
     ):
         # Arrange & Act
         self.attestation_service.track_binary(
-            binary_path=self.test_package["local_path"],
+            binary_path=self.test_package["binary_path"],
             package_name=self.test_package["name"],
             version=self.test_package["version"],
         )
 
         # Assert
         self.attestation_service.checksum_generator.generate_checksums.assert_called_once_with(
-            binary_path=self.test_package["local_path"],
+            binary_path=self.test_package["binary_path"],
             checksum_algorithms=self.algorithms,
         )
         mockS3StorageServiceWrite.assert_called_once_with(
@@ -88,7 +88,7 @@ class TestAttestationService(unittest.TestCase):
 
         # Act
         self.attestation_service.verify_binary(
-            binary_path=self.test_package["local_path"],
+            binary_path=self.test_package["binary_path"],
             package_name=self.test_package["name"],
             version=self.test_package["version"],
             checksum_algorithm=test_algorithm,
@@ -96,7 +96,7 @@ class TestAttestationService(unittest.TestCase):
 
         # Assert
         self.attestation_service.checksum_generator.generate_checksums.assert_called_once_with(
-            binary_path=self.test_package["local_path"],
+            binary_path=self.test_package["binary_path"],
             checksum_algorithms=[test_algorithm],
         )
         self.attestation_service.storage_svc.read.assert_called_once_with(
@@ -127,7 +127,7 @@ class TestAttestationService(unittest.TestCase):
         # Act
         with self.assertRaises(ValueError):
             self.attestation_service.verify_binary(
-                binary_path=self.test_package["local_path"],
+                binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
                 checksum_algorithm=test_algorithm,
@@ -135,7 +135,7 @@ class TestAttestationService(unittest.TestCase):
 
         # Assert
         self.attestation_service.checksum_generator.generate_checksums.assert_called_once_with(
-            binary_path=self.test_package["local_path"],
+            binary_path=self.test_package["binary_path"],
             checksum_algorithms=[test_algorithm],
         )
         self.attestation_service.storage_svc.read.assert_called_once_with(
@@ -162,7 +162,7 @@ class TestAttestationService(unittest.TestCase):
         # Act
         with self.assertRaises(ValueError):
             self.attestation_service.verify_binary(
-                binary_path=self.test_package["local_path"],
+                binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
                 checksum_algorithm=test_algorithm,
@@ -194,7 +194,7 @@ class TestAttestationService(unittest.TestCase):
         # Act
         with self.assertRaises(ValueError):
             self.attestation_service.verify_binary(
-                binary_path=self.test_package["local_path"],
+                binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
                 checksum_algorithm=test_algorithm,
@@ -229,7 +229,7 @@ class TestAttestationService(unittest.TestCase):
         # Act
         with self.assertRaises(ValueError):
             self.attestation_service.verify_binary(
-                binary_path=self.test_package["local_path"],
+                binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
                 checksum_algorithm=test_algorithm,
@@ -237,7 +237,7 @@ class TestAttestationService(unittest.TestCase):
 
         # Assert
         self.attestation_service.checksum_generator.generate_checksums.assert_called_once_with(
-            binary_path=self.test_package["local_path"],
+            binary_path=self.test_package["binary_path"],
             checksum_algorithms=[test_algorithm],
         )
         self.attestation_service.storage_svc.read.assert_called_once_with(
