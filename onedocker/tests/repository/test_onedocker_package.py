@@ -14,31 +14,29 @@ from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
 
 class TestOneDockerPackageRepository(unittest.TestCase):
-    TEST_PACKAGE_PATH = "project/exe_name"
-    TEST_PACKAGE_NAME = TEST_PACKAGE_PATH.split("/")[-1]
+    TEST_PACKAGE_NAME = "project/exe_name"
     TEST_PACKAGE_VERSION = "1.0"
 
     @patch("fbpcp.service.storage_s3.S3StorageService")
     def setUp(self, MockStorageService):
-        self.repository_path = "/abc/"
+        self.repository_url = "/abc/"
         self.onedocker_repository = OneDockerPackageRepository(
-            MockStorageService, self.repository_path
+            MockStorageService, self.repository_url
         )
+        self.expected_s3_dest = f"{self.repository_url}{self.TEST_PACKAGE_NAME}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME.split('/')[-1]}"
 
     def test_onedockerrepo_upload(self):
         # Arrange
         source = "xyz"
 
-        expected_s3_dest = f"{self.repository_path}{self.TEST_PACKAGE_PATH}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME}"
-
         # Act
         self.onedocker_repository.upload(
-            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, source
+            self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION, source
         )
 
         # Assert
         self.onedocker_repository.storage_svc.copy.assert_called_with(
-            source, expected_s3_dest
+            source, self.expected_s3_dest
         )
 
     def test_onedockerrepo_download(self):
@@ -46,23 +44,21 @@ class TestOneDockerPackageRepository(unittest.TestCase):
 
         destination = "xyz"
 
-        expected_s3_dest = f"{self.repository_path}{self.TEST_PACKAGE_PATH}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME}"
-
         # Act
         self.onedocker_repository.download(
-            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, destination
+            self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION, destination
         )
 
         # Assert
         self.onedocker_repository.storage_svc.copy.assert_called_with(
-            expected_s3_dest, destination
+            self.expected_s3_dest, destination
         )
 
     def test_onedockerrepo_get_package_versions(self):
         # Arrange
 
         test_list_folders = ["1.0/bar", "2.0/bar"]
-        package_parent_path = f"{self.repository_path}{self.TEST_PACKAGE_PATH}/"
+        package_parent_path = f"{self.repository_url}{self.TEST_PACKAGE_NAME}/"
 
         self.onedocker_repository.storage_svc.list_folders = MagicMock(
             return_value=test_list_folders
@@ -70,7 +66,7 @@ class TestOneDockerPackageRepository(unittest.TestCase):
 
         # Act
         versions = self.onedocker_repository.get_package_versions(
-            self.TEST_PACKAGE_PATH
+            self.TEST_PACKAGE_NAME
         )
 
         # Assert
@@ -88,12 +84,11 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         # Assert
         with self.assertRaises(ValueError):
             self.onedocker_repository.get_package_info(
-                self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
+                self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION
             )
 
     def test_onedockerrepo_get_package_info(self):
         # Arrange
-        package_path = f"{self.repository_path}{self.TEST_PACKAGE_PATH}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME}"
 
         self.onedocker_repository.storage_svc.file_exists = MagicMock(return_value=True)
 
@@ -108,7 +103,7 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         )
 
         expected_package_info = PackageInfo(
-            package_name=self.TEST_PACKAGE_PATH,
+            package_name=self.TEST_PACKAGE_NAME,
             version=self.TEST_PACKAGE_VERSION,
             last_modified=file_info.last_modified,
             package_size=file_info.file_size,
@@ -116,12 +111,12 @@ class TestOneDockerPackageRepository(unittest.TestCase):
 
         # Act
         package_info = self.onedocker_repository.get_package_info(
-            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
+            self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION
         )
 
         # Assert
         self.onedocker_repository.storage_svc.get_file_info.assert_called_with(
-            package_path
+            self.expected_s3_dest
         )
 
         self.assertEqual(expected_package_info, package_info)
