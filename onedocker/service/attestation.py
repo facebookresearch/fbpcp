@@ -14,20 +14,20 @@ from fbpcp.service.storage import StorageService
 from onedocker.entity.checksum_type import ChecksumType
 from onedocker.service.checksum import LocalChecksumGenerator
 
-# Default checksum types
-DEFAULT_CHECKSUM_TYPES: List[ChecksumType] = [
-    ChecksumType.MD5,
-    ChecksumType.SHA256,
-    ChecksumType.BLAKE2B,
-]
-
-# Package Info Dict Tags
-PACKAGE_NAME = "Package Name"
-PACKAGE_VERSION = "Package Version"
-PACKAGE_CHECKSUMS = "Checksums"
-
 
 class AttestationService:
+    # Default checksum types
+    DEFAULT_CHECKSUM_TYPES: List[ChecksumType] = [
+        ChecksumType.MD5,
+        ChecksumType.SHA256,
+        ChecksumType.BLAKE2B,
+    ]
+
+    # Package Info Dict Tags
+    PACKAGE_NAME = "Package Name"
+    PACKAGE_VERSION = "Package Version"
+    PACKAGE_CHECKSUMS = "Checksums"
+
     def __init__(self, storage_svc: StorageService, repository_path: str) -> None:
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.checksum_generator = LocalChecksumGenerator()
@@ -48,9 +48,9 @@ class AttestationService:
         checksums: Dict[str, str],
     ) -> Dict[str, Union[str, Dict[str, str]]]:
         package_info = {}
-        package_info[PACKAGE_NAME] = package_name
-        package_info[PACKAGE_VERSION] = version
-        package_info[PACKAGE_CHECKSUMS] = checksums
+        package_info[self.PACKAGE_NAME] = package_name
+        package_info[self.PACKAGE_VERSION] = version
+        package_info[self.PACKAGE_CHECKSUMS] = checksums
         return package_info
 
     def _upload_checksum(
@@ -87,7 +87,7 @@ class AttestationService:
         self.logger.info(f"Generating checksums for binary at {binary_path}")
         checksums: Dict[str, str] = self.checksum_generator.generate_checksums(
             binary_path=binary_path,
-            checksum_algorithms=DEFAULT_CHECKSUM_TYPES,
+            checksum_algorithms=self.DEFAULT_CHECKSUM_TYPES,
         )
 
         # Upload checksums and package info to set repo path
@@ -128,13 +128,13 @@ class AttestationService:
 
         # Verify that file contents are for desired package
         self.logger.info("Attesting correct package information was retrived")
-        if package_info[PACKAGE_NAME] != package_name:
+        if package_info[self.PACKAGE_NAME] != package_name:
             raise ValueError(
-                f"Package Name {package_info[PACKAGE_NAME]} in file is different than passed in Name {package_name}"
+                f"Package Name {package_info[self.PACKAGE_NAME]} in file is different than passed in Name {package_name}"
             )
-        if package_info[PACKAGE_VERSION] != version:
+        if package_info[self.PACKAGE_VERSION] != version:
             raise ValueError(
-                f"Package Version {package_info[PACKAGE_VERSION]} in file is different than passed in Version {version}"
+                f"Package Version {package_info[self.PACKAGE_VERSION]} in file is different than passed in Version {version}"
             )
 
         # Process downloaded file and generate a local checksum
@@ -142,7 +142,7 @@ class AttestationService:
             binary_path=binary_path,
             checksum_algorithms=[checksum_algorithm],
         )
-        package_checksums = package_info[PACKAGE_CHECKSUMS]
+        package_checksums = package_info[self.PACKAGE_CHECKSUMS]
 
         # Verify Checksum Details
         self.logger.info("Attesting binary integrity")

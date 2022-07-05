@@ -12,11 +12,12 @@ from fbpcp.entity.file_information import FileInfo
 from onedocker.entity.package_info import PackageInfo
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
-TEST_PACKAGE_NAME = "project/exe_name"
-TEST_VERSION = "1.0"
-
 
 class TestOneDockerPackageRepository(unittest.TestCase):
+    TEST_PACKAGE_PATH = "project/exe_name"
+    TEST_PACKAGE_NAME = TEST_PACKAGE_PATH.split("/")[-1]
+    TEST_PACKAGE_VERSION = "1.0"
+
     @patch("fbpcp.service.storage_s3.S3StorageService")
     def setUp(self, MockStorageService):
         self.repository_path = "/abc/"
@@ -28,10 +29,12 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         # Arrange
         source = "xyz"
 
-        expected_s3_dest = f"{self.repository_path}{TEST_PACKAGE_NAME}/{TEST_VERSION}/{TEST_PACKAGE_NAME.split('/')[-1]}"
+        expected_s3_dest = f"{self.repository_path}{self.TEST_PACKAGE_PATH}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME}"
 
         # Act
-        self.onedocker_repository.upload(TEST_PACKAGE_NAME, TEST_VERSION, source)
+        self.onedocker_repository.upload(
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, source
+        )
 
         # Assert
         self.onedocker_repository.storage_svc.copy.assert_called_with(
@@ -43,10 +46,12 @@ class TestOneDockerPackageRepository(unittest.TestCase):
 
         destination = "xyz"
 
-        expected_s3_dest = f"{self.repository_path}{TEST_PACKAGE_NAME}/{TEST_VERSION}/{TEST_PACKAGE_NAME.split('/')[-1]}"
+        expected_s3_dest = f"{self.repository_path}{self.TEST_PACKAGE_PATH}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME}"
 
         # Act
-        self.onedocker_repository.download(TEST_PACKAGE_NAME, TEST_VERSION, destination)
+        self.onedocker_repository.download(
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, destination
+        )
 
         # Assert
         self.onedocker_repository.storage_svc.copy.assert_called_with(
@@ -57,14 +62,16 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         # Arrange
 
         test_list_folders = ["1.0/bar", "2.0/bar"]
-        package_parent_path = f"{self.repository_path}{TEST_PACKAGE_NAME}/"
+        package_parent_path = f"{self.repository_path}{self.TEST_PACKAGE_PATH}/"
 
         self.onedocker_repository.storage_svc.list_folders = MagicMock(
             return_value=test_list_folders
         )
 
         # Act
-        versions = self.onedocker_repository.get_package_versions(TEST_PACKAGE_NAME)
+        versions = self.onedocker_repository.get_package_versions(
+            self.TEST_PACKAGE_PATH
+        )
 
         # Assert
         self.onedocker_repository.storage_svc.list_folders.assert_called_with(
@@ -80,11 +87,13 @@ class TestOneDockerPackageRepository(unittest.TestCase):
 
         # Assert
         with self.assertRaises(ValueError):
-            self.onedocker_repository.get_package_info(TEST_PACKAGE_NAME, TEST_VERSION)
+            self.onedocker_repository.get_package_info(
+                self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
+            )
 
     def test_onedockerrepo_get_package_info(self):
         # Arrange
-        package_path = f"{self.repository_path}{TEST_PACKAGE_NAME}/{TEST_VERSION}/{TEST_PACKAGE_NAME.split('/')[-1]}"
+        package_path = f"{self.repository_path}{self.TEST_PACKAGE_PATH}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME}"
 
         self.onedocker_repository.storage_svc.file_exists = MagicMock(return_value=True)
 
@@ -99,15 +108,15 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         )
 
         expected_package_info = PackageInfo(
-            package_name=TEST_PACKAGE_NAME,
-            version=TEST_VERSION,
+            package_name=self.TEST_PACKAGE_PATH,
+            version=self.TEST_PACKAGE_VERSION,
             last_modified=file_info.last_modified,
             package_size=file_info.file_size,
         )
 
         # Act
         package_info = self.onedocker_repository.get_package_info(
-            TEST_PACKAGE_NAME, TEST_VERSION
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
         )
 
         # Assert
