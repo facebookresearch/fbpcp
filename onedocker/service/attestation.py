@@ -8,9 +8,10 @@
 
 import json
 import logging
-from typing import Dict, List, Union
+from typing import Any, Dict, List
 
 from fbpcp.service.storage import StorageService
+from onedocker.entity.checksum_info import ChecksumInfo
 from onedocker.entity.checksum_type import ChecksumType
 from onedocker.service.checksum import LocalChecksumGenerator
 
@@ -22,11 +23,6 @@ class AttestationService:
         ChecksumType.SHA256,
         ChecksumType.BLAKE2B,
     ]
-
-    # Package Info Dict Tags
-    PACKAGE_NAME = "Package Name"
-    PACKAGE_VERSION = "Package Version"
-    PACKAGE_CHECKSUMS = "Checksums"
 
     def __init__(self, storage_svc: StorageService, repository_path: str) -> None:
         self.logger: logging.Logger = logging.getLogger(__name__)
@@ -41,30 +37,34 @@ class AttestationService:
     ) -> str:
         return f"{self.repository_path}{package_name}/{version}.json"
 
-    def _format_package_info(
+    def _get_checksum_info(
         self,
         package_name: str,
         version: str,
-        checksums: Dict[str, str],
-    ) -> Dict[str, Union[str, Dict[str, str]]]:
-        package_info = {}
-        package_info[self.PACKAGE_NAME] = package_name
-        package_info[self.PACKAGE_VERSION] = version
-        package_info[self.PACKAGE_CHECKSUMS] = checksums
-        return package_info
+        binary_path: str,
+        checksum_types: List[ChecksumType] = DEFAULT_CHECKSUM_TYPES,
+    ) -> ChecksumInfo:
+        checksums: Dict[str, str] = self.checksum_generator.generate_checksums(
+            binary_path=binary_path,
+            checksum_algorithms=checksum_types,
+        )
+
+        return ChecksumInfo(
+            package_name=package_name,
+            version=version,
+            checksums=checksums,
+        )
 
     def _upload_checksum(
         self,
         package_name: str,
         version: str,
-        checksums: Dict[str, str],
+        checksum_info: Dict[str, Any],
     ) -> None:
-        # Put together package into a json format
-        package_info = self._format_package_info(package_name, version, checksums)
 
         # Construct file information - (name and contents)
         file_path = self._build_attestation_repository_path(package_name, version)
-        file_contents = json.dumps(package_info, indent=4)
+        file_contents = json.dumps(checksum_info, indent=4)
 
         # upload contents to set repo path
         self.storage_svc.write(file_path, file_contents)
@@ -79,15 +79,16 @@ class AttestationService:
         This Function generates then uploads checksums for passed in local binary
 
         Args:
-            binary_path:    Local file path pointing to the package
-            package_name:   Package Name to use when uploading file to checksum repository
-            version:        Package Version to relay while uploading file to checksum repository
+            binary_path:        Local file path pointing to the package
+            package_name:       Package Name to use when uploading file to checksum repository
+            version:    Package Version to relay while uploading file to checksum repository
         """
         # Generates checksums
         self.logger.info(f"Generating checksums for binary at {binary_path}")
-        checksums: Dict[str, str] = self.checksum_generator.generate_checksums(
+        checksum_info = self._get_checksum_info(
+            package_name=package_name,
+            version=version,
             binary_path=binary_path,
-            checksum_algorithms=self.DEFAULT_CHECKSUM_TYPES,
         )
 
         # Upload checksums and package info to set repo path
@@ -95,7 +96,7 @@ class AttestationService:
         self._upload_checksum(
             package_name=package_name,
             version=version,
-            checksums=checksums,
+            checksum_info=checksum_info.asdict(),
         )
 
     def verify_binary(
@@ -111,7 +112,7 @@ class AttestationService:
         Args:
             binary_path:            Local file path pointing to the package
             package_name:           Package Name to use when downlading the checksum file from checksum repository
-            version:                Package Version to relay while downloading the checksum file from checksum repository
+            version:        Package Version to relay while downloading the checksum file from checksum repository
             checksum_algorithm:     Checksum algorithm that should be used while attesting local binary
         """
         # Build file path
@@ -125,36 +126,19 @@ class AttestationService:
         # Retrieve file info and parse contents
         file_contents = self.storage_svc.read(file_path)
         package_info = json.loads(file_contents)
+        package_checksum_info = ChecksumInfo(**package_info)
 
-        # Verify that file contents are for desired package
-        self.logger.info("Attesting correct package information was retrived")
-        if package_info[self.PACKAGE_NAME] != package_name:
-            raise ValueError(
-                f"Package Name {package_info[self.PACKAGE_NAME]} in file is different than passed in Name {package_name}"
-            )
-        if package_info[self.PACKAGE_VERSION] != version:
-            raise ValueError(
-                f"Package Version {package_info[self.PACKAGE_VERSION]} in file is different than passed in Version {version}"
-            )
-
-        # Process downloaded file and generate a local checksum
-        checksums: Dict[str, str] = self.checksum_generator.generate_checksums(
+        # Generates checksums
+        self.logger.info(f"Generating checksums for binary at {binary_path}")
+        checksum_info = self._get_checksum_info(
+            package_name=package_name,
+            version=version,
             binary_path=binary_path,
-            checksum_algorithms=[checksum_algorithm],
+            checksum_types=[checksum_algorithm],
         )
-        package_checksums = package_info[self.PACKAGE_CHECKSUMS]
 
-        # Verify Checksum Details
-        self.logger.info("Attesting binary integrity")
-        if checksum_algorithm.name not in package_checksums:
+        if checksum_info != package_checksum_info:
             raise ValueError(
-                f"Package Checksum Algorithms {package_checksums.keys()} does not contain passed in Checksum Algorithm {checksum_algorithm.name}"
-            )
-        if (
-            checksums[checksum_algorithm.name]
-            != package_checksums[checksum_algorithm.name]
-        ):
-            raise ValueError(
-                f"Package Checksum {package_checksums[checksum_algorithm.name]} for Checksum Algorithm {checksum_algorithm.name} does not match actual binary Checksum {checksums[checksum_algorithm.name]}"
+                "Downloaded binaries checksum information differs from uploaded package's checksum information"
             )
         self.logger.info("Binary successfully attested")
