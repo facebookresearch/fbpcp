@@ -133,7 +133,7 @@ class TestOnedockerRunner(unittest.TestCase):
             # Assert
             self.assertEqual(cm.exception.code, 1)
 
-    @patch.object(AttestationService, "verify_binary")
+    @patch.object(AttestationService, "attest_binary")
     @patch.object(OneDockerPackageRepository, "download")
     def test_main(
         self,

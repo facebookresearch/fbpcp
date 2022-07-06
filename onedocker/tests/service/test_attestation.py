@@ -76,7 +76,7 @@ class TestAttestationService(unittest.TestCase):
             self.file_contents,
         )
 
-    def test_verify_binary_s3(
+    def test_attest_binary_s3(
         self,
     ):
         # Arrange
@@ -88,7 +88,7 @@ class TestAttestationService(unittest.TestCase):
         }
 
         # Act
-        self.attestation_service.verify_binary(
+        self.attestation_service.attest_binary(
             binary_path=self.test_package["binary_path"],
             package_name=self.test_package["name"],
             version=self.test_package["version"],
@@ -107,7 +107,7 @@ class TestAttestationService(unittest.TestCase):
             self.test_package["checksum_path"],
         )
 
-    def test_verify_binary_s3_nonmatching_algorithm(
+    def test_attest_binary_s3_nonmatching_algorithm(
         self,
     ):
         # Arrange
@@ -127,7 +127,7 @@ class TestAttestationService(unittest.TestCase):
 
         # Act
         with self.assertRaises(ValueError):
-            self.attestation_service.verify_binary(
+            self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
@@ -146,7 +146,7 @@ class TestAttestationService(unittest.TestCase):
             self.test_package["checksum_path"],
         )
 
-    def test_verify_binary_s3_bad_name(
+    def test_attest_binary_s3_bad_name(
         self,
     ):
         # Arrange
@@ -162,7 +162,7 @@ class TestAttestationService(unittest.TestCase):
 
         # Act
         with self.assertRaises(ValueError):
-            self.attestation_service.verify_binary(
+            self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
@@ -181,7 +181,7 @@ class TestAttestationService(unittest.TestCase):
             self.test_package["checksum_path"],
         )
 
-    def test_verify_binary_s3_bad_version(
+    def test_attest_binary_s3_bad_version(
         self,
     ):
         # Arrange
@@ -197,7 +197,7 @@ class TestAttestationService(unittest.TestCase):
 
         # Act
         with self.assertRaises(ValueError):
-            self.attestation_service.verify_binary(
+            self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
@@ -216,7 +216,7 @@ class TestAttestationService(unittest.TestCase):
             self.test_package["checksum_path"],
         )
 
-    def test_verify_binary_s3_bad_checksum(
+    def test_attest_binary_s3_bad_checksum(
         self,
     ):
         # Arrange
@@ -235,7 +235,7 @@ class TestAttestationService(unittest.TestCase):
 
         # Act
         with self.assertRaises(ValueError):
-            self.attestation_service.verify_binary(
+            self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
