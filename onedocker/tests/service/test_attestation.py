@@ -9,6 +9,7 @@ from json import dumps
 from unittest.mock import MagicMock, patch
 
 from fbpcp.service.storage_s3 import S3StorageService
+from onedocker.entity.checksum_info import ChecksumInfo
 from onedocker.entity.checksum_type import ChecksumType
 from onedocker.service.attestation import AttestationService
 
@@ -36,11 +37,11 @@ class TestAttestationService(unittest.TestCase):
             self.repository_path,
         )
         self.file_contents = dumps(
-            self.attestation_service._format_package_info(
+            ChecksumInfo(
                 package_name=self.test_package["name"],
                 version=self.test_package["version"],
                 checksums=self.checksums,
-            ),
+            ).asdict(),
             indent=4,
         )
 
@@ -169,7 +170,10 @@ class TestAttestationService(unittest.TestCase):
             )
 
         # Assert
-        assert not self.attestation_service.checksum_generator.generate_checksums.called
+        self.attestation_service.checksum_generator.generate_checksums.assert_called_once_with(
+            binary_path=self.test_package["binary_path"],
+            checksum_algorithms=[test_algorithm],
+        )
         self.attestation_service.storage_svc.read.assert_called_once_with(
             self.test_package["checksum_path"],
         )
@@ -201,7 +205,10 @@ class TestAttestationService(unittest.TestCase):
             )
 
         # Assert
-        assert not self.attestation_service.checksum_generator.generate_checksums.called
+        self.attestation_service.checksum_generator.generate_checksums.assert_called_once_with(
+            binary_path=self.test_package["binary_path"],
+            checksum_algorithms=[test_algorithm],
+        )
         self.attestation_service.storage_svc.read.assert_called_once_with(
             self.test_package["checksum_path"],
         )
