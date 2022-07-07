@@ -71,3 +71,67 @@ class TestChecksumInfo(unittest.TestCase):
         self.assertEqual(checksum_dict["package_name"], self.TEST_PACKAGE_NAME)
         self.assertEqual(checksum_dict["version"], self.TEST_VERSION)
         self.assertEqual(checksum_dict["checksums"], self.TEST_CHECKSUMS)
+
+    def test_eq_self(self):
+        self.assertEqual(self.good_checksum, self.good_checksum)
+
+    def test_eq_dict(self):
+        checksum_info = {
+            "package_name": self.TEST_PACKAGE_NAME,
+            "version": self.TEST_VERSION,
+            "checksums": self.TEST_CHECKSUMS,
+        }
+
+        self.assertEqual(self.good_checksum, ChecksumInfo(**checksum_info))
+
+    def test_eq_asdict(self):
+        checksum_info = {
+            "package_name": self.TEST_PACKAGE_NAME,
+            "version": self.TEST_VERSION,
+            "checksums": self.TEST_CHECKSUMS,
+        }
+
+        self.assertDictEqual(self.good_checksum.asdict(), checksum_info)
+
+    def test_eq_package_name(self):
+        checksum_info = {
+            "package_name": "bad_package_name",
+            "version": self.TEST_VERSION,
+            "checksums": self.TEST_CHECKSUMS,
+        }
+
+        self.assertNotEqual(self.good_checksum, ChecksumInfo(**checksum_info))
+
+    def test_eq_version(self):
+        checksum_info = {
+            "package_name": self.TEST_PACKAGE_NAME,
+            "version": "bad_version",
+            "checksums": self.TEST_CHECKSUMS,
+        }
+
+        self.assertNotEqual(self.good_checksum, ChecksumInfo(**checksum_info))
+
+    def test_eq_checksum(self):
+        checksum_info = {
+            "package_name": self.TEST_PACKAGE_NAME,
+            "version": self.TEST_VERSION,
+            "checksums": {
+                "MD5": "invalid_md5_goes_here",
+                "SHA256": "valid_sha256_goes_here",
+                "BLAKE2B": "valid_blake2b_goes_here",
+            },
+        }
+
+        self.assertNotEqual(self.good_checksum, ChecksumInfo(**checksum_info))
+
+    def test_eq_checksum_nonmatching_amount(self):
+        checksum_info = {
+            "package_name": self.TEST_PACKAGE_NAME,
+            "version": self.TEST_VERSION,
+            "checksums": {
+                "SHA256": "valid_sha256_goes_here",
+                "BLAKE2B": "valid_blake2b_goes_here",
+            },
+        }
+
+        self.assertEqual(self.good_checksum, ChecksumInfo(**checksum_info))
