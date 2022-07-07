@@ -99,7 +99,7 @@ class AttestationService:
             checksum_info=checksum_info.asdict(),
         )
 
-    def verify_binary(
+    def attest_binary(
         self,
         binary_path: str,
         package_name: str,

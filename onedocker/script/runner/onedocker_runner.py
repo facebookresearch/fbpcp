@@ -248,7 +248,7 @@ def _attest_executable(
     storage_svc = S3StorageService(S3Path(checksum_repository_path).region)
     attestation_service = AttestationService(storage_svc, checksum_repository_path)
 
-    attestation_service.verify_binary(
+    attestation_service.attest_binary(
         binary_path=binary_path,
         package_name=package_name,
         version=version,
