@@ -11,6 +11,7 @@ import logging
 from typing import Any, Dict, List
 
 from fbpcp.service.storage import StorageService
+from onedocker.entity.attestation_error import AttestationError
 from onedocker.entity.checksum_info import ChecksumInfo
 from onedocker.entity.checksum_type import ChecksumType
 from onedocker.service.checksum import LocalChecksumGenerator
@@ -138,7 +139,7 @@ class AttestationService:
         )
 
         if checksum_info != package_checksum_info:
-            raise ValueError(
+            raise AttestationError(
                 "Downloaded binaries checksum information differs from uploaded package's checksum information"
             )
         self.logger.info("Binary successfully attested")

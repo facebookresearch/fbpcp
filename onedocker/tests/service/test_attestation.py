@@ -9,6 +9,7 @@ from json import dumps
 from unittest.mock import MagicMock, patch
 
 from fbpcp.service.storage_s3 import S3StorageService
+from onedocker.entity.attestation_error import AttestationError
 from onedocker.entity.checksum_info import ChecksumInfo
 from onedocker.entity.checksum_type import ChecksumType
 from onedocker.service.attestation import AttestationService
@@ -126,7 +127,7 @@ class TestAttestationService(unittest.TestCase):
         }
 
         # Act
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AttestationError):
             self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
@@ -161,7 +162,7 @@ class TestAttestationService(unittest.TestCase):
         test_algorithm = ChecksumType(checksum_key)
 
         # Act
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AttestationError):
             self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
@@ -196,7 +197,7 @@ class TestAttestationService(unittest.TestCase):
         test_algorithm = ChecksumType(checksum_key)
 
         # Act
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AttestationError):
             self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
@@ -234,7 +235,7 @@ class TestAttestationService(unittest.TestCase):
         }
 
         # Act
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AttestationError):
             self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
