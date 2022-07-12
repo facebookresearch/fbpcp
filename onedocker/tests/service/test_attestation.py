@@ -127,7 +127,7 @@ class TestAttestationService(unittest.TestCase):
         }
 
         # Act
-        with self.assertRaises(AttestationError):
+        with self.assertRaises(ValueError):
             self.attestation_service.attest_binary(
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["name"],
@@ -136,10 +136,7 @@ class TestAttestationService(unittest.TestCase):
             )
 
         # Assert
-        self.attestation_service.checksum_generator.generate_checksums.assert_called_once_with(
-            binary_path=self.test_package["binary_path"],
-            checksum_algorithms=[test_algorithm],
-        )
+        assert not self.attestation_service.checksum_generator.generate_checksums.called
         self.attestation_service.storage_svc.read.assert_called_once_with(
             self.test_package["checksum_path"],
         )
