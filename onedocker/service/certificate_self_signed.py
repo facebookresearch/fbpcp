@@ -67,6 +67,9 @@ class SelfSignedCertificateService(CertificateService):
             ]
         )
 
+    def _file_exists(self, filename: str) -> bool:
+        return os.path.exists(filename)
+
     def generate_certificate(
         self,
     ) -> str:
@@ -102,4 +105,10 @@ class SelfSignedCertificateService(CertificateService):
 
         self._write_bytes_to_file(self._certificate_file, certificate_pem)
         self.logger.info(f"Write private key and certificate to {self._cert_path}")
+        flg_pk = self._file_exists(self._private_key_file)
+        flg_cert = self._file_exists(self._certificate_file)
+        if not flg_pk or not flg_cert:
+            raise FileNotFoundError(
+                f"Missing files: is private_key_file exist: {flg_pk}, is _certificate_file exist: {flg_cert}"
+            )
         return self._cert_path

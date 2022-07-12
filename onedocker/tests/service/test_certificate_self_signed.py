@@ -49,6 +49,7 @@ class TestSelfSignedCertificateService(unittest.TestCase):
         # Arrange
 
         self.cert_svc._write_bytes_to_file = MagicMock()
+        self.cert_svc._file_exists = MagicMock(return_value=True)
         expect_path = "/".join([TEST_ROOT_PATH, TEST_CERT_FOLDER])
 
         # Act
@@ -56,3 +57,11 @@ class TestSelfSignedCertificateService(unittest.TestCase):
 
         # Assert
         self.assertEqual(cert_pem, expect_path)
+
+    @patch("os.makedirs")
+    def test_file_exists(self, mock_makedirs) -> None:
+        self.cert_svc._write_bytes_to_file = MagicMock()
+        self.cert_svc._file_exists = MagicMock(return_value=False)
+
+        with self.assertRaises(FileNotFoundError):
+            self.cert_svc.generate_certificate()
