@@ -8,9 +8,8 @@
 
 import json
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-from fbpcp.service.storage import StorageService
 from onedocker.entity.attestation_error import AttestationError
 from onedocker.entity.checksum_info import ChecksumInfo
 from onedocker.entity.checksum_type import ChecksumType
@@ -25,23 +24,9 @@ class AttestationService:
         ChecksumType.BLAKE2B,
     ]
 
-    def __init__(
-        self,
-        storage_svc: Optional[StorageService] = None,
-        repository_path: str = "",
-    ) -> None:
+    def __init__(self) -> None:
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.checksum_generator = LocalChecksumGenerator()
-        if storage_svc is not None:
-            self.storage_svc: StorageService = storage_svc
-        self.repository_path: str = repository_path
-
-    def _build_attestation_repository_path(
-        self,
-        package_name: str,
-        version: str,
-    ) -> str:
-        return f"{self.repository_path}{package_name}/{version}.json"
 
     def _get_checksum_info(
         self,
@@ -93,6 +78,7 @@ class AttestationService:
         binary_path: str,
         package_name: str,
         version: str,
+        formated_checksum_info: str,
         checksum_algorithm: ChecksumType,
     ) -> None:
         """
@@ -101,32 +87,23 @@ class AttestationService:
         Args:
             binary_path:            Local file path pointing to the package
             package_name:           Package Name to use when downlading the checksum file from checksum repository
-            version:        Package Version to relay while downloading the checksum file from checksum repository
+            version:                Package Version to relay while downloading the checksum file from checksum repository
+            formated_checksum_info: String encoding of ChecksumInfo attaining to the JSON file format
             checksum_algorithm:     Checksum algorithm that should be used while attesting local binary
         """
-        # Build file path
-        file_path = self._build_attestation_repository_path(package_name, version)
-
-        if not self.storage_svc.file_exists(file_path):
-            self.logger.info(
-                f"Untracked package {package_name}: {version}. Skipping Attestion."
-            )
-            return None
-        # Retrieve file info and parse contents
-        file_contents = self.storage_svc.read(file_path)
-        package_info = json.loads(file_contents)
-        package_checksum_info = ChecksumInfo(**package_info)
+        checksum_info_dict = json.loads(formated_checksum_info)
+        checksum_info = ChecksumInfo(**checksum_info_dict)
 
         # Generates checksums
         self.logger.info(f"Generating checksums for binary at {binary_path}")
-        checksum_info = self._get_checksum_info(
+        binary_checksum_info = self._get_checksum_info(
             package_name=package_name,
             version=version,
             binary_path=binary_path,
             checksum_types=[checksum_algorithm],
         )
 
-        if checksum_info != package_checksum_info:
+        if binary_checksum_info != checksum_info:
             raise AttestationError(
                 "Downloaded binaries checksum information differs from uploaded package's checksum information"
             )
