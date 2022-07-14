@@ -6,7 +6,7 @@
 
 import unittest
 from json import dumps
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from fbpcp.service.storage_s3 import S3StorageService
 from onedocker.entity.attestation_error import AttestationError
@@ -55,13 +55,9 @@ class TestAttestationService(unittest.TestCase):
         )
         self.attestation_service.storage_svc.file_exists = MagicMock(return_value=True)
 
-    @patch.object(S3StorageService, "write")
-    def test_track_binary_s3(
-        self,
-        mockS3StorageServiceWrite,
-    ):
+    def test_track_binary_s3(self):
         # Arrange & Act
-        self.attestation_service.track_binary(
+        formated_checksums = self.attestation_service.track_binary(
             binary_path=self.test_package["binary_path"],
             package_name=self.test_package["name"],
             version=self.test_package["version"],
@@ -72,10 +68,7 @@ class TestAttestationService(unittest.TestCase):
             binary_path=self.test_package["binary_path"],
             checksum_algorithms=self.algorithms,
         )
-        mockS3StorageServiceWrite.assert_called_once_with(
-            self.test_package["checksum_path"],
-            self.file_contents,
-        )
+        self.assertEqual(formated_checksums, self.file_contents)
 
     def test_attest_binary_s3(
         self,
