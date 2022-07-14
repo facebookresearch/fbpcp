@@ -244,7 +244,7 @@ def _attest_executable(
     version: str,
 ) -> None:
     logger.info(
-        f"Starting verification for package {package_name}: {version} using checksum type: {checksum_type.name}"
+        f"Starting attestation for package {package_name}: {version} using checksum type: {checksum_type.name}"
     )
     storage_svc = S3StorageService(S3Path(checksum_repository_path).region)
     attestation_service = AttestationService()
@@ -252,8 +252,10 @@ def _attest_executable(
         storage_svc, checksum_repository_path
     )
 
+    logger.info(f"Downloading checksum info for package {package_name}: {version}")
     formated_checksum_info = onedocker_checksum_repository.read(package_name, version)
 
+    logger.info(f"Attesting checksum info for package {package_name}: {version}")
     attestation_service.attest_binary(
         binary_path=binary_path,
         package_name=package_name,
@@ -261,7 +263,7 @@ def _attest_executable(
         formated_checksum_info=formated_checksum_info,
         checksum_algorithm=checksum_type,
     )
-    logger.info(f"Finished verification for package {package_name}: {version}")
+    logger.info(f"Finished attestation for package {package_name}: {version}")
 
 
 def _parse_package_name(package_name: str) -> str:
