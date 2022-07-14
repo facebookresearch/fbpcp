@@ -8,7 +8,7 @@
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Dict, List, Optional
 
 from fbpcp.service.storage import StorageService
 from onedocker.entity.attestation_error import AttestationError
@@ -25,11 +25,16 @@ class AttestationService:
         ChecksumType.BLAKE2B,
     ]
 
-    def __init__(self, storage_svc: StorageService, repository_path: str) -> None:
+    def __init__(
+        self,
+        storage_svc: Optional[StorageService] = None,
+        repository_path: str = "",
+    ) -> None:
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.checksum_generator = LocalChecksumGenerator()
-        self.storage_svc = storage_svc
-        self.repository_path = repository_path
+        if storage_svc is not None:
+            self.storage_svc: StorageService = storage_svc
+        self.repository_path: str = repository_path
 
     def _build_attestation_repository_path(
         self,
@@ -56,26 +61,12 @@ class AttestationService:
             checksums=checksums,
         )
 
-    def _upload_checksum(
-        self,
-        package_name: str,
-        version: str,
-        checksum_info: Dict[str, Any],
-    ) -> None:
-
-        # Construct file information - (name and contents)
-        file_path = self._build_attestation_repository_path(package_name, version)
-        file_contents = json.dumps(checksum_info, indent=4)
-
-        # upload contents to set repo path
-        self.storage_svc.write(file_path, file_contents)
-
     def track_binary(
         self,
         binary_path: str,
         package_name: str,
         version: str,
-    ) -> None:
+    ) -> str:
         """
         This Function generates then uploads checksums for passed in local binary
 
@@ -83,6 +74,9 @@ class AttestationService:
             binary_path:        Local file path pointing to the package
             package_name:       Package Name to use when uploading file to checksum repository
             version:    Package Version to relay while uploading file to checksum repository
+
+        Returns:
+            formated_checksum_info:  A JSON formated file that contains all the checksum data for a file
         """
         # Generates checksums
         self.logger.info(f"Generating checksums for binary at {binary_path}")
@@ -92,13 +86,7 @@ class AttestationService:
             binary_path=binary_path,
         )
 
-        # Upload checksums and package info to set repo path
-        self.logger.info(f"Uploading checksums for package {package_name}: {version}")
-        self._upload_checksum(
-            package_name=package_name,
-            version=version,
-            checksum_info=checksum_info.asdict(),
-        )
+        return json.dumps(checksum_info.asdict(), indent=4)
 
     def attest_binary(
         self,
