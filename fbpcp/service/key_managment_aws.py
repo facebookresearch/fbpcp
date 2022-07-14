@@ -56,6 +56,22 @@ class AWSKeyManagementService(KeyManagementService):
         signature = b64encode(response["Signature"]).decode()
         return signature
 
+    def decrypt(
+        self, ciphertext_blob: str, encryption_context: Optional[Dict[str, str]] = None
+    ) -> str:
+        if not self.encryption_algorithm:
+            raise ValueError("No Encryption Algorithm Set")
+        b64_ciphertext_blob = b64decode(ciphertext_blob.encode())
+        response = self.kms_gateway.decrypt(
+            key_id=self.key_id,
+            ciphertext_blob=b64_ciphertext_blob,
+            encryption_context=encryption_context,
+            grant_tokens=self.grant_tokens,
+            encryption_algorithm=self.encryption_algorithm,
+        )
+        plaintext = b64encode(response["Plaintext"]).decode()
+        return plaintext
+
     def encrypt(
         self, plaintext: str, encryption_context: Optional[Dict[str, str]] = None
     ) -> str:
