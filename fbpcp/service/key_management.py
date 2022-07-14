@@ -15,6 +15,10 @@ class KeyManagementService(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def decrypt(self, ciphertext_blob: str) -> str:
+        pass
+
+    @abc.abstractmethod
     def encrypt(self, plaintext: str) -> str:
         pass
 
