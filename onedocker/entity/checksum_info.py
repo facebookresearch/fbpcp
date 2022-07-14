@@ -20,8 +20,8 @@ class ChecksumInfo:
     This dataclass tracks a package's checksum info for attestation, to allow for easy comparision and tracking
 
     Fields:
-        package_name:   String containting the package's name
-        version:        String containting the package's version
+        package_name:   String containing the package name
+        version:        String containing the package version
         Checksums:      Dict that holds a pairing between a ChecksumType (Key) and the corresponding hash (Value)
     """
 
@@ -41,7 +41,7 @@ class ChecksumInfo:
 
     def __eq__(self, other: ChecksumInfo) -> bool:
         """
-        Compares two ChecksumInfo isntannces in previously decided order
+        Compares two ChecksumInfo instances in previously decided order
         1.  Compares package_name
         2.  Compares version
         3.  Checks if overlaping checkum algorithms are present
