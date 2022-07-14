@@ -13,3 +13,7 @@ class KeyManagmentService(abc.ABC):
     @abc.abstractmethod
     def sign(self, message: str) -> str:
         pass
+
+    @abc.abstractmethod
+    def encrypt(self, plaintext: str) -> str:
+        pass
