@@ -48,6 +48,7 @@ from onedocker.common.env import (
 )
 from onedocker.common.util import run_cmd
 from onedocker.entity.checksum_type import ChecksumType
+from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.service.attestation import AttestationService
 from onedocker.service.certificate_self_signed import SelfSignedCertificateService
@@ -246,12 +247,18 @@ def _attest_executable(
         f"Starting verification for package {package_name}: {version} using checksum type: {checksum_type.name}"
     )
     storage_svc = S3StorageService(S3Path(checksum_repository_path).region)
-    attestation_service = AttestationService(storage_svc, checksum_repository_path)
+    attestation_service = AttestationService()
+    onedocker_checksum_repository = OneDockerChecksumRepository(
+        storage_svc, checksum_repository_path
+    )
+
+    formated_checksum_info = onedocker_checksum_repository.read(package_name, version)
 
     attestation_service.attest_binary(
         binary_path=binary_path,
         package_name=package_name,
         version=version,
+        formated_checksum_info=formated_checksum_info,
         checksum_algorithm=checksum_type,
     )
     logger.info(f"Finished verification for package {package_name}: {version}")
