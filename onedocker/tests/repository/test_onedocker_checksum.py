@@ -52,3 +52,43 @@ class TestOneDockerChecksumRepository(unittest.TestCase):
                 version=self.TEST_PACKAGE_VERSION,
                 checksum_data=checksum_data,
             )
+
+    def test_onedockerrepo_read(self):
+        # Arrange
+        checksum_data = "xyz"
+
+        self.onedocker_checksum.storage_svc.read = MagicMock(return_value=checksum_data)
+
+        # Act
+        actual_checksum_data = self.onedocker_checksum.read(
+            package_name=self.TEST_PACKAGE_NAME,
+            version=self.TEST_PACKAGE_VERSION,
+        )
+
+        # Assert
+        self.onedocker_checksum.storage_svc.read.assert_called_with(
+            filename=self.expected_s3_dest
+        )
+        self.assertEqual(checksum_data, actual_checksum_data)
+
+    def test_onedockerrepo_read_no_checksum_path(self):
+        # Arrange
+        onedocker_checksum = OneDockerChecksumRepository(MagicMock(), "")
+
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            onedocker_checksum.read(
+                package_name=self.TEST_PACKAGE_NAME,
+                version=self.TEST_PACKAGE_VERSION,
+            )
+
+    def test_onedockerrepo_read_no_file_exist(self):
+        # Arrange
+        self.onedocker_checksum.storage_svc.file_exists = MagicMock(return_value=False)
+
+        # Act & Assert
+        with self.assertRaises(FileNotFoundError):
+            self.onedocker_checksum.read(
+                package_name=self.TEST_PACKAGE_NAME,
+                version=self.TEST_PACKAGE_VERSION,
+            )
