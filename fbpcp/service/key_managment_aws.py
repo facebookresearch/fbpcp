@@ -6,18 +6,18 @@
 
 # pyre-strict
 
-from base64 import b64encode
+from base64 import b64decode, b64encode
 from typing import Any, Dict, List, Optional
 
 from fbpcp.gateway.kms import KMSGateway
-from fbpcp.service.key_management import KeyManagmentService
+from fbpcp.service.key_management import KeyManagementService
 
 
-class AWSKeyManagmentService(KeyManagmentService):
+class AWSKeyManagementService(KeyManagementService):
     key_id: str
     encryption_algorithm: str
     signing_algorithm: str
-    grant_tokens: List[str]
+    grant_tokens: Optional[List[str]]
 
     def __init__(
         self,
@@ -28,6 +28,7 @@ class AWSKeyManagmentService(KeyManagmentService):
         grant_tokens: Optional[List[str]] = None,
         access_key_id: Optional[str] = None,
         access_key_data: Optional[str] = None,
+        encryption_context: Optional[Dict[str, str]] = None,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.kms_gateway = KMSGateway(
@@ -69,3 +70,15 @@ class AWSKeyManagmentService(KeyManagmentService):
         )
         ciphertext_blob = b64encode(response["CiphertextBlob"]).decode()
         return ciphertext_blob
+
+    def verify(self, message: str, signature: str, message_type: str = "RAW") -> str:
+        b64_signature = b64decode(signature.encode())
+        response = self.kms_gateway.verify(
+            key_id=self.key_id,
+            message=message,
+            message_type=message_type,
+            signature=b64_signature,
+            signing_algorithm=self.signing_algorithm,
+            grant_tokens=self.grant_tokens,
+        )
+        return response["SignatureValid"]
