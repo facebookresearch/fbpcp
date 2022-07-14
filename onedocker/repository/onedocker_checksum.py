@@ -23,8 +23,26 @@ class OneDockerChecksumRepository:
             )
         return f"{self.checksum_repository_path}{package_name}/{version}/{package_name.split('/')[-1]}.json"
 
+    def _file_exists(self, package_name: str, version: str) -> bool:
+        package_path = self._build_checksum_path(
+            package_name=package_name, version=version
+        )
+        return self.storage_svc.file_exists(package_path)
+
     def write(self, package_name: str, version: str, checksum_data: str) -> None:
         package_path = self._build_checksum_path(
             package_name=package_name, version=version
         )
         self.storage_svc.write(filename=package_path, data=checksum_data)
+
+    def read(self, package_name: str, version: str) -> str:
+        package_path = self._build_checksum_path(
+            package_name=package_name, version=version
+        )
+
+        if not self._file_exists(package_name, version):
+            raise FileNotFoundError(
+                f"Cant find checksum file for package {package_name}, version {version}"
+            )
+
+        return self.storage_svc.read(filename=package_path)
