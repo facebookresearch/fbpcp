@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import signal
 import sys
 import unittest
 from unittest.mock import patch
@@ -11,6 +12,9 @@ from unittest.mock import patch
 from docopt import docopt
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.error.pcp import InvalidParameterError
+from onedocker.common.core_dump_handler_aws import AWSCoreDumpHandler
+from onedocker.entity.checksum_type import ChecksumType
+from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.script.runner.onedocker_runner import (
     __doc__ as __onedocker_runner_doc__,
@@ -134,14 +138,16 @@ class TestOnedockerRunner(unittest.TestCase):
             self.assertEqual(cm.exception.code, 1)
 
     @patch.object(AttestationService, "attest_binary")
+    @patch.object(OneDockerChecksumRepository, "read")
     @patch.object(OneDockerPackageRepository, "download")
     def test_main(
         self,
         mockOneDockerPackageRepositoryDownload,
-        mockAttestationServiceVerifyBinary,
+        mockOneDockerChecksumRepositoryRead,
+        mockAttestationServiceAttestBinary,
     ):
         # Arrange
-        mockAttestationServiceVerifyBinary.return_value = None
+        mockAttestationServiceAttestBinary.return_value = None
         with patch.object(
             sys,
             "argv",
@@ -167,12 +173,10 @@ class TestOnedockerRunner(unittest.TestCase):
                 "/usr/bin/echo",
             )
 
-    @patch.object(OneDockerPackageRepository, "download")
     @patch.object(SelfSignedCertificateService, "generate_certificate")
     def test_main_good_cert(
         self,
         mockSelfSignedCertificateServiceGenerateCertificate,
-        mockOneDockerPackageRepositoryDownload,
     ):
         # Arrange
         with patch.object(
@@ -182,6 +186,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 "onedocker-runner",
                 "echo",
                 "--version=latest",
+                "--repository_path=local",
                 "--exe_path=/usr/bin/",
                 "--exe_args=test_message",
                 f"--cert_params={self.test_cert_params}",
@@ -194,11 +199,6 @@ class TestOnedockerRunner(unittest.TestCase):
             # Assert
             self.assertEqual(cm.exception.code, 0)
             mockSelfSignedCertificateServiceGenerateCertificate.assert_called_once_with()
-            mockOneDockerPackageRepositoryDownload.assert_called_once_with(
-                "echo",
-                "latest",
-                "/usr/bin/echo",
-            )
 
     def test_main_bad_cert(self):
         # Arrange
@@ -252,13 +252,149 @@ class TestOnedockerRunner(unittest.TestCase):
                 # Assert
                 self.assertEqual(cm.exception.code, 0)
 
+    @patch.object(AttestationService, "attest_binary")
+    @patch.object(OneDockerChecksumRepository, "read")
+    @patch.object(OneDockerPackageRepository, "download")
+    def test_main_checksum(
+        self,
+        mockOneDockerPackageRepositoryDownload,
+        mockOneDockerChecksumRepositoryRead,
+        mockAttestationServiceAttestBinary,
+    ):
+        # Arrange
+        mockAttestationServiceAttestBinary.return_value = None
+        mockOneDockerChecksumRepositoryRead.return_value = "checksum_info_goes_here"
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-runner",
+                "ls",
+                "--version=latest",
+                "--repository_path=https://onedocker-runner-unittest-asacheti.s3.us-west-2.amazonaws.com/",
+                "--timeout=1200",
+                "--exe_path=/usr/bin/",
+                "--exe_args=-l",
+                "--checksum_repository_path=https://one-docker-checksum-repository-prod.s3.us-west-2.amazonaws.com/",
+                "--checksum_type=BLAKE2B",
+            ],
+        ):
+            with self.assertRaises(SystemExit) as cm:
+                # Act
+                main()
+
+            # Assert
+            self.assertEqual(cm.exception.code, 0)
+            mockOneDockerPackageRepositoryDownload.assert_called_once_with(
+                "ls",
+                "latest",
+                "/usr/bin/ls",
+            )
+        mockAttestationServiceAttestBinary.assert_called_once_with(
+            binary_path="/usr/bin/ls",
+            package_name="ls",
+            version="latest",
+            formated_checksum_info="checksum_info_goes_here",
+            checksum_algorithm=ChecksumType.BLAKE2B,
+        )
+        mockOneDockerChecksumRepositoryRead.assert_called_once_with(
+            "ls",
+            "latest",
+        )
+
+    @patch.object(AttestationService, "attest_binary")
+    @patch.object(OneDockerChecksumRepository, "read")
+    @patch.object(OneDockerPackageRepository, "download")
+    def test_main_checksum_default_type(
+        self,
+        mockOneDockerPackageRepositoryDownload,
+        mockOneDockerChecksumRepositoryRead,
+        mockAttestationServiceAttestBinary,
+    ):
+        # Arrange
+        mockAttestationServiceAttestBinary.return_value = None
+        mockOneDockerChecksumRepositoryRead.return_value = "checksum_info_goes_here"
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-runner",
+                "ls",
+                "--version=latest",
+                "--repository_path=https://onedocker-runner-unittest-asacheti.s3.us-west-2.amazonaws.com/",
+                "--timeout=1200",
+                "--exe_path=/usr/bin/",
+                "--exe_args=-l",
+                "--checksum_repository_path=https://one-docker-checksum-repository-prod.s3.us-west-2.amazonaws.com/",
+            ],
+        ):
+            with self.assertRaises(SystemExit) as cm:
+                # Act
+                main()
+
+            # Assert
+            self.assertEqual(cm.exception.code, 0)
+            mockOneDockerPackageRepositoryDownload.assert_called_once_with(
+                "ls",
+                "latest",
+                "/usr/bin/ls",
+            )
+        mockAttestationServiceAttestBinary.assert_called_once_with(
+            binary_path="/usr/bin/ls",
+            package_name="ls",
+            version="latest",
+            formated_checksum_info="checksum_info_goes_here",
+            checksum_algorithm=ChecksumType.SHA256,
+        )
+        mockOneDockerChecksumRepositoryRead.assert_called_once_with(
+            "ls",
+            "latest",
+        )
+
+    @patch("onedocker.script.runner.onedocker_runner.run_cmd")
+    @patch.object(AWSCoreDumpHandler, "locate_core_dump_file")
+    @patch.object(AWSCoreDumpHandler, "upload_core_dump_file")
+    def test_main_core_dump(
+        self, mockUploadCoreDumpFile, mockLocateCoreDumpFile, mockRunCMD
+    ):
+        # Arrange & Act
+        error_code = 128 + signal.SIGSEGV
+        mockRunCMD.return_value = error_code
+        core_dump_file = "core_dump.txt"
+        mockLocateCoreDumpFile.return_value = core_dump_file
+
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-runner",
+                "echo",
+                "--version=latest",
+                '--exe_args="Test Message"',
+                "--exe_path=/usr/bin/",
+                "--repository_path=local",
+            ],
+        ):
+            with patch(
+                "os.getenv",
+                side_effect=lambda x: getenv(x),
+            ):
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                # Assert
+                self.assertEqual(cm.exception.code, error_code)
+        mockLocateCoreDumpFile.assert_called_once()
+        mockUploadCoreDumpFile.assert_called_once_with(
+            core_dump_file, getenv("CORE_DUMP_REPOSITORY_PATH")
+        )
+
 
 def getenv(key):
     if key == "ONEDOCKER_REPOSITORY_PATH":
-        return "https://onedocker-runner-unittest-asacheti.s3.us-west-2.amazonaws.com/"
+        return "https://onedocker-package-repo.s3.us-west-2.amazonaws.com/"
     elif key == "ONEDOCKER_CHECKSUM_REPOSITORY_PATH":
-        return "https://onedocker-checksum-test.s3.us-west-2.amazonaws.com/checksums/"
+        return "https://onedocker-checksum-repo.s3.us-west-2.amazonaws.com/checksums/"
     elif key == "CORE_DUMP_REPOSITORY_PATH":
-        return "~/fbsource/fbcode/measurement/private_measurement/pcp/oss/onedocker/tests/script/runner/core_dump/"
+        return "https://onedocker-core-dump.s3.us-west-2.amazonaws.com/checksums/"
     else:
         return None
