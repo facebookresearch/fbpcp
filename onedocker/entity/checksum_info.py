@@ -84,3 +84,24 @@ class ChecksumInfo:
             }
         )
 
+    def verify_signature(self, public_key_path: str) -> None:
+        """
+        Verifies data that has been recoverd allowing us to be sure that binary integrity has been maintained
+
+        Args:
+            public_key_path:    String containing filepath to public_key
+        """
+        # Load public key
+        with open(public_key_path, "rb") as pubkey_file:
+            pubkey = load_publickey(FILETYPE_PEM, pubkey_file.read())
+        x509 = X509()
+        x509.set_pubkey(pubkey)
+
+        # Get signature
+        signature = base64.b64decode(self.signature.encode())
+
+        # Create a JSON copy of fields without signature field
+        data = json.dumps(self.asdict(exclude={"signature"}))
+
+        # Verify signature
+        verify(x509, signature, data, "sha256")

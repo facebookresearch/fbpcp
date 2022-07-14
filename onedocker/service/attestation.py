@@ -97,6 +97,7 @@ class AttestationService:
         version: str,
         formated_checksum_info: str,
         checksum_algorithm: ChecksumType,
+        pubkey_path: str,
     ) -> None:
         """
         This functions generates a checksum for a local file and then compares the generated value to what is stored in the checksum repository for the given package_name and version
@@ -107,9 +108,13 @@ class AttestationService:
             version:                Package Version to relay while downloading the checksum file from checksum repository
             formated_checksum_info: String encoding of ChecksumInfo attaining to the JSON file format
             checksum_algorithm:     Checksum algorithm that should be used while attesting local binary
+            pubkey_path:            Local file path pointing to a .pem file with the public key
         """
         checksum_info_dict = json.loads(formated_checksum_info)
         checksum_info = ChecksumInfo(**checksum_info_dict)
+
+        # Verify signature
+        checksum_info.verify_signature(pubkey_path)
 
         # Generates checksums
         self.logger.info(f"Generating checksums for binary at {binary_path}")

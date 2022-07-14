@@ -18,6 +18,7 @@ Options:
     --repository_path=<repository_path>                     OneDocker repository path where the executables are downloaded from. No download when "LOCAL" repository is specified.
     --checksum_repository_path=<checksum_repository_path>   OneDocker checksum path where the checksums are downloaded from. Doesnt verify files when not specified
     --exe_path=<exe_path>                                   The local path where the executables are downloaded to.
+    --pubkey_path=<pubkey_path>                             The local path where the public key file is stored (Supported Type is .pem)
     --exe_args=<exe_args>                                   The arguments the executable will use.
     --checksum_type=<checksum_type>                         Type of Checksum to use while attesting binary (Supported Types are: MD5, SHA256[Default], BLAKE2B)
     --timeout=<timeout>                                     Set timeout (in sec) to kill the task.
@@ -97,6 +98,7 @@ def _prepare_executable(
     checksum_repository_path: str,
     checksum_type: ChecksumType,
     exe_path: str,
+    pubkey_path: str,
     package_name: str,
     version: str,
 ) -> str:
@@ -116,6 +118,7 @@ def _prepare_executable(
                 checksum_type=checksum_type,
                 package_name=package_name,
                 version=version,
+                pubkey_path=pubkey_path,
             )
         else:
             logger.info("No Checksum Path specified skipping verification")
@@ -177,6 +180,7 @@ def _run_package(
     checksum_repository_path: str,
     checksum_type: ChecksumType,
     exe_path: str,
+    pubkey_path: str,
     package_name: str,
     version: str,
     timeout: int,
@@ -195,6 +199,7 @@ def _run_package(
             checksum_repository_path=checksum_repository_path,
             checksum_type=checksum_type,
             exe_path=exe_path,
+            pubkey_path=pubkey_path,
             package_name=package_name,
             version=version,
         )
@@ -256,6 +261,7 @@ def _attest_executable(
     checksum_type: ChecksumType,
     package_name: str,
     version: str,
+    pubkey_path: str,
 ) -> None:
     logger.info(
         f"Starting attestation for package {package_name}: {version} using checksum type: {checksum_type.name}"
@@ -280,6 +286,7 @@ def _attest_executable(
                 version=version,
                 formated_checksum_info=formated_checksum_info,
                 checksum_algorithm=checksum_type,
+                pubkey_path=pubkey_path,
             )
         else:
             logger.info("WARNING: No formated ChecksumInfo. Skipping Attestation")
@@ -339,6 +346,7 @@ def main() -> None:
             "--repository_path": schema.Or(None, schema.And(str, len)),
             "--checksum_repository_path": schema.Or(None, schema.And(str, len)),
             "--exe_path": schema.Or(None, schema.And(str, len)),
+            "--pubkey_path": schema.Or(None, schema.And(str, len)),
             "--exe_args": schema.Or(None, schema.And(str, len)),
             "--checksum_type": schema.Or(None, schema.And(str, len)),
             "--timeout": schema.Or(None, schema.Use(int)),
@@ -374,6 +382,7 @@ def main() -> None:
         ONEDOCKER_EXE_PATH,
         DEFAULT_EXE_FOLDER,
     )
+    pubkey_path = arguments.get("--pubkey_path", "")
     checksum_type = ChecksumType(
         _read_config(
             "checksum_type",
@@ -393,6 +402,7 @@ def main() -> None:
         checksum_repository_path=checksum_repository_path,
         checksum_type=checksum_type,
         exe_path=exe_path,
+        pubkey_path=pubkey_path,
         package_name=arguments["<package_name>"],
         version=arguments["--version"],
         timeout=arguments["--timeout"],
