@@ -17,6 +17,7 @@ from fbpcp.service.log_cloudwatch import CloudWatchLogService
 from fbpcp.service.onedocker import OneDockerService
 from fbpcp.util import yaml as util_yaml
 from onedocker.entity.package_info import PackageInfo
+from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.script.cli.onedocker_cli import __doc__ as __onedocker_cli_doc__, main
 from onedocker.service.attestation import AttestationService
@@ -57,6 +58,7 @@ class TestOnedockerCli(unittest.TestCase):
         self.timeout = "100"
         self.cmd_args = "-h"
         self.container = "secret_container"
+        self.checksums = "formated_checksums_go_here"
 
         self.package_info = PackageInfo(
             package_name=self.package_name,
@@ -101,6 +103,11 @@ class TestOnedockerCli(unittest.TestCase):
             "upload",
             MagicMock(return_value=None),
         ).start()
+        self.mockODCRWrite = patch.object(
+            OneDockerChecksumRepository,
+            "write",
+            MagicMock(return_value=None),
+        ).start()
         self.mockODPRGetPackageVersions = patch.object(
             OneDockerPackageRepository,
             "get_package_versions",
@@ -115,7 +122,7 @@ class TestOnedockerCli(unittest.TestCase):
         self.mockAttestationServiceTrackBinary = patch.object(
             AttestationService,
             "track_binary",
-            MagicMock(),
+            MagicMock(return_value=self.checksums),
         ).start()
 
         self.mockContainerService = patch.object(
@@ -286,11 +293,18 @@ class TestOnedockerCli(unittest.TestCase):
 
         # Assert
         self.mockYamlLoad.assert_called_once()
+        self.mockODCRWrite.assert_called_once_with(
+            package_name=self.package_name,
+            version=self.version,
+            checksum_data=self.checksums,
+        )
         self.mockODPRUpload.assert_called_once_with(
             self.package_name, self.version, self.package_dir
         )
         self.mockAttestationServiceTrackBinary.assert_called_once_with(
-            self.package_dir, self.package_name, self.version
+            binary_path=self.package_dir,
+            package_name=self.package_name,
+            version=self.version,
         )
 
     @patch.object(CloudWatchLogService, "get_log_path")
@@ -365,6 +379,7 @@ class TestOnedockerCli(unittest.TestCase):
         ):
             main()
 
+        # Assert
         self.mockYamlLoad.assert_called_once()
         self.mockODPRGetPackageInfo.assert_called_once_with(
             self.package_name, self.version
@@ -384,6 +399,7 @@ class TestOnedockerCli(unittest.TestCase):
         ):
             main()
 
+        # Assert
         self.mockYamlLoad.assert_called_once()
         self.mockODPRGetPackageVersions.assert_called_once_with(self.package_name)
         self.mockODPRGetPackageInfo.assert_called_once_with(
