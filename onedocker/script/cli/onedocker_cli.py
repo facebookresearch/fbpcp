@@ -32,6 +32,7 @@ import schema
 from docopt import docopt
 from fbpcp.entity.container_instance import ContainerInstanceStatus
 from fbpcp.service.container import ContainerService
+from fbpcp.service.key_management import KeyManagementService
 from fbpcp.service.log import LogService
 from fbpcp.service.onedocker import OneDockerService
 from fbpcp.service.storage import StorageService
@@ -47,6 +48,7 @@ onedocker_package_repo = None
 onedocker_checksum_repo = None
 attestation_svc = None
 log_svc = None
+key_management_svc = None
 task_definition = None
 repository_path = None
 
@@ -70,11 +72,21 @@ def _upload(
             package_name=package_name,
             version=version,
         )
+        logger.info(f"Signing checksums for package {package_name}: {version}")
+        checksum_info_signature = key_management_svc.sign(
+            message=formated_checksum_info,
+            message_type="RAW",
+        )
+        signed_checksum_info = attestation_svc.add_signature(
+            formated_checksum_info=formated_checksum_info,
+            signature=checksum_info_signature,
+        )
+
         logger.info(f"Uploading checksums for package {package_name}: {version}")
         onedocker_checksum_repo.write(
             package_name=package_name,
             version=version,
-            checksum_data=formated_checksum_info,
+            checksum_data=signed_checksum_info,
         )
     logger.info(f"Uploading binary for package {package_name}: {version}")
     onedocker_package_repo.upload(package_name, version, package_dir)
@@ -171,12 +183,13 @@ def _build_log_service(config: Dict[str, Any]) -> LogService:
     return log_class(**config["constructor"])
 
 
-def _build_exe_s3_path(repository_path: str, package_name: str, version: str) -> str:
-    return f"{repository_path}{package_name}/{version}/{package_name.split('/')[-1]}"
+def _build_key_managment_service(config: Dict[str, Any]) -> KeyManagementService:
+    key_mangment_class = reflect.get_class(config["class"])
+    return key_mangment_class(**config["constructor"])
 
 
 def main() -> None:
-    global container_svc, onedocker_svc, onedocker_package_repo, onedocker_checksum_repo, log_svc, logger, task_definition, repository_path, attestation_svc
+    global container_svc, onedocker_svc, onedocker_package_repo, onedocker_checksum_repo, log_svc, logger, task_definition, repository_path, attestation_svc, key_management_svc
     s = schema.Schema(
         {
             "upload": bool,
@@ -224,6 +237,9 @@ def main() -> None:
         storage_svc, checksum_repository_path
     )
     log_svc = _build_log_service(config["dependency"]["LogService"])
+    key_management_svc = _build_key_managment_service(
+        config["dependency"]["KeyManagementService"]
+    )
 
     status = "enabled" if enable_attestation else "disabled"
     logger.info(f"Package tracking for package {package_name}: {version} is {status}")
