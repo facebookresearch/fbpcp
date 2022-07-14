@@ -14,14 +14,17 @@ Usage:
     onedocker-runner <package_name> --version=<version> [options]
 
 Options:
-    -h --help                           Show this help
-    --repository_path=<repository_path> OneDocker repository path where the executables are downloaded from. No download when "LOCAL" repository is specified.
-    --exe_path=<exe_path>               The local path where the executables are downloaded to.
-    --exe_args=<exe_args>               The arguments the executable will use.
-    --timeout=<timeout>                 Set timeout (in sec) to kill the task.
-    --log_path=<path>                   Override the default path where logs are saved.
-    --cert_params=<cert_params>         string format of CertificateRequest dictionary if a TLS certificate is requested
-    --verbose                           Set logging level to DEBUG.
+    -h --help                                               Show this help
+    --repository_path=<repository_path>                     OneDocker repository path where the executables are downloaded from. No download when "LOCAL" repository is specified.
+    --checksum_repository_path=<checksum_repository_path>   OneDocker checksum path where the checksums are downloaded from. Doesnt verify files when not specified
+    --exe_path=<exe_path>                                   The local path where the executables are downloaded to.
+    --pubkey_path=<pubkey_path>                             The local path where the public key file is stored (Supported Type is .pem)
+    --exe_args=<exe_args>                                   The arguments the executable will use.
+    --checksum_type=<checksum_type>                         Type of Checksum to use while attesting binary (Supported Types are: MD5, SHA256[Default], BLAKE2B)
+    --timeout=<timeout>                                     Set timeout (in sec) to kill the task.
+    --log_path=<path>                                       Override the default path where logs are saved.
+    --cert_params=<cert_params>                             String format of CertificateRequest dictionary if a TLS certificate is requested
+    --verbose                                               Set logging level to DEBUG.
 """
 import logging
 import os
@@ -38,16 +41,21 @@ import psutil
 import schema
 from docopt import docopt
 from fbpcp.entity.certificate_request import CertificateRequest
+
+from fbpcp.error.pcp import PcpError
 from fbpcp.service.storage_s3 import S3StorageService
 from fbpcp.util.s3path import S3Path
 from onedocker.common.core_dump_handler_aws import AWSCoreDumpHandler
 from onedocker.common.env import (
     CORE_DUMP_REPOSITORY_PATH,
+    ONEDOCKER_CHECKSUM_REPOSITORY_PATH,
+    ONEDOCKER_CHECKSUM_TYPE,
     ONEDOCKER_EXE_PATH,
     ONEDOCKER_REPOSITORY_PATH,
 )
 from onedocker.common.util import run_cmd
 from onedocker.entity.checksum_type import ChecksumType
+from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.service.attestation import AttestationService
 from onedocker.service.certificate_self_signed import SelfSignedCertificateService
@@ -58,11 +66,19 @@ DEFAULT_REPOSITORY_PATH = (
     "https://one-docker-repository-prod.s3.us-west-2.amazonaws.com/"
 )
 
+# The default OneDocker checksum repository path on S3
+DEFAULT_CHECKSUM_REPOSITORY_PATH = (
+    "https://one-docker-checksum-repository-stage.s3.us-west-2.amazonaws.com/"
+)
+
 # The default path in the Docker image that is going to host the executables
 DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
 
 # the default version of the binary
 DEFAULT_BINARY_VERSION = "latest"
+
+# the default checksum type for verification
+DEFAULT_CHECKSUM_TYPE: str = "SHA256"
 
 logger: logging.Logger
 
@@ -82,6 +98,7 @@ def _prepare_executable(
     checksum_repository_path: str,
     checksum_type: ChecksumType,
     exe_path: str,
+    pubkey_path: str,
     package_name: str,
     version: str,
 ) -> str:
@@ -96,16 +113,17 @@ def _prepare_executable(
         # verify exectuable integrity
         if checksum_repository_path:
             _attest_executable(
-                executable,
-                checksum_repository_path,
-                checksum_type,
-                package_name,
-                version,
+                binary_path=executable,
+                checksum_repository_path=checksum_repository_path,
+                checksum_type=checksum_type,
+                package_name=package_name,
+                version=version,
+                pubkey_path=pubkey_path,
             )
         else:
             logger.info("No Checksum Path specified skipping verification")
     else:
-        logger.info("Local repository, skip download ...")
+        logger.info("Local repository, skip download and attestation ...")
 
     # grant execute permission to the downloaded executable file
     if not os.access(executable, os.X_OK):
@@ -162,6 +180,7 @@ def _run_package(
     checksum_repository_path: str,
     checksum_type: ChecksumType,
     exe_path: str,
+    pubkey_path: str,
     package_name: str,
     version: str,
     timeout: int,
@@ -180,6 +199,7 @@ def _run_package(
             checksum_repository_path=checksum_repository_path,
             checksum_type=checksum_type,
             exe_path=exe_path,
+            pubkey_path=pubkey_path,
             package_name=package_name,
             version=version,
         )
@@ -241,20 +261,41 @@ def _attest_executable(
     checksum_type: ChecksumType,
     package_name: str,
     version: str,
+    pubkey_path: str,
 ) -> None:
     logger.info(
-        f"Starting verification for package {package_name}: {version} using checksum type: {checksum_type.name}"
+        f"Starting attestation for package {package_name}: {version} using checksum type: {checksum_type.name}"
     )
     storage_svc = S3StorageService(S3Path(checksum_repository_path).region)
-    attestation_service = AttestationService(storage_svc, checksum_repository_path)
-
-    attestation_service.attest_binary(
-        binary_path=binary_path,
-        package_name=package_name,
-        version=version,
-        checksum_algorithm=checksum_type,
+    attestation_service = AttestationService()
+    onedocker_checksum_repository = OneDockerChecksumRepository(
+        storage_svc, checksum_repository_path
     )
-    logger.info(f"Finished verification for package {package_name}: {version}")
+
+    logger.info(f"Downloading checksum info for package {package_name}: {version}")
+    try:
+        formated_checksum_info = onedocker_checksum_repository.read(
+            package_name, version
+        )
+
+        logger.info(f"Attesting checksum info for package {package_name}: {version}")
+        if formated_checksum_info:
+            attestation_service.attest_binary(
+                binary_path=binary_path,
+                package_name=package_name,
+                version=version,
+                formated_checksum_info=formated_checksum_info,
+                checksum_algorithm=checksum_type,
+                pubkey_path=pubkey_path,
+            )
+        else:
+            logger.info("WARNING: No formated ChecksumInfo. Skipping Attestation")
+
+        logger.info(f"Finished attestation for package {package_name}: {version}")
+    except PcpError:
+        logger.info(
+            "WARNING: Connection to StorageService failed. Skipping Attestation"
+        )
 
 
 def _parse_package_name(package_name: str) -> str:
@@ -303,8 +344,11 @@ def main() -> None:
             "<package_name>": str,
             "--version": str,
             "--repository_path": schema.Or(None, schema.And(str, len)),
+            "--checksum_repository_path": schema.Or(None, schema.And(str, len)),
             "--exe_path": schema.Or(None, schema.And(str, len)),
+            "--pubkey_path": schema.Or(None, schema.And(str, len)),
             "--exe_args": schema.Or(None, schema.And(str, len)),
+            "--checksum_type": schema.Or(None, schema.And(str, len)),
             "--timeout": schema.Or(None, schema.Use(int)),
             "--log_path": schema.Or(None, schema.Use(Path)),
             "--cert_params": schema.Or(None, schema.And(str, len)),
@@ -326,29 +370,39 @@ def main() -> None:
         ONEDOCKER_REPOSITORY_PATH,
         DEFAULT_REPOSITORY_PATH,
     )
-    # [TODO] Update to not be hardcoded
-    # This will be tied to cli args in a future diff
-    checksum_repository_path = ""
+    checksum_repository_path = _read_config(
+        "checksum_repository_path",
+        arguments["--checksum_repository_path"],
+        ONEDOCKER_CHECKSUM_REPOSITORY_PATH,
+        DEFAULT_CHECKSUM_REPOSITORY_PATH,
+    )
     exe_path = _read_config(
         "exe_path",
         arguments["--exe_path"],
         ONEDOCKER_EXE_PATH,
         DEFAULT_EXE_FOLDER,
     )
+    pubkey_path = arguments.get("--pubkey_path", "")
+    checksum_type = ChecksumType(
+        _read_config(
+            "checksum_type",
+            arguments["--checksum_type"],
+            ONEDOCKER_CHECKSUM_TYPE,
+            DEFAULT_CHECKSUM_TYPE,
+        )
+    )
     certificate_request = (
         CertificateRequest.create_instance(arguments["--cert_params"])
         if arguments["--cert_params"]
         else None
     )
-    # [TODO] Update to not be hardoced
-    # This will be tied to cli args in a future diff
-    checksum_type = ChecksumType.BLAKE2B
 
     _run_package(
         repository_path=repository_path,
         checksum_repository_path=checksum_repository_path,
         checksum_type=checksum_type,
         exe_path=exe_path,
+        pubkey_path=pubkey_path,
         package_name=arguments["<package_name>"],
         version=arguments["--version"],
         timeout=arguments["--timeout"],

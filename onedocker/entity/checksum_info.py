@@ -8,10 +8,14 @@
 
 from __future__ import annotations
 
+import base64
+import json
+
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Set
 
 from onedocker.entity.checksum_type import ChecksumType
+from OpenSSL.crypto import FILETYPE_PEM, load_publickey, verify, X509
 
 
 @dataclass
@@ -20,14 +24,16 @@ class ChecksumInfo:
     This dataclass tracks a package's checksum info for attestation, to allow for easy comparision and tracking
 
     Fields:
-        package_name:   String containting the package's name
-        version:        String containting the package's version
-        Checksums:      Dict that holds a pairing between a ChecksumType (Key) and the corresponding hash (Value)
+        package_name:   String containing the package name
+        version:        String containing the package version
+        checksums:      Dict that holds a pairing between a ChecksumType (Key) and the corresponding hash (Value)
+        Signature:      Base64 encoded string containing
     """
 
     package_name: str
     version: str
     checksums: Dict[str, str]
+    signature: str = ""
 
     def __post_init__(self) -> None:
         """
@@ -41,7 +47,7 @@ class ChecksumInfo:
 
     def __eq__(self, other: ChecksumInfo) -> bool:
         """
-        Compares two ChecksumInfo isntannces in previously decided order
+        Compares two ChecksumInfo instances in previously decided order
         1.  Compares package_name
         2.  Compares version
         3.  Checks if overlaping checkum algorithms are present
@@ -63,5 +69,39 @@ class ChecksumInfo:
                 return False
         return True
 
-    def asdict(self) -> Dict[str, Any]:
-        return self.__dict__
+    def asdict(self, exclude: Optional[Set[str]] = None) -> Dict[str, Any]:
+        """
+        Returns a dict representation of all fields in ChecksumInfo
+
+        Args:
+            exclude:    Set of Strings that contains all fields to exclude from return
+        """
+        return (
+            self.__dict__
+            if not exclude
+            else {
+                key: self.__dict__[key] for key in self.__dict__ if key not in exclude
+            }
+        )
+
+    def verify_signature(self, public_key_path: str) -> None:
+        """
+        Verifies data that has been recoverd allowing us to be sure that binary integrity has been maintained
+
+        Args:
+            public_key_path:    String containing filepath to public_key
+        """
+        # Load public key
+        with open(public_key_path, "rb") as pubkey_file:
+            pubkey = load_publickey(FILETYPE_PEM, pubkey_file.read())
+        x509 = X509()
+        x509.set_pubkey(pubkey)
+
+        # Get signature
+        signature = base64.b64decode(self.signature.encode())
+
+        # Create a JSON copy of fields without signature field
+        data = json.dumps(self.asdict(exclude={"signature"}))
+
+        # Verify signature
+        verify(x509, signature, data, "sha256")

@@ -8,9 +8,10 @@
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Dict, List
 
-from fbpcp.service.storage import StorageService
+from fbpcp.service.key_management import KeyManagementService
+
 from onedocker.entity.attestation_error import AttestationError
 from onedocker.entity.checksum_info import ChecksumInfo
 from onedocker.entity.checksum_type import ChecksumType
@@ -24,19 +25,11 @@ class AttestationService:
         ChecksumType.SHA256,
         ChecksumType.BLAKE2B,
     ]
+    key_management_svc: KeyManagementService
 
-    def __init__(self, storage_svc: StorageService, repository_path: str) -> None:
+    def __init__(self) -> None:
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.checksum_generator = LocalChecksumGenerator()
-        self.storage_svc = storage_svc
-        self.repository_path = repository_path
-
-    def _build_attestation_repository_path(
-        self,
-        package_name: str,
-        version: str,
-    ) -> str:
-        return f"{self.repository_path}{package_name}/{version}.json"
 
     def _get_checksum_info(
         self,
@@ -56,33 +49,22 @@ class AttestationService:
             checksums=checksums,
         )
 
-    def _upload_checksum(
-        self,
-        package_name: str,
-        version: str,
-        checksum_info: Dict[str, Any],
-    ) -> None:
-
-        # Construct file information - (name and contents)
-        file_path = self._build_attestation_repository_path(package_name, version)
-        file_contents = json.dumps(checksum_info, indent=4)
-
-        # upload contents to set repo path
-        self.storage_svc.write(file_path, file_contents)
-
     def track_binary(
         self,
         binary_path: str,
         package_name: str,
         version: str,
-    ) -> None:
+    ) -> str:
         """
         This Function generates then uploads checksums for passed in local binary
 
         Args:
-            binary_path:        Local file path pointing to the package
-            package_name:       Package Name to use when uploading file to checksum repository
-            version:    Package Version to relay while uploading file to checksum repository
+            binary_path:    Local file path pointing to the package
+            package_name:   Package Name to use when uploading file to checksum repository
+            version:        Package Version to relay while uploading file to checksum repository
+
+        Returns:
+            formated_checksum_info:  A JSON formated file that contains all the checksum data for a file
         """
         # Generates checksums
         self.logger.info(f"Generating checksums for binary at {binary_path}")
@@ -91,21 +73,31 @@ class AttestationService:
             version=version,
             binary_path=binary_path,
         )
-
-        # Upload checksums and package info to set repo path
-        self.logger.info(f"Uploading checksums for package {package_name}: {version}")
-        self._upload_checksum(
-            package_name=package_name,
-            version=version,
-            checksum_info=checksum_info.asdict(),
+        formated_checksum_info = json.dumps(
+            checksum_info.asdict(
+                exclude={"signature"},
+            ),
         )
+        return formated_checksum_info
+
+    def add_signature(self, formated_checksum_info: str, signature: str) -> str:
+        checksum_dict = json.loads(formated_checksum_info)
+        checksum_info = ChecksumInfo(**checksum_dict)
+        checksum_info.signature = signature
+
+        signed_checksum_info = json.dumps(
+            checksum_info.asdict(),
+        )
+        return signed_checksum_info
 
     def attest_binary(
         self,
         binary_path: str,
         package_name: str,
         version: str,
+        formated_checksum_info: str,
         checksum_algorithm: ChecksumType,
+        pubkey_path: str,
     ) -> None:
         """
         This functions generates a checksum for a local file and then compares the generated value to what is stored in the checksum repository for the given package_name and version
@@ -113,32 +105,27 @@ class AttestationService:
         Args:
             binary_path:            Local file path pointing to the package
             package_name:           Package Name to use when downlading the checksum file from checksum repository
-            version:        Package Version to relay while downloading the checksum file from checksum repository
+            version:                Package Version to relay while downloading the checksum file from checksum repository
+            formated_checksum_info: String encoding of ChecksumInfo attaining to the JSON file format
             checksum_algorithm:     Checksum algorithm that should be used while attesting local binary
+            pubkey_path:            Local file path pointing to a .pem file with the public key
         """
-        # Build file path
-        file_path = self._build_attestation_repository_path(package_name, version)
+        checksum_info_dict = json.loads(formated_checksum_info)
+        checksum_info = ChecksumInfo(**checksum_info_dict)
 
-        if not self.storage_svc.file_exists(file_path):
-            self.logger.info(
-                f"Untracked package {package_name}: {version}. Skipping Attestion."
-            )
-            return None
-        # Retrieve file info and parse contents
-        file_contents = self.storage_svc.read(file_path)
-        package_info = json.loads(file_contents)
-        package_checksum_info = ChecksumInfo(**package_info)
+        # Verify signature
+        checksum_info.verify_signature(pubkey_path)
 
         # Generates checksums
         self.logger.info(f"Generating checksums for binary at {binary_path}")
-        checksum_info = self._get_checksum_info(
+        binary_checksum_info = self._get_checksum_info(
             package_name=package_name,
             version=version,
             binary_path=binary_path,
             checksum_types=[checksum_algorithm],
         )
 
-        if checksum_info != package_checksum_info:
+        if binary_checksum_info != checksum_info:
             raise AttestationError(
                 "Downloaded binaries checksum information differs from uploaded package's checksum information"
             )
