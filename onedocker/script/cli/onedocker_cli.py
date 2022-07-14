@@ -64,19 +64,19 @@ def _upload(
         f" Starting uploading package {package_name} at '{package_dir}', version {version}..."
     )
     if enable_attestation:
-        logger.info(
-            f"Generating and uploading checksums for package {package_name}: {version}"
-        )
+        logger.info(f"Generating checksums for package {package_name}: {version}")
         formated_checksum_info = attestation_svc.track_binary(
             binary_path=package_dir,
             package_name=package_name,
             version=version,
         )
+        logger.info(f"Uploading checksums for package {package_name}: {version}")
         onedocker_checksum_repo.write(
             package_name=package_name,
             version=version,
             checksum_data=formated_checksum_info,
         )
+    logger.info(f"Uploading binary for package {package_name}: {version}")
     onedocker_package_repo.upload(package_name, version, package_dir)
     logger.info(f" Finished uploading '{package_name}, version {version}'.\n")
 
@@ -225,9 +225,8 @@ def main() -> None:
     )
     log_svc = _build_log_service(config["dependency"]["LogService"])
 
-    logger.info(
-        f"Package tracking for package {package_name}: {version} has been {'enabled' if enable_attestation else 'disabled'}"
-    )
+    status = "enabled" if enable_attestation else "disabled"
+    logger.info(f"Package tracking for package {package_name}: {version} is {status}")
 
     if arguments["upload"]:
         _upload(package_dir, package_name, version, enable_attestation)

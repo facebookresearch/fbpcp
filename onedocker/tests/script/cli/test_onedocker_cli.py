@@ -379,6 +379,7 @@ class TestOnedockerCli(unittest.TestCase):
         ):
             main()
 
+        # Assert
         self.mockYamlLoad.assert_called_once()
         self.mockODPRGetPackageInfo.assert_called_once_with(
             self.package_name, self.version
@@ -398,6 +399,7 @@ class TestOnedockerCli(unittest.TestCase):
         ):
             main()
 
+        # Assert
         self.mockYamlLoad.assert_called_once()
         self.mockODPRGetPackageVersions.assert_called_once_with(self.package_name)
         self.mockODPRGetPackageInfo.assert_called_once_with(
