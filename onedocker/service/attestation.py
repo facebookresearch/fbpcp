@@ -10,6 +10,8 @@ import json
 import logging
 from typing import Dict, List
 
+from fbpcp.service.key_management import KeyManagementService
+
 from onedocker.entity.attestation_error import AttestationError
 from onedocker.entity.checksum_info import ChecksumInfo
 from onedocker.entity.checksum_type import ChecksumType
@@ -23,6 +25,7 @@ class AttestationService:
         ChecksumType.SHA256,
         ChecksumType.BLAKE2B,
     ]
+    key_management_svc: KeyManagementService
 
     def __init__(self) -> None:
         self.logger: logging.Logger = logging.getLogger(__name__)
@@ -56,9 +59,9 @@ class AttestationService:
         This Function generates then uploads checksums for passed in local binary
 
         Args:
-            binary_path:        Local file path pointing to the package
-            package_name:       Package Name to use when uploading file to checksum repository
-            version:    Package Version to relay while uploading file to checksum repository
+            binary_path:    Local file path pointing to the package
+            package_name:   Package Name to use when uploading file to checksum repository
+            version:        Package Version to relay while uploading file to checksum repository
 
         Returns:
             formated_checksum_info:  A JSON formated file that contains all the checksum data for a file
@@ -70,8 +73,22 @@ class AttestationService:
             version=version,
             binary_path=binary_path,
         )
+        formated_checksum_info = json.dumps(
+            checksum_info.asdict(
+                exclude={"signature"},
+            ),
+        )
+        return formated_checksum_info
 
-        return json.dumps(checksum_info.asdict(), indent=4)
+    def add_signature(self, formated_checksum_info: str, signature: str) -> str:
+        checksum_dict = json.loads(formated_checksum_info)
+        checksum_info = ChecksumInfo(**checksum_dict)
+        checksum_info.signature = signature
+
+        signed_checksum_info = json.dumps(
+            checksum_info.asdict(),
+        )
+        return signed_checksum_info
 
     def attest_binary(
         self,

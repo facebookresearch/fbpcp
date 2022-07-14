@@ -8,10 +8,14 @@
 
 from __future__ import annotations
 
+import base64
+import json
+
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Set
 
 from onedocker.entity.checksum_type import ChecksumType
+from OpenSSL.crypto import FILETYPE_PEM, load_publickey, verify, X509
 
 
 @dataclass
@@ -22,12 +26,14 @@ class ChecksumInfo:
     Fields:
         package_name:   String containing the package name
         version:        String containing the package version
-        Checksums:      Dict that holds a pairing between a ChecksumType (Key) and the corresponding hash (Value)
+        checksums:      Dict that holds a pairing between a ChecksumType (Key) and the corresponding hash (Value)
+        Signature:      Base64 encoded string containing
     """
 
     package_name: str
     version: str
     checksums: Dict[str, str]
+    signature: str = ""
 
     def __post_init__(self) -> None:
         """
@@ -63,5 +69,18 @@ class ChecksumInfo:
                 return False
         return True
 
-    def asdict(self) -> Dict[str, Any]:
-        return self.__dict__
+    def asdict(self, exclude: Optional[Set[str]] = None) -> Dict[str, Any]:
+        """
+        Returns a dict representation of all fields in ChecksumInfo
+
+        Args:
+            exclude:    Set of Strings that contains all fields to exclude from return
+        """
+        return (
+            self.__dict__
+            if not exclude
+            else {
+                key: self.__dict__[key] for key in self.__dict__ if key not in exclude
+            }
+        )
+
