@@ -65,7 +65,7 @@ def _upload(
     )
     if enable_attestation:
         logger.info(f"Generating checksums for package {package_name}: {version}")
-        formated_checksum_info = attestation_svc.track_binary(
+        formatted_checksum_info = attestation_svc.track_binary(
             binary_path=package_dir,
             package_name=package_name,
             version=version,
@@ -74,7 +74,7 @@ def _upload(
         onedocker_checksum_repo.write(
             package_name=package_name,
             version=version,
-            checksum_data=formated_checksum_info,
+            checksum_data=formatted_checksum_info,
         )
     logger.info(f"Uploading binary for package {package_name}: {version}")
     onedocker_package_repo.upload(package_name, version, package_dir)

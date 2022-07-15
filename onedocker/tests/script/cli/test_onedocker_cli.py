@@ -58,7 +58,7 @@ class TestOnedockerCli(unittest.TestCase):
         self.timeout = "100"
         self.cmd_args = "-h"
         self.container = "secret_container"
-        self.checksums = "formated_checksums_go_here"
+        self.checksums = "formatted_checksums_go_here"
 
         self.package_info = PackageInfo(
             package_name=self.package_name,
