@@ -253,14 +253,14 @@ def _attest_executable(
     )
 
     logger.info(f"Downloading checksum info for package {package_name}: {version}")
-    formated_checksum_info = onedocker_checksum_repository.read(package_name, version)
+    formatted_checksum_info = onedocker_checksum_repository.read(package_name, version)
 
     logger.info(f"Attesting checksum info for package {package_name}: {version}")
     attestation_service.attest_binary(
         binary_path=binary_path,
         package_name=package_name,
         version=version,
-        formated_checksum_info=formated_checksum_info,
+        formatted_checksum_info=formatted_checksum_info,
         checksum_algorithm=checksum_type,
     )
     logger.info(f"Finished attestation for package {package_name}: {version}")

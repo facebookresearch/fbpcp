@@ -61,7 +61,7 @@ class AttestationService:
             version:    Package Version to relay while uploading file to checksum repository
 
         Returns:
-            formated_checksum_info:  A JSON formated file that contains all the checksum data for a file
+            formatted_checksum_info:  A JSON formatted file that contains all the checksum data for a file
         """
         # Generates checksums
         self.logger.info(f"Generating checksums for binary at {binary_path}")
@@ -78,7 +78,7 @@ class AttestationService:
         binary_path: str,
         package_name: str,
         version: str,
-        formated_checksum_info: str,
+        formatted_checksum_info: str,
         checksum_algorithm: ChecksumType,
     ) -> None:
         """
@@ -88,10 +88,10 @@ class AttestationService:
             binary_path:            Local file path pointing to the package
             package_name:           Package Name to use when downlading the checksum file from checksum repository
             version:                Package Version to relay while downloading the checksum file from checksum repository
-            formated_checksum_info: String encoding of ChecksumInfo attaining to the JSON file format
+            formatted_checksum_info: String encoding of ChecksumInfo attaining to the JSON file format
             checksum_algorithm:     Checksum algorithm that should be used while attesting local binary
         """
-        checksum_info_dict = json.loads(formated_checksum_info)
+        checksum_info_dict = json.loads(formatted_checksum_info)
         checksum_info = ChecksumInfo(**checksum_info_dict)
 
         # Generates checksums

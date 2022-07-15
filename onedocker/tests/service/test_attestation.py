@@ -44,7 +44,7 @@ class TestAttestationService(unittest.TestCase):
 
     def test_track_binary_s3(self):
         # Arrange & Act
-        formated_checksums = self.attestation_service.track_binary(
+        formatted_checksums = self.attestation_service.track_binary(
             binary_path=self.test_package["binary_path"],
             package_name=self.test_package["package_name"],
             version=self.test_package["version"],
@@ -55,7 +55,7 @@ class TestAttestationService(unittest.TestCase):
             binary_path=self.test_package["binary_path"],
             checksum_algorithms=self.algorithms,
         )
-        self.assertEqual(formated_checksums, self.file_contents)
+        self.assertEqual(formatted_checksums, self.file_contents)
 
     def test_attest_binary_s3(
         self,
@@ -73,7 +73,7 @@ class TestAttestationService(unittest.TestCase):
             binary_path=self.test_package["binary_path"],
             package_name=self.test_package["package_name"],
             version=self.test_package["version"],
-            formated_checksum_info=self.file_contents,
+            formatted_checksum_info=self.file_contents,
             checksum_algorithm=test_algorithm,
         )
 
@@ -105,7 +105,7 @@ class TestAttestationService(unittest.TestCase):
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["package_name"],
                 version=self.test_package["version"],
-                formated_checksum_info=modified_file_contents,
+                formatted_checksum_info=modified_file_contents,
                 checksum_algorithm=test_algorithm,
             )
 
@@ -130,7 +130,7 @@ class TestAttestationService(unittest.TestCase):
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["package_name"],
                 version=self.test_package["version"],
-                formated_checksum_info=modified_file_contents,
+                formatted_checksum_info=modified_file_contents,
                 checksum_algorithm=test_algorithm,
             )
 
@@ -158,7 +158,7 @@ class TestAttestationService(unittest.TestCase):
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["package_name"],
                 version=self.test_package["version"],
-                formated_checksum_info=modified_file_contents,
+                formatted_checksum_info=modified_file_contents,
                 checksum_algorithm=test_algorithm,
             )
 
@@ -189,7 +189,7 @@ class TestAttestationService(unittest.TestCase):
                 binary_path=self.test_package["binary_path"],
                 package_name=self.test_package["package_name"],
                 version=self.test_package["version"],
-                formated_checksum_info=modified_file_contents,
+                formatted_checksum_info=modified_file_contents,
                 checksum_algorithm=test_algorithm,
             )
 
