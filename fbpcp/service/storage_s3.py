@@ -220,3 +220,11 @@ class S3StorageService(StorageService):
 
     def get_bucket_public_access_block(self, bucket: str) -> PublicAccessBlockConfig:
         return self.s3_gateway.get_public_access_block(bucket)
+
+    def list_files(self, dirPath: str) -> List[str]:
+        """Returns all paths of files in folders and sub folders recursively
+        Keyword arguments:
+        dirPath -- s3 dir path
+        """
+        s3_path = S3Path(dirPath)
+        return self.s3_gateway.list_object2(s3_path.bucket, s3_path.key)
