@@ -13,6 +13,7 @@ from docopt import docopt
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.error.pcp import InvalidParameterError
 from onedocker.common.core_dump_handler_aws import AWSCoreDumpHandler
+from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.script.runner.onedocker_runner import (
     __doc__ as __onedocker_runner_doc__,
@@ -136,10 +137,12 @@ class TestOnedockerRunner(unittest.TestCase):
             self.assertEqual(cm.exception.code, 1)
 
     @patch.object(AttestationService, "attest_binary")
+    @patch.object(OneDockerChecksumRepository, "read")
     @patch.object(OneDockerPackageRepository, "download")
     def test_main(
         self,
         mockOneDockerPackageRepositoryDownload,
+        mockOneDockerChecksumRepositoryRead,
         mockAttestationServiceVerifyBinary,
     ):
         # Arrange
@@ -169,12 +172,10 @@ class TestOnedockerRunner(unittest.TestCase):
                 "/usr/bin/echo",
             )
 
-    @patch.object(OneDockerPackageRepository, "download")
     @patch.object(SelfSignedCertificateService, "generate_certificate")
     def test_main_good_cert(
         self,
         mockSelfSignedCertificateServiceGenerateCertificate,
-        mockOneDockerPackageRepositoryDownload,
     ):
         # Arrange
         with patch.object(
@@ -184,6 +185,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 "onedocker-runner",
                 "echo",
                 "--version=latest",
+                "--repository_path=local",
                 "--exe_path=/usr/bin/",
                 "--exe_args=test_message",
                 f"--cert_params={self.test_cert_params}",
@@ -196,11 +198,6 @@ class TestOnedockerRunner(unittest.TestCase):
             # Assert
             self.assertEqual(cm.exception.code, 0)
             mockSelfSignedCertificateServiceGenerateCertificate.assert_called_once_with()
-            mockOneDockerPackageRepositoryDownload.assert_called_once_with(
-                "echo",
-                "latest",
-                "/usr/bin/echo",
-            )
 
     def test_main_bad_cert(self):
         # Arrange
