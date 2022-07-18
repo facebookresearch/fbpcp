@@ -211,3 +211,10 @@ class TestS3StorageService(unittest.TestCase):
         service.s3_gateway = MockS3Gateway()
         service.file_exists(self.S3_FILE)
         service.s3_gateway.object_exists.assert_called_with("bucket", "test_file")
+
+    @patch("fbpcp.gateway.s3.S3Gateway")
+    def test_list_files(self, MockS3Gateway):
+        service = S3StorageService("us-west-1")
+        service.s3_gateway = MockS3Gateway()
+        service.list_files(self.S3_FOLDER)
+        service.s3_gateway.list_object2.assert_called_with("bucket", "test_folder")

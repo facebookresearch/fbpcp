@@ -282,3 +282,6 @@ class GCSStorageService(StorageService):
 
     def get_bucket_public_access_block(self, bucket: str) -> PublicAccessBlockConfig:
         raise NotImplementedError
+
+    def list_files(self, dirPath: str) -> List[str]:
+        raise NotImplementedError

@@ -71,3 +71,7 @@ class StorageService(abc.ABC):
     @abc.abstractmethod
     def get_bucket_public_access_block(self, bucket: str) -> PublicAccessBlockConfig:
         pass
+
+    @abc.abstractmethod
+    def list_files(self, dirPath: str) -> List[str]:
+        pass
