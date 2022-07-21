@@ -42,7 +42,7 @@ class TestAttestationService(unittest.TestCase):
             return_value=self.checksums
         )
 
-    def test_track_binary_s3(self):
+    def test_track_binary(self):
         # Arrange & Act
         formatted_checksums = self.attestation_service.track_binary(
             binary_path=self.test_package["binary_path"],
@@ -57,7 +57,7 @@ class TestAttestationService(unittest.TestCase):
         )
         self.assertEqual(formatted_checksums, self.file_contents)
 
-    def test_attest_binary_s3(
+    def test_attest_binary(
         self,
     ):
         # Arrange
@@ -83,7 +83,7 @@ class TestAttestationService(unittest.TestCase):
             checksum_algorithms=[test_algorithm],
         )
 
-    def test_attest_binary_s3_nonmatching_algorithm(
+    def test_attest_binary_nonmatching_algorithm(
         self,
     ):
         # Arrange
@@ -112,7 +112,7 @@ class TestAttestationService(unittest.TestCase):
         # Assert
         assert not self.attestation_service.checksum_generator.generate_checksums.called
 
-    def test_attest_binary_s3_bad_name(
+    def test_attest_binary_bad_name(
         self,
     ):
         # Arrange
@@ -140,7 +140,7 @@ class TestAttestationService(unittest.TestCase):
             checksum_algorithms=[test_algorithm],
         )
 
-    def test_attest_binary_s3_bad_version(
+    def test_attest_binary_bad_version(
         self,
     ):
         # Arrange
@@ -168,7 +168,7 @@ class TestAttestationService(unittest.TestCase):
             checksum_algorithms=[test_algorithm],
         )
 
-    def test_attest_binary_s3_bad_checksum(
+    def test_attest_binary_bad_checksum(
         self,
     ):
         # Arrange
