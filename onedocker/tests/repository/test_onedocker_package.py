@@ -36,8 +36,8 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         )
 
         # Assert
-        self.onedocker_repository.storage_svc.copy.assert_called_with(
-            source, self.expected_s3_dest
+        self.onedocker_repository.storage_svc.upload_file.assert_called_with(
+            source, self.expected_s3_dest, None
         )
 
     def test_onedockerrepo_download(self):
