@@ -211,6 +211,7 @@ class S3StorageService(StorageService):
             file_name=filename,
             last_modified=file_info_dict.get("LastModified").ctime(),
             file_size=file_info_dict.get("ContentLength"),
+            metadata=file_info_dict.get("Metadata"),
         )
 
     def get_file_size(self, filename: str) -> int:
