@@ -64,7 +64,7 @@ class S3StorageService(StorageService):
                     raise ValueError(f"Source {source} is a folder. Use --recursive")
                 self.upload_dir(source, s3_path.bucket, s3_path.key)
             else:
-                self.s3_gateway.upload_file(source, s3_path.bucket, s3_path.key)
+                self.upload_file(source, destination)
         else:
             source_s3_path = S3Path(source)
             if StorageService.path_type(destination) == PathType.S3:
@@ -110,6 +110,12 @@ class S3StorageService(StorageService):
                     self.s3_gateway.download_file(
                         source_s3_path.bucket, source_s3_path.key, destination
                     )
+
+    def upload_file(
+        self, source: str, destination: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        s3_path = S3Path(destination)
+        self.s3_gateway.upload_file(source, s3_path.bucket, s3_path.key, metadata)
 
     def upload_dir(self, source: str, s3_path_bucket: str, s3_path_key: str) -> None:
         for root, dirs, files in os.walk(source):

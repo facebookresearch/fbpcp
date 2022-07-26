@@ -9,7 +9,7 @@
 import abc
 import re
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List, Optional
 
 from fbpcp.entity.file_information import FileInfo
 from fbpcp.entity.policy_statement import PolicyStatement, PublicAccessBlockConfig
@@ -74,4 +74,10 @@ class StorageService(abc.ABC):
 
     @abc.abstractmethod
     def list_files(self, dirPath: str) -> List[str]:
+        pass
+
+    @abc.abstractmethod
+    def upload_file(
+        self, source: str, destination: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
         pass
