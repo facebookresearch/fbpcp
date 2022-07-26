@@ -6,7 +6,7 @@
 
 # pyre-strict
 
-from base64 import b64encode
+from base64 import b64decode, b64encode
 from typing import Any, Dict, List, Optional
 
 import boto3
@@ -32,17 +32,38 @@ class KMSGateway(AWSGateway):
     def sign(
         self,
         key_id: str,
-        message: bytes,
+        message: str,
         message_type: str,
         grant_tokens: List[str],
         signing_algorithm: str,
     ) -> str:
         response = self.client.sign(
             KeyId=key_id,
-            Message=message,
+            Message=message.encode(),
             MessageType=message_type,
             GrantTokens=grant_tokens,
             SigningAlgorithm=signing_algorithm,
         )
         signature = b64encode(response["Signature"]).decode()
         return signature
+
+    @error_handler
+    def verify(
+        self,
+        key_id: str,
+        message: str,
+        message_type: str,
+        signature: str,
+        signing_algorithm: str,
+        grant_tokens: List[str],
+    ) -> bool:
+        b64_signature = b64decode(signature.encode())
+        response = self.client.verify(
+            KeyId=key_id,
+            Message=message.encode(),
+            MessageType=message_type,
+            Signature=b64_signature,
+            SigningAlgorithm=signing_algorithm,
+            GrantTokens=grant_tokens,
+        )
+        return response["SignatureValid"]

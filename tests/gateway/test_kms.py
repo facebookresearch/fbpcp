@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import base64
 import base64 as b64
 import unittest
 from unittest.mock import MagicMock, patch
@@ -45,3 +46,21 @@ class TestKMSGateway(unittest.TestCase):
 
         # Assert
         self.assertEqual(signature, signed_message)
+
+    def test_verify(self) -> None:
+        # Arrange
+        verify_args = {
+            "key_id": "test_key_id",
+            "message": "test_message",
+            "message_type": "test_message_type",
+            "signature": "dGVzdF9tZXNzYWdl",
+            "grant_tokens": [],
+            "signing_algorithm": "",
+        }
+        self.kms.client.verify = MagicMock(return_value={"SignatureValid": True})
+
+        # Act
+        verification = self.kms.verify(**verify_args)
+
+        # Assert
+        self.assertTrue(verification)
