@@ -6,10 +6,12 @@
 
 # pyre-strict
 
-from typing import Any, Dict, Optional
+from base64 import b64encode
+from typing import Any, Dict, List, Optional
 
 import boto3
 from botocore.client import BaseClient
+from fbpcp.decorator.error_handler import error_handler
 from fbpcp.gateway.aws import AWSGateway
 
 
@@ -25,3 +27,22 @@ class KMSGateway(AWSGateway):
         self.client: BaseClient = boto3.client(
             "kms", region_name=self.region, **self.config
         )
+
+    @error_handler
+    def sign(
+        self,
+        key_id: str,
+        message: bytes,
+        message_type: str,
+        grant_tokens: List[str],
+        signing_algorithm: str,
+    ) -> str:
+        response = self.client.sign(
+            KeyId=key_id,
+            Message=message,
+            MessageType=message_type,
+            GrantTokens=grant_tokens,
+            SigningAlgorithm=signing_algorithm,
+        )
+        signature = b64encode(response["Signature"]).decode()
+        return signature
