@@ -13,3 +13,7 @@ class KeyManagementService(abc.ABC):
     @abc.abstractmethod
     def sign(self, message: str) -> str:
         pass
+
+    @abc.abstractmethod
+    def verify(self, message: str, signature: str) -> bool:
+        pass
