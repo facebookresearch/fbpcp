@@ -48,7 +48,7 @@ class TestS3StorageService(unittest.TestCase):
         service.s3_gateway.upload_file = MagicMock(return_value=None)
         service.copy(self.LOCAL_FILE, self.S3_FILE)
         service.s3_gateway.upload_file.assert_called_with(
-            str(self.LOCAL_FILE), "bucket", "test_file"
+            str(self.LOCAL_FILE), "bucket", "test_file", None
         )
 
     def test_copy_local_dir_to_s3_recursive_false(self):

@@ -6,6 +6,7 @@
 
 # pyre-strict
 from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -13,3 +14,4 @@ class FileInfo:
     file_name: str
     last_modified: str
     file_size: int
+    metadata: Optional[Dict[str, Any]] = None
