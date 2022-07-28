@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 #
 # This source code is licensed under the MIT license found in the
@@ -10,7 +11,7 @@ from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
 
-class OnedockerRepositoryService:
+class OneDockerRepositoryService:
     def __init__(
         self,
         storage_svc: StorageService,
@@ -32,7 +33,8 @@ class OnedockerRepositoryService:
         source: str,
         metadata: Optional[dict] = None,
     ) -> None:
-        raise NotImplementedError
+        # TODO: T127441856 handle storing metadata
+        self.package_repo.upload(package_name, version, source)
 
     def download(self, package_name: str, version: str, destination: str) -> None:
         raise NotImplementedError
