@@ -16,15 +16,15 @@ class OneDockerPackageRepository:
         self.storage_svc = storage_svc
         self.repository_path = repository_path
 
-    def _build_package_path(self, package_name: str, version: str) -> str:
+    def build_package_path(self, package_name: str, version: str) -> str:
         return f"{self.repository_path}{package_name}/{version}/{package_name.split('/')[-1]}"
 
     def upload(self, package_name: str, version: str, source: str) -> None:
-        package_path = self._build_package_path(package_name, version)
+        package_path = self.build_package_path(package_name, version)
         self.storage_svc.copy(source, package_path)
 
     def download(self, package_name: str, version: str, destination: str) -> None:
-        package_path = self._build_package_path(package_name, version)
+        package_path = self.build_package_path(package_name, version)
         self.storage_svc.copy(package_path, destination)
 
     def get_package_versions(
@@ -35,7 +35,7 @@ class OneDockerPackageRepository:
         return self.storage_svc.list_folders(package_parent_path)
 
     def get_package_info(self, package_name: str, version: str) -> PackageInfo:
-        package_path = self._build_package_path(package_name, version)
+        package_path = self.build_package_path(package_name, version)
 
         if not self.storage_svc.file_exists(package_path):
             raise ValueError(
