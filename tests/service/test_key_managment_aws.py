@@ -36,12 +36,28 @@ class TestAWSKeyManagementService(unittest.TestCase):
             "message": "test_message",
             "message_type": "test_message_type",
         }
-        signed_message = "test_signed_message"
+        test_signature = "test_signature"
 
-        self.kms_aws.kms_gateway.sign = MagicMock(return_value=signed_message)
+        self.kms_aws.kms_gateway.sign = MagicMock(return_value=test_signature)
 
         # Act
         signature = self.kms_aws.sign(**sign_args)
 
         # Assert
-        self.assertEqual(signature, signed_message)
+        self.assertEqual(signature, test_signature)
+
+    def test_verify(self) -> None:
+        # Arrange
+        verify_args = {
+            "signature": "test_signature",
+            "message": "test_message",
+            "message_type": "test_message_type",
+        }
+
+        self.kms_aws.kms_gateway.verify = MagicMock(return_value=True)
+
+        # Act
+        status = self.kms_aws.verify(**verify_args)
+
+        # Assert
+        self.assertTrue(status)

@@ -47,3 +47,14 @@ class AWSKeyManagementService(KeyManagementService):
             signing_algorithm=self.signing_algorithm,
         )
         return signature
+
+    def verify(self, message: str, signature: str, message_type: str = "RAW") -> bool:
+        valid = self.kms_gateway.verify(
+            key_id=self.key_id,
+            message=message,
+            message_type=message_type,
+            signature=signature,
+            signing_algorithm=self.signing_algorithm,
+            grant_tokens=self.grant_tokens,
+        )
+        return valid
