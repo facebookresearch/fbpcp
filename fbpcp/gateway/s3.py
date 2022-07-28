@@ -47,13 +47,21 @@ class S3Gateway(AWSGateway):
         self.client.delete_bucket(Bucket=bucket)
 
     @error_handler
-    def upload_file(self, file_name: str, bucket: str, key: str) -> None:
+    def upload_file(
+        self,
+        file_name: str,
+        bucket: str,
+        key: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
         file_size = os.path.getsize(file_name)
+        metadata = metadata if metadata else {}
         self.client.upload_file(
             file_name,
             bucket,
             key,
             Callback=self.ProgressPercentage(file_name, file_size),
+            ExtraArgs={"Metadata": metadata},
         )
 
     @error_handler

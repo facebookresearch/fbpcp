@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from datetime import datetime
 from typing import Optional
 
 from fbpcp.service.storage import StorageService
@@ -10,7 +12,7 @@ from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
 
-class OnedockerRepositoryService:
+class OneDockerRepositoryService:
     def __init__(
         self,
         storage_svc: StorageService,
@@ -32,7 +34,10 @@ class OnedockerRepositoryService:
         source: str,
         metadata: Optional[dict] = None,
     ) -> None:
-        raise NotImplementedError
+        today = datetime.today().strftime("%Y-%m-%d")
+        metadata = metadata if metadata else {}
+        metadata["upload_date"] = today
+        self.package_repo.upload(package_name, version, source, metadata)
 
     def download(self, package_name: str, version: str, destination: str) -> None:
         raise NotImplementedError

@@ -127,6 +127,11 @@ class GCSStorageService(StorageService):
                         dest_key=destination_gcs_path.key,
                     )
 
+    def upload_file(
+        self, source: str, destination: str, metadata: Optional[Dict[str, Any]]
+    ) -> None:
+        raise NotImplementedError
+
     def upload_dir(self, source: str, gcs_path_bucket: str, gcs_path_key: str) -> None:
         """Upload a directory from the filesystem to GCS
 
