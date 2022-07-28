@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+from datetime import datetime
 from typing import Optional
 
 from fbpcp.service.storage import StorageService
@@ -40,4 +41,21 @@ class OneDockerRepositoryService:
         raise NotImplementedError
 
     def promote(self, package_name: str, old_version: str, new_version: str) -> None:
-        raise NotImplementedError
+        # Build the target path to promote the package to.
+        target_path = self.package_repo.build_package_path(package_name, new_version)
+        if new_version == "latest":
+            # Archive the existing files in the target path.
+            last_modified_date = self.package_repo.get_package_info(
+                package_name, new_version
+            ).last_modified
+            formatted_date = datetime.strftime(
+                datetime.strptime(last_modified_date, "%a %b %d %H:%M:%S %Y"),
+                "%Y-%m-%d",
+            )
+
+            archive_path = self.package_repo.build_package_path(
+                package_name, formatted_date
+            )
+            self.storage_svc.copy(target_path, archive_path)
+        current_path = self.package_repo.build_package_path(package_name, old_version)
+        self.storage_svc.copy(current_path, target_path)
