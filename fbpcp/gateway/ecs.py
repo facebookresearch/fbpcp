@@ -6,6 +6,7 @@
 
 # pyre-strict
 
+import shlex
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, Final, Iterator, List, Optional, Tuple
 
@@ -93,7 +94,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
                 "containerOverrides": [
                     {
                         "name": container,
-                        "command": [cmd],
+                        "command": shlex.split(cmd),
                         "environment": environment,
                     }
                 ]
