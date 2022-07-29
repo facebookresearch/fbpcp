@@ -4,6 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import shlex
 import unittest
 from typing import Callable, Dict, List
 from unittest.mock import call, MagicMock, patch
@@ -26,6 +27,14 @@ class TestECSGateway(unittest.TestCase):
     TEST_CONTAINER = "test-container"
     TEST_CLUSTER = "test-cluster"
     TEST_CMD = "test-cmd"
+    TEST_CMD_WITH_ARGS = [
+        "test-cmd",
+        "arg1",
+        "--arg2",
+        "arg2-value",
+        "--arg3=arg3-value",
+        "--arg4=arg4-value --arg4-arg1 'arg4-arg1-value' --arg4-arg2",
+    ]
     TEST_SUBNETS = ["test-subnet"]
     TEST_ACCESS_KEY_ID = "test-access-key-id"
     TEST_ACCESS_KEY_DATA = "test-access-key-data"
@@ -76,7 +85,79 @@ class TestECSGateway(unittest.TestCase):
             ContainerInstanceStatus.STARTED,
         )
         self.assertEqual(task, expected_task)
-        self.gw.client.run_task.assert_called()
+        self.gw.client.run_task.assert_called_once_with(
+            taskDefinition=self.TEST_TASK_DEFINITION,
+            cluster=self.TEST_CLUSTER,
+            networkConfiguration={
+                "awsvpcConfiguration": {
+                    "subnets": self.TEST_SUBNETS,
+                    "assignPublicIp": "ENABLED",
+                }
+            },
+            overrides={
+                "containerOverrides": [
+                    {
+                        "name": self.TEST_CONTAINER,
+                        "command": [self.TEST_CMD],
+                        "environment": [],
+                    }
+                ]
+            },
+        )
+
+    def test_run_task_with_args(self) -> None:
+        client_return_response = {
+            "tasks": [
+                {
+                    "containers": [
+                        {
+                            "name": "container_1",
+                            "exitcode": 123,
+                            "lastStatus": "RUNNING",
+                            "networkInterfaces": [
+                                {
+                                    "privateIpv4Address": self.TEST_IP_ADDRESS,
+                                },
+                            ],
+                        }
+                    ],
+                    "taskArn": self.TEST_TASK_ARN,
+                }
+            ]
+        }
+        self.gw.client.run_task = MagicMock(return_value=client_return_response)
+        task = self.gw.run_task(
+            self.TEST_TASK_DEFINITION,
+            self.TEST_CONTAINER,
+            shlex.join(self.TEST_CMD_WITH_ARGS),
+            self.TEST_CLUSTER,
+            self.TEST_SUBNETS,
+        )
+        expected_task = ContainerInstance(
+            self.TEST_TASK_ARN,
+            self.TEST_IP_ADDRESS,
+            ContainerInstanceStatus.STARTED,
+        )
+        self.assertEqual(task, expected_task)
+        self.gw.client.run_task.assert_called_once_with(
+            taskDefinition=self.TEST_TASK_DEFINITION,
+            cluster=self.TEST_CLUSTER,
+            networkConfiguration={
+                "awsvpcConfiguration": {
+                    "subnets": self.TEST_SUBNETS,
+                    "assignPublicIp": "ENABLED",
+                }
+            },
+            overrides={
+                "containerOverrides": [
+                    {
+                        "name": self.TEST_CONTAINER,
+                        "command": self.TEST_CMD_WITH_ARGS,
+                        "environment": [],
+                    }
+                ]
+            },
+        )
 
     def test_describe_task(self) -> None:
         client_return_response = {
