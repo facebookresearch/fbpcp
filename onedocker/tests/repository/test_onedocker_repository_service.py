@@ -46,3 +46,17 @@ class TestOneDockerRepositoryService(unittest.TestCase):
         self.package_repo.upload.assert_called_with(
             self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, source_path
         )
+
+    def test_onedocker_repo_service_download(self) -> None:
+        # Arrange
+        destination = "test_destination_path"
+
+        # Act
+        self.repo_service.download(
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, destination
+        )
+
+        # Assert
+        self.package_repo.download.assert_called_with(
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, destination
+        )
