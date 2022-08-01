@@ -37,7 +37,7 @@ class OneDockerRepositoryService:
         self.package_repo.upload(package_name, version, source)
 
     def download(self, package_name: str, version: str, destination: str) -> None:
-        raise NotImplementedError
+        self.package_repo.download(package_name, version, destination)
 
     def promote(self, package_name: str, old_version: str, new_version: str) -> None:
         raise NotImplementedError
