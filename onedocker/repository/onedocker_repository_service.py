@@ -7,6 +7,7 @@
 from typing import Optional
 
 from fbpcp.service.storage import StorageService
+from onedocker.entity.object_metadata import PackageMetadata
 from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
@@ -33,11 +34,26 @@ class OneDockerRepositoryService:
         source: str,
         metadata: Optional[dict] = None,
     ) -> None:
-        # TODO: T127441856 handle storing metadata
         self.package_repo.upload(package_name, version, source)
 
     def download(self, package_name: str, version: str, destination: str) -> None:
         self.package_repo.download(package_name, version, destination)
 
     def promote(self, package_name: str, old_version: str, new_version: str) -> None:
+        raise NotImplementedError
+
+    def _set_metadata(
+        self,
+        package_name: str,
+        version: str,
+        metadata: PackageMetadata,
+    ) -> None:
+        # TODO: T127441856 handle storing metadata
+        raise NotImplementedError
+
+    def _get_metadata(
+        self,
+        package_name: str,
+        version: str,
+    ) -> PackageMetadata:
         raise NotImplementedError
