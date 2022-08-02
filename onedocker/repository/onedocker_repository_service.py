@@ -39,9 +39,6 @@ class OneDockerRepositoryService:
     def download(self, package_name: str, version: str, destination: str) -> None:
         self.package_repo.download(package_name, version, destination)
 
-    def promote(self, package_name: str, old_version: str, new_version: str) -> None:
-        raise NotImplementedError
-
     def _set_metadata(
         self,
         package_name: str,
@@ -57,3 +54,7 @@ class OneDockerRepositoryService:
         version: str,
     ) -> PackageMetadata:
         raise NotImplementedError
+
+    def archive_file(self, package_name: str, version: str) -> None:
+        self.package_repo.archive_file(package_name, version)
+        self.checksum_repo.archive_file(package_name, version)
