@@ -49,3 +49,6 @@ class OneDockerPackageRepository:
             last_modified=file_info.last_modified,
             package_size=file_info.file_size,
         )
+
+    def archive_file(self, package_name: str, version: str) -> None:
+        raise NotImplementedError

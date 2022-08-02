@@ -28,7 +28,9 @@ class TestOneDockerRepositoryService(unittest.TestCase):
         package_repo_path = "/package_repo_path/"
         checksum_repo_path = "/checksum_repo_path/"
         self.package_repo = MagicMock()
+        self.checksum_repo = MagicMock()
         mockPackageRepoCall.return_value = self.package_repo
+        mockChecksumRepoCall.return_value = self.checksum_repo
         self.repo_service = OneDockerRepositoryService(
             mockStorageService, package_repo_path, checksum_repo_path
         )
@@ -59,4 +61,17 @@ class TestOneDockerRepositoryService(unittest.TestCase):
         # Assert
         self.package_repo.download.assert_called_with(
             self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, destination
+        )
+
+    def test_onedocker_repo_service_archive(self) -> None:
+        # Act
+        self.repo_service.archive_file(
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
+        )
+        # Assert
+        self.package_repo.archive_file.assert_called_once_with(
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
+        )
+        self.checksum_repo.archive_file.assert_called_once_with(
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
         )

@@ -46,3 +46,6 @@ class OneDockerChecksumRepository:
             )
 
         return self.storage_svc.read(filename=package_path)
+
+    def archive_file(self, package_name: str, version: str) -> None:
+        raise NotImplementedError
