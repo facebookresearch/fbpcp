@@ -177,11 +177,11 @@ class TestValidator(TestCase):
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
                 self.validator.validate_vpc_cidr(pce)
-            self.assertEquals(expected_error_msg, str(ex.exception))
+            self.assertEqual(expected_error_msg, str(ex.exception))
             return
 
         actual_result = self.validator.validate_vpc_cidr(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_vpc_cidr_non_valid(self) -> None:
         for invalid_ip in ["non_valid", "10.1.1.300"]:
@@ -225,7 +225,7 @@ class TestValidator(TestCase):
             ValidationResultCode.SUCCESS, ValidationStepNames.VPC_CIDR.code_name
         )
         actual_result = self.validator.validate_vpc_cidr(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_publisher_cidr(self) -> None:
         pce = MagicMock()
@@ -235,7 +235,7 @@ class TestValidator(TestCase):
             ValidationResultCode.SUCCESS, ValidationStepNames.VPC_CIDR.code_name
         )
         actual_result = self.validator.validate_vpc_cidr(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def _test_validate_firewall(
         self,
@@ -258,11 +258,11 @@ class TestValidator(TestCase):
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
                 self.validator.validate_firewall(pce)
-            self.assertEquals(expected_error_msg, str(ex.exception))
+            self.assertEqual(expected_error_msg, str(ex.exception))
             return
 
         actual_result = self.validator.validate_firewall(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_firewall_not_overlapping_vpc(self) -> None:
         """
@@ -424,11 +424,11 @@ class TestValidator(TestCase):
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
                 self.validator.validate_route_table(pce)
-            self.assertEquals(expected_error_msg, str(ex.exception))
+            self.assertEqual(expected_error_msg, str(ex.exception))
             return
 
         actual_result = self.validator.validate_route_table(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_route_table_no_vpc_peering(self) -> None:
         self._test_validate_route_table(
@@ -536,11 +536,11 @@ class TestValidator(TestCase):
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
                 self.validator.validate_subnets(pce)
-            self.assertEquals(expected_error_msg, str(ex.exception))
+            self.assertEqual(expected_error_msg, str(ex.exception))
             return
 
         actual_result = self.validator.validate_subnets(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_subnet_single_zone(self) -> None:
         subnet_availability_zones = [
@@ -622,11 +622,11 @@ class TestValidator(TestCase):
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
                 self.validator.validate_cluster_definition(pce)
-            self.assertEquals(expected_error_msg, str(ex.exception))
+            self.assertEqual(expected_error_msg, str(ex.exception))
             return
 
         actual_result = self.validator.validate_cluster_definition(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_cluster_definition_wrong_cpu(self) -> None:
         cpu = CONTAINER_CPU * 2
@@ -729,11 +729,11 @@ class TestValidator(TestCase):
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
                 self.validator.validate_network_and_compute(pce)
-            self.assertEquals(expected_error_msg, str(ex.exception))
+            self.assertEqual(expected_error_msg, str(ex.exception))
             return
 
         actual_result = self.validator.validate_network_and_compute(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_network_and_compute_not_overlapping_firewall_cidr_and_wrong_cpu(
         self,
@@ -815,11 +815,11 @@ class TestValidator(TestCase):
         if expected_error_msg:
             with self.assertRaises(Exception) as ex:
                 self.validator.validate_iam_roles(pce)
-            self.assertEquals(expected_error_msg, str(ex.exception))
+            self.assertEqual(expected_error_msg, str(ex.exception))
             return
 
         actual_result = self.validator.validate_iam_roles(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_iam_roles_bad_task_policy(self) -> None:
         bad_task_policy: PolicyContents = TASK_POLICY.copy()
@@ -906,7 +906,7 @@ class TestValidator(TestCase):
             ),
         )
         actual_result = self.validator.validate_log_group(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_log_group_success(self) -> None:
         pce = MagicMock()
@@ -920,7 +920,7 @@ class TestValidator(TestCase):
             ValidationResultCode.SUCCESS, ValidationStepNames.LOG_GROUP.code_name
         )
         actual_result = self.validator.validate_log_group(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
     def test_validate_log_group_not_configuered_in_task(self) -> None:
         pce = MagicMock()
@@ -932,7 +932,7 @@ class TestValidator(TestCase):
         )
 
         actual_result = self.validator.validate_log_group(pce)
-        self.assertEquals(expected_result, actual_result)
+        self.assertEqual(expected_result, actual_result)
 
 
 class TestValidationSuite(TestCase):
