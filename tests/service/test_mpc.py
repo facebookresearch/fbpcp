@@ -4,7 +4,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import unittest
+from unittest import IsolatedAsyncioTestCase
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
@@ -36,7 +36,7 @@ GAME_ARGS = [
 ]
 
 
-class TestMPCService(unittest.TestCase):
+class TestMPCService(IsolatedAsyncioTestCase):
     def setUp(self):
         cspatcher = patch("fbpcp.service.container.ContainerService")
         irpatcher = patch("fbpcp.repository.mpc_instance.MPCInstanceRepository")
@@ -141,7 +141,7 @@ class TestMPCService(unittest.TestCase):
         )
         # check that instance with correct instance_id was created
         self.mpc_service.instance_repository.create.assert_called()
-        self.assertEquals(
+        self.assertEqual(
             self._get_sample_mpcinstance(),
             self.mpc_service.instance_repository.create.call_args[0][0],
         )
