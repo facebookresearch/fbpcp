@@ -5,8 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 # pyre-strict
-
-import shlex
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, Final, Iterator, List, Optional, Tuple
 
@@ -94,7 +92,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
                 "containerOverrides": [
                     {
                         "name": container,
-                        "command": shlex.split(cmd),
+                        "command": [cmd],  # Quick fix for T127974788
                         "environment": environment,
                     }
                 ]
