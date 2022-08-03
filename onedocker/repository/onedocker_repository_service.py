@@ -55,6 +55,6 @@ class OneDockerRepositoryService:
     ) -> PackageMetadata:
         raise NotImplementedError
 
-    def archive_file(self, package_name: str, version: str) -> None:
-        self.package_repo.archive_file(package_name, version)
-        self.checksum_repo.archive_file(package_name, version)
+    def archive_package(self, package_name: str, version: str) -> None:
+        self.package_repo.archive_package(package_name, version)
+        self.checksum_repo.archive_package(package_name, version)

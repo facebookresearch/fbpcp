@@ -17,11 +17,14 @@ class TestOneDockerChecksumRepository(unittest.TestCase):
 
     @patch("fbpcp.service.storage_s3.S3StorageService")
     def setUp(self, MockStorageService):
-        self.checksum_repository_path = "/abc/"
+        self.checksum_repository_path = (
+            "https://test-checksum-bucket.s3.test-region.amazonaws.com/"
+        )
         self.onedocker_checksum = OneDockerChecksumRepository(
             MockStorageService, self.checksum_repository_path
         )
         self.expected_s3_dest = f"{self.checksum_repository_path}{self.TEST_PACKAGE_NAME}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME.split('/')[-1]}.json"
+        self.expected_archive_path = f"{self.checksum_repository_path}archived/{self.TEST_PACKAGE_NAME}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME.split('/')[-1]}.json"
 
     def test_onedockerrepo_write(self):
         # Arrange
@@ -92,3 +95,25 @@ class TestOneDockerChecksumRepository(unittest.TestCase):
                 package_name=self.TEST_PACKAGE_NAME,
                 version=self.TEST_PACKAGE_VERSION,
             )
+
+    def test_onedockerrepo_archive_package(self):
+        # Arrange
+        self.onedocker_checksum.archive_package(
+            self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION
+        )
+
+        # Assert
+        self.onedocker_checksum.storage_svc.copy.assert_called_once_with(
+            self.expected_s3_dest, self.expected_archive_path
+        )
+
+    def test_onedockerrepo_archive_nonexisting_package(self):
+        # Arrange
+        self.onedocker_checksum.storage_svc.file_exists.return_value = False
+
+        # Act & Assert
+        with self.assertRaises(FileNotFoundError):
+            self.onedocker_checksum.archive_package(
+                self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION
+            )
+            self.onedocker_checksum.storage_svc.copy.assert_not_called()
