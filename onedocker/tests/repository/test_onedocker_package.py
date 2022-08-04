@@ -20,11 +20,12 @@ class TestOneDockerPackageRepository(unittest.TestCase):
 
     @patch("fbpcp.service.storage_s3.S3StorageService")
     def setUp(self, MockStorageService):
-        self.repository_url = "/abc/"
+        self.repository_url = "https://test-bucket.s3.test-region.amazonaws.com/"
         self.onedocker_repository = OneDockerPackageRepository(
             MockStorageService, self.repository_url
         )
         self.expected_s3_dest = f"{self.repository_url}{self.TEST_PACKAGE_PATH}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME}"
+        self.expected_archive_path = f"{self.repository_url}archived/{self.TEST_PACKAGE_PATH}/{self.TEST_PACKAGE_VERSION}/{self.TEST_PACKAGE_NAME}"
 
     def test_onedockerrepo_upload(self):
         # Arrange
@@ -121,3 +122,25 @@ class TestOneDockerPackageRepository(unittest.TestCase):
         )
 
         self.assertEqual(expected_package_info, package_info)
+
+    def test_onedockerrepo_archive_package(self):
+        # Act
+        self.onedocker_repository.archive_package(
+            self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
+        )
+
+        # Assert
+        self.onedocker_repository.storage_svc.copy.assert_called_once_with(
+            self.expected_s3_dest, self.expected_archive_path
+        )
+
+    def test_onedockerrepo_archive_nonexisting_package(self):
+        # Arrange
+        self.onedocker_repository.storage_svc.file_exists.return_value = False
+
+        # Act & Assert
+        with self.assertRaises(FileNotFoundError):
+            self.onedocker_repository.archive_package(
+                self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION
+            )
+            self.onedocker_repository.storage_svc.copy.assert_not_called()

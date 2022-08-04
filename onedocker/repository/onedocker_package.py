@@ -19,6 +19,9 @@ class OneDockerPackageRepository:
     def _build_package_path(self, package_name: str, version: str) -> str:
         return f"{self.repository_path}{package_name}/{version}/{package_name.split('/')[-1]}"
 
+    def _build_archive_path(self, package_name: str, version: str) -> str:
+        return f"{self.repository_path}archived/{package_name}/{version}/{package_name.split('/')[-1]}"
+
     def upload(self, package_name: str, version: str, source: str) -> None:
         package_path = self._build_package_path(package_name, version)
         self.storage_svc.copy(source, package_path)
@@ -50,5 +53,11 @@ class OneDockerPackageRepository:
             package_size=file_info.file_size,
         )
 
-    def archive_file(self, package_name: str, version: str) -> None:
-        raise NotImplementedError
+    def archive_package(self, package_name: str, version: str) -> None:
+        current_path = self._build_package_path(package_name, version)
+        if not self.storage_svc.file_exists(current_path):
+            raise FileNotFoundError(
+                f"Cant find the package to be archived for package {package_name}, version {version}"
+            )
+        archive_path = self._build_archive_path(package_name, version)
+        self.storage_svc.copy(current_path, archive_path)

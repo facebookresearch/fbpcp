@@ -65,13 +65,13 @@ class TestOneDockerRepositoryService(unittest.TestCase):
 
     def test_onedocker_repo_service_archive(self) -> None:
         # Act
-        self.repo_service.archive_file(
+        self.repo_service.archive_package(
             self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
         )
         # Assert
-        self.package_repo.archive_file.assert_called_once_with(
+        self.package_repo.archive_package.assert_called_once_with(
             self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
         )
-        self.checksum_repo.archive_file.assert_called_once_with(
+        self.checksum_repo.archive_package.assert_called_once_with(
             self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
         )
