@@ -41,14 +41,14 @@ from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.service.attestation import AttestationService
 
 logger = None
-onedocker_svc = None
-container_svc = None
-onedocker_package_repo = None
-onedocker_checksum_repo = None
+
 attestation_svc = None
+container_svc = None
+onedocker_svc = None
 log_svc = None
-task_definition = None
-repository_path = None
+
+onedocker_checksum_repo = None
+onedocker_package_repo = None
 
 DEFAULT_BINARY_VERSION = "latest"
 DEFAULT_TIMEOUT = 18000
@@ -171,12 +171,8 @@ def _build_log_service(config: Dict[str, Any]) -> LogService:
     return log_class(**config["constructor"])
 
 
-def _build_exe_s3_path(repository_path: str, package_name: str, version: str) -> str:
-    return f"{repository_path}{package_name}/{version}/{package_name.split('/')[-1]}"
-
-
 def main() -> None:
-    global container_svc, onedocker_svc, onedocker_package_repo, onedocker_checksum_repo, log_svc, logger, task_definition, repository_path, attestation_svc
+    global container_svc, onedocker_svc, onedocker_package_repo, onedocker_checksum_repo, log_svc, logger, attestation_svc
     s = schema.Schema(
         {
             "upload": bool,
@@ -208,30 +204,46 @@ def main() -> None:
     version = (
         arguments["--version"] if arguments["--version"] else DEFAULT_BINARY_VERSION
     )
-    enable_attestation = arguments["--enable_attestation"]
 
     config = yaml.load(Path(arguments["--config"])).get("onedocker-cli")
-    task_definition = config["setting"]["task_definition"]
-    repository_path = config["setting"]["repository_path"]
-    checksum_repository_path = config["setting"].get("checksum_repository_path", "")
 
-    attestation_svc = AttestationService()
-    storage_svc = _build_storage_service(config["dependency"]["StorageService"])
-    container_svc = _build_container_service(config["dependency"]["ContainerService"])
-    onedocker_svc = OneDockerService(container_svc, task_definition)
-    onedocker_package_repo = OneDockerPackageRepository(storage_svc, repository_path)
-    onedocker_checksum_repo = OneDockerChecksumRepository(
-        storage_svc, checksum_repository_path
-    )
-    log_svc = _build_log_service(config["dependency"]["LogService"])
+    if arguments["upload"] or arguments["show"]:
+        repository_path = config["setting"]["repository_path"]
+        checksum_repository_path = config["setting"].get("checksum_repository_path", "")
 
-    status = "enabled" if enable_attestation else "disabled"
-    logger.info(f"Package tracking for package {package_name}: {version} is {status}")
+        storage_svc = _build_storage_service(config["dependency"]["StorageService"])
+
+        onedocker_package_repo = OneDockerPackageRepository(
+            storage_svc, repository_path
+        )
+        if checksum_repository_path:
+            onedocker_checksum_repo = OneDockerChecksumRepository(
+                storage_svc, checksum_repository_path
+            )
+
+    if arguments["test"] or arguments["stop"]:
+        task_definition = config["setting"]["task_definition"]
+        container_svc = _build_container_service(
+            config["dependency"]["ContainerService"]
+        )
+        onedocker_svc = OneDockerService(container_svc, task_definition)
 
     if arguments["upload"]:
+        enable_attestation = arguments["--enable_attestation"]
+
+        status = "enabled" if enable_attestation else "disabled"
+        logger.info(
+            f"Package tracking for package {package_name}: {version} is {status}"
+        )
+
+        attestation_svc = AttestationService()
+
         _upload(package_dir, package_name, version, enable_attestation)
     elif arguments["test"]:
-        timeout = arguments["--timeout"] if arguments["--timeout"] else DEFAULT_TIMEOUT
+        timeout = arguments.get("--timeout", DEFAULT_TIMEOUT)
+
+        log_svc = _build_log_service(config["dependency"]["LogService"])
+
         _test(package_name, version, arguments["--cmd_args"], timeout)
     elif arguments["show"]:
         _show(package_name, arguments["--version"])
