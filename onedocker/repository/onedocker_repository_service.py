@@ -8,7 +8,6 @@ from typing import Optional
 
 from fbpcp.service.storage import StorageService
 from onedocker.entity.object_metadata import PackageMetadata
-from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
 
@@ -17,14 +16,10 @@ class OneDockerRepositoryService:
         self,
         storage_svc: StorageService,
         package_repository_path: str,
-        checksum_repository_path: str,
     ) -> None:
         self.storage_svc = storage_svc
         self.package_repo = OneDockerPackageRepository(
             storage_svc, package_repository_path
-        )
-        self.checksum_repo = OneDockerChecksumRepository(
-            storage_svc, checksum_repository_path
         )
 
     def upload(
@@ -56,5 +51,5 @@ class OneDockerRepositoryService:
         raise NotImplementedError
 
     def archive_package(self, package_name: str, version: str) -> None:
+        # TODO: Archive or delete checksum file associated with the archived package if exists.
         self.package_repo.archive_package(package_name, version)
-        self.checksum_repo.archive_package(package_name, version)
