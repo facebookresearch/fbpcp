@@ -42,6 +42,8 @@ class TestECSGateway(unittest.TestCase):
     TEST_CLUSTER_TAG_KEY = "test-tag-key"
     TEST_CLUSTER_TAG_VALUE = "test-tag-value"
     REGION = "us-west-2"
+    TEST_CPU_UNITS = 1024
+    TEST_MEMORY_IN_MIB = 2048
 
     @patch("boto3.client")
     def setUp(self, BotoClient) -> None:
@@ -51,6 +53,7 @@ class TestECSGateway(unittest.TestCase):
         self.gw.client = BotoClient()
 
     def test_run_task(self) -> None:
+        # Arrange
         client_return_response = {
             "tasks": [
                 {
@@ -67,22 +70,41 @@ class TestECSGateway(unittest.TestCase):
                         }
                     ],
                     "taskArn": self.TEST_TASK_ARN,
-                }
+                    "overrides": {
+                        "containerOverrides": [
+                            {
+                                "name": self.TEST_CONTAINER,
+                                "command": [
+                                    self.TEST_CMD,
+                                ],
+                                "environment": [],
+                                "cpu": self.TEST_CPU_UNITS,
+                                "memory": self.TEST_MEMORY_IN_MIB,
+                            }
+                        ],
+                        "cpu": str(self.TEST_CPU_UNITS),
+                        "memory": str(self.TEST_MEMORY_IN_MIB),
+                    },
+                },
             ]
         }
         self.gw.client.run_task = MagicMock(return_value=client_return_response)
+        expected_task = ContainerInstance(
+            self.TEST_TASK_ARN,
+            self.TEST_IP_ADDRESS,
+            ContainerInstanceStatus.STARTED,
+        )
+        # Act
         task = self.gw.run_task(
             self.TEST_TASK_DEFINITION,
             self.TEST_CONTAINER,
             self.TEST_CMD,
             self.TEST_CLUSTER,
             self.TEST_SUBNETS,
+            cpu=self.TEST_CPU_UNITS,
+            memory=self.TEST_MEMORY_IN_MIB,
         )
-        expected_task = ContainerInstance(
-            self.TEST_TASK_ARN,
-            self.TEST_IP_ADDRESS,
-            ContainerInstanceStatus.STARTED,
-        )
+        # Assert
         self.assertEqual(task, expected_task)
         self.gw.client.run_task.assert_called_once_with(
             taskDefinition=self.TEST_TASK_DEFINITION,
@@ -99,8 +121,12 @@ class TestECSGateway(unittest.TestCase):
                         "name": self.TEST_CONTAINER,
                         "command": [self.TEST_CMD],
                         "environment": [],
+                        "cpu": self.TEST_CPU_UNITS,
+                        "memory": self.TEST_MEMORY_IN_MIB,
                     }
-                ]
+                ],
+                "cpu": str(self.TEST_CPU_UNITS),
+                "memory": str(self.TEST_MEMORY_IN_MIB),
             },
         )
 
