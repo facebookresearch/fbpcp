@@ -71,6 +71,8 @@ class ECSGateway(AWSGateway, MetricsGetter):
         cmd: str,
         cluster: str,
         subnets: List[str],
+        cpu: Optional[int] = None,
+        memory: Optional[int] = None,
         env_vars: Optional[Dict[str, str]] = None,
     ) -> ContainerInstance:
         environment = []
@@ -79,6 +81,27 @@ class ECSGateway(AWSGateway, MetricsGetter):
                 {"name": env_name, "value": env_value}
                 for env_name, env_value in env_vars.items()
             ]
+        container_override: Dict[str, Any] = {
+            "name": container,
+            "command": [cmd],
+            "environment": environment,
+        }
+        if cpu and memory:
+            container_override.update(
+                {
+                    "cpu": cpu,
+                    "memory": memory,
+                }
+            )
+            override = {
+                "containerOverrides": [container_override],
+                "cpu": str(cpu),
+                "memory": str(memory),
+            }
+        else:
+            override = {
+                "containerOverrides": [container_override],
+            }
         response = self.client.run_task(
             taskDefinition=task_definition,
             cluster=cluster,
@@ -88,15 +111,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
                     "assignPublicIp": "ENABLED",
                 }
             },
-            overrides={
-                "containerOverrides": [
-                    {
-                        "name": container,
-                        "command": [cmd],  # Quick fix for T127974788
-                        "environment": environment,
-                    }
-                ]
-            },
+            overrides=override,
         )
 
         if not response["tasks"]:
