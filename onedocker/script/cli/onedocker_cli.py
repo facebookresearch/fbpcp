@@ -10,7 +10,7 @@ CLI for uploading an executable to one docker repo
 
 
 Usage:
-    onedocker-cli upload --config=<config> --package_name=<package_name> --package_dir=<package_dir> [--version=<version> --enable_attestation] [options]
+    onedocker-cli upload --config=<config> --package_name=<package_name> --package_dir=<package_dir> [--version=<version> ] [options]
     onedocker-cli test --config=<config> --package_name=<package_name> --cmd_args=<cmd_args> [--version=<version> --timeout=<timeout>][options]
     onedocker-cli show --config=<config> --package_name=<package_name> [--version=<version>] [options]
     onedocker-cli stop --config=<config> --container=<container_id> [options]
@@ -36,16 +36,12 @@ from fbpcp.service.log import LogService
 from fbpcp.service.onedocker import OneDockerService
 from fbpcp.service.storage import StorageService
 from fbpcp.util import reflect, yaml
-from onedocker.repository.onedocker_checksum import OneDockerChecksumRepository
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
-from onedocker.service.attestation import AttestationService
 
 logger = None
 onedocker_svc = None
 container_svc = None
 onedocker_package_repo = None
-onedocker_checksum_repo = None
-attestation_svc = None
 log_svc = None
 task_definition = None
 repository_path = None
@@ -58,24 +54,10 @@ def _upload(
     package_dir: str,
     package_name: str,
     version: str,
-    enable_attestation: bool = False,
 ) -> None:
     logger.info(
         f" Starting uploading package {package_name} at '{package_dir}', version {version}..."
     )
-    if enable_attestation:
-        logger.info(f"Generating checksums for package {package_name}: {version}")
-        formatted_checksum_info = attestation_svc.track_binary(
-            binary_path=package_dir,
-            package_name=package_name,
-            version=version,
-        )
-        logger.info(f"Uploading checksums for package {package_name}: {version}")
-        onedocker_checksum_repo.write(
-            package_name=package_name,
-            version=version,
-            checksum_data=formatted_checksum_info,
-        )
     logger.info(f"Uploading binary for package {package_name}: {version}")
     onedocker_package_repo.upload(package_name, version, package_dir)
     logger.info(f" Finished uploading '{package_name}, version {version}'.\n")
@@ -176,7 +158,7 @@ def _build_exe_s3_path(repository_path: str, package_name: str, version: str) ->
 
 
 def main() -> None:
-    global container_svc, onedocker_svc, onedocker_package_repo, onedocker_checksum_repo, log_svc, logger, task_definition, repository_path, attestation_svc
+    global container_svc, onedocker_svc, onedocker_package_repo, log_svc, logger, task_definition, repository_path
     s = schema.Schema(
         {
             "upload": bool,
@@ -185,7 +167,6 @@ def main() -> None:
             "stop": bool,
             "--verbose": bool,
             "--help": bool,
-            "--enable_attestation": bool,
             "--config": schema.And(schema.Use(PurePath), os.path.exists),
             "--package_name": schema.Or(None, schema.And(str, len)),
             "--package_dir": schema.Or(None, schema.And(str, len)),
@@ -208,28 +189,19 @@ def main() -> None:
     version = (
         arguments["--version"] if arguments["--version"] else DEFAULT_BINARY_VERSION
     )
-    enable_attestation = arguments["--enable_attestation"]
 
     config = yaml.load(Path(arguments["--config"])).get("onedocker-cli")
     task_definition = config["setting"]["task_definition"]
     repository_path = config["setting"]["repository_path"]
-    checksum_repository_path = config["setting"].get("checksum_repository_path", "")
 
-    attestation_svc = AttestationService()
     storage_svc = _build_storage_service(config["dependency"]["StorageService"])
     container_svc = _build_container_service(config["dependency"]["ContainerService"])
     onedocker_svc = OneDockerService(container_svc, task_definition)
     onedocker_package_repo = OneDockerPackageRepository(storage_svc, repository_path)
-    onedocker_checksum_repo = OneDockerChecksumRepository(
-        storage_svc, checksum_repository_path
-    )
     log_svc = _build_log_service(config["dependency"]["LogService"])
 
-    status = "enabled" if enable_attestation else "disabled"
-    logger.info(f"Package tracking for package {package_name}: {version} is {status}")
-
     if arguments["upload"]:
-        _upload(package_dir, package_name, version, enable_attestation)
+        _upload(package_dir, package_name, version)
     elif arguments["test"]:
         timeout = arguments["--timeout"] if arguments["--timeout"] else DEFAULT_TIMEOUT
         _test(package_name, version, arguments["--cmd_args"], timeout)
