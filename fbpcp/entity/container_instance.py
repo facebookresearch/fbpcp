@@ -26,3 +26,5 @@ class ContainerInstance:
     instance_id: str
     ip_address: Optional[str] = None
     status: ContainerInstanceStatus = ContainerInstanceStatus.UNKNOWN
+    cpu: Optional[int] = None  # Number of vCPU
+    memory: Optional[int] = None  # Memory in GB

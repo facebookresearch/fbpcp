@@ -96,6 +96,8 @@ class TestECSGateway(unittest.TestCase):
             self.TEST_TASK_ARN,
             self.TEST_IP_ADDRESS,
             ContainerInstanceStatus.STARTED,
+            self.TEST_CPU,
+            self.TEST_MEMORY,
         )
         # Act
         task = self.gw.run_task(
