@@ -12,6 +12,7 @@ from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.gateway.ecs import ECSGateway
+from fbpcp.mapper.aws import map_gb_to_mb, map_vcpu_to_unit
 from fbpcp.util.aws import convert_list_to_dict, get_container_definition_id
 
 
@@ -42,8 +43,8 @@ class TestECSGateway(unittest.TestCase):
     TEST_CLUSTER_TAG_KEY = "test-tag-key"
     TEST_CLUSTER_TAG_VALUE = "test-tag-value"
     REGION = "us-west-2"
-    TEST_CPU_UNITS = 1024
-    TEST_MEMORY_IN_MIB = 2048
+    TEST_CPU = 4  # in vCPU
+    TEST_MEMORY = 30  # in GB
 
     @patch("boto3.client")
     def setUp(self, BotoClient) -> None:
@@ -54,6 +55,8 @@ class TestECSGateway(unittest.TestCase):
 
     def test_run_task(self) -> None:
         # Arrange
+        cpu_response = map_vcpu_to_unit(self.TEST_CPU)
+        memory_response = map_gb_to_mb(self.TEST_MEMORY)
         client_return_response = {
             "tasks": [
                 {
@@ -78,12 +81,12 @@ class TestECSGateway(unittest.TestCase):
                                     self.TEST_CMD,
                                 ],
                                 "environment": [],
-                                "cpu": self.TEST_CPU_UNITS,
-                                "memory": self.TEST_MEMORY_IN_MIB,
+                                "cpu": cpu_response,
+                                "memory": memory_response,
                             }
                         ],
-                        "cpu": str(self.TEST_CPU_UNITS),
-                        "memory": str(self.TEST_MEMORY_IN_MIB),
+                        "cpu": str(cpu_response),
+                        "memory": str(memory_response),
                     },
                 },
             ]
@@ -101,8 +104,8 @@ class TestECSGateway(unittest.TestCase):
             self.TEST_CMD,
             self.TEST_CLUSTER,
             self.TEST_SUBNETS,
-            cpu=self.TEST_CPU_UNITS,
-            memory=self.TEST_MEMORY_IN_MIB,
+            cpu=self.TEST_CPU,
+            memory=self.TEST_MEMORY,
         )
         # Assert
         self.assertEqual(task, expected_task)
@@ -121,12 +124,12 @@ class TestECSGateway(unittest.TestCase):
                         "name": self.TEST_CONTAINER,
                         "command": [self.TEST_CMD],
                         "environment": [],
-                        "cpu": self.TEST_CPU_UNITS,
-                        "memory": self.TEST_MEMORY_IN_MIB,
+                        "cpu": cpu_response,
+                        "memory": memory_response,
                     }
                 ],
-                "cpu": str(self.TEST_CPU_UNITS),
-                "memory": str(self.TEST_MEMORY_IN_MIB),
+                "cpu": str(cpu_response),
+                "memory": str(memory_response),
             },
         )
 

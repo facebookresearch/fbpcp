@@ -20,6 +20,8 @@ from fbpcp.mapper.aws import (
     map_ec2subnet_to_subnet,
     map_ecstask_to_containerinstance,
     map_esccluster_to_clusterinstance,
+    map_gb_to_mb,
+    map_vcpu_to_unit,
 )
 
 
@@ -34,8 +36,12 @@ class TestAWSMapper(unittest.TestCase):
     TEST_IGW_TARGET_ID = "igw-a1b2c3d000"
     TEST_ROUTE_STATE_ACTIVE = "active"
     TEST_ROUTE_STATE_INACTIVE = "blackhole"
+    TEST_CPU = 1
+    TEST_MEMORY = 2
 
     def test_map_ecstask_to_containerinstance(self):
+        cpu_response = map_vcpu_to_unit(self.TEST_CPU)
+        memory_response = map_gb_to_mb(self.TEST_MEMORY)
         ecs_task_response = {
             "tasks": [
                 {
@@ -61,6 +67,8 @@ class TestAWSMapper(unittest.TestCase):
                         },
                     ],
                     "taskArn": self.TEST_TASK_ARN,
+                    "cpu": cpu_response,
+                    "memory": memory_response,
                 },
                 {
                     "containers": [
@@ -71,6 +79,10 @@ class TestAWSMapper(unittest.TestCase):
                         },
                     ],
                     "taskArn": self.TEST_TASK_ARN,
+                    "overrides": {
+                        "cpu": cpu_response,
+                        "memory": memory_response,
+                    },
                 },
                 {
                     "containers": [

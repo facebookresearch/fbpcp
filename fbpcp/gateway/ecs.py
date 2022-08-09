@@ -21,6 +21,8 @@ from fbpcp.mapper.aws import (
     map_ecstask_to_containerinstance,
     map_ecstaskdefinition_to_containerdefinition,
     map_esccluster_to_clusterinstance,
+    map_gb_to_mb,
+    map_vcpu_to_unit,
 )
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter
@@ -87,6 +89,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
             "environment": environment,
         }
         if cpu and memory:
+            cpu, memory = map_vcpu_to_unit(cpu), map_gb_to_mb(memory)
             container_override.update(
                 {
                     "cpu": cpu,
