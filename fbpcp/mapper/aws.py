@@ -32,6 +32,25 @@ from fbpcp.util.aws import (
     get_json_values,
 )
 
+CPU_VIRTUAL_TO_UNIT = 1024
+MEMORY_GB_TO_MB = 1024
+
+
+def map_vcpu_to_unit(vcpu: int) -> int:
+    return vcpu * CPU_VIRTUAL_TO_UNIT
+
+
+def map_gb_to_mb(gb: int) -> int:
+    return gb * MEMORY_GB_TO_MB
+
+
+def map_unit_to_vcpu(cpu_unit: int) -> int:
+    return cpu_unit // CPU_VIRTUAL_TO_UNIT
+
+
+def map_mb_to_gb(mb: int) -> int:
+    return mb // MEMORY_GB_TO_MB
+
 
 def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
     container = task["containers"][0]
