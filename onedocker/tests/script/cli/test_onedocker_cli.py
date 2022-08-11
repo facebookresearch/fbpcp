@@ -65,6 +65,7 @@ class TestOnedockerCli(unittest.TestCase):
 
         self.base_args = {
             "upload": False,
+            "archive": False,
             "test": False,
             "show": False,
             "stop": False,
@@ -87,17 +88,24 @@ class TestOnedockerCli(unittest.TestCase):
             MagicMock(return_value=self.test_config_dict),
         ).start()
 
+        self.mockODPRUpload = patch.object(
+            OneDockerPackageRepository,
+            "upload",
+            MagicMock(return_value=None),
+        ).start()
+
+        self.mockODPRArchive = patch.object(
+            OneDockerPackageRepository,
+            "archive_package",
+            MagicMock(return_value=None),
+        ).start()
+
         self.mockOsPathExists = patch.object(
             os.path,
             "exists",
             MagicMock(return_value=True),
         ).start()
 
-        self.mockODPRUpload = patch.object(
-            OneDockerPackageRepository,
-            "upload",
-            MagicMock(return_value=None),
-        ).start()
         self.mockODPRGetPackageVersions = patch.object(
             OneDockerPackageRepository,
             "get_package_versions",
@@ -145,6 +153,34 @@ class TestOnedockerCli(unittest.TestCase):
                 "--config=" + self.config_file,
                 "--package_name=" + self.package_name,
                 "--package_dir=" + self.package_dir,
+                "--version=" + self.version,
+            ],
+        )
+
+        # Assert
+        self.assertDictEqual(expected_args, args)
+
+    def test_docopt_args_archive(self):
+        # Arrange
+        doc = __onedocker_cli_doc__
+
+        expected_args = self.base_args
+        expected_args.update(
+            {
+                "archive": True,
+                "--package_name": self.package_name,
+                "--version": self.version,
+                "--config": self.config_file,
+            }
+        )
+
+        # Act
+        args = docopt(
+            doc,
+            [
+                "archive",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
                 "--version=" + self.version,
             ],
         )
@@ -255,6 +291,25 @@ class TestOnedockerCli(unittest.TestCase):
         self.mockODPRUpload.assert_called_once_with(
             self.package_name, self.version, self.package_dir
         )
+
+    def test_archive(self):
+        # Arrange & Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "archive",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+                "--version=" + self.version,
+            ],
+        ):
+            main()
+
+        # Assert
+        self.mockYamlLoad.assert_called_once()
+        self.mockODPRArchive.assert_called_once_with(self.package_name, self.version)
 
     @patch.object(CloudWatchLogService, "get_log_path")
     @patch.object(OneDockerService, "wait_for_pending_container")
