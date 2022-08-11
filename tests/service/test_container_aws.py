@@ -24,7 +24,12 @@ TEST_SESSION_TOKEN = "test-session-token"
 TEST_CLUSTER = "test-cluster"
 TEST_SUBNETS = ["test-subnet0", "test-subnet1"]
 TEST_IP_ADDRESS = "127.0.0.1"
-TEST_CONTAINER_DEFNITION = "test-task-definition#test-container-definition"
+TEST_TASK_DEFNITION = "test-task-definition:1"
+TEST_CONTAINER_DEFNITION = "test-container-definition"
+
+TEST_ENV_VARS = {"k1": "v1", "k2": "v2"}
+TEST_CMD_1 = "test_1"
+TEST_CMD_2 = "test_2"
 
 
 class TestAWSContainerService(unittest.TestCase):
@@ -36,6 +41,7 @@ class TestAWSContainerService(unittest.TestCase):
         self.container_svc.ecs_gateway = MockECSGateway()
 
     def test_create_instances(self):
+        # Arrange
         created_instances = [
             ContainerInstance(
                 TEST_INSTANCE_ID_1,
@@ -53,16 +59,44 @@ class TestAWSContainerService(unittest.TestCase):
             side_effect=created_instances
         )
 
-        cmd_list = ["test_cmd", "test_cmd-1"]
+        cmd_list = [TEST_CMD_1, TEST_CMD_2]
+        run_task_calls = [
+            call(
+                task_definition=TEST_TASK_DEFNITION,
+                container=TEST_CONTAINER_DEFNITION,
+                cmd=TEST_CMD_1,
+                cluster=TEST_CLUSTER,
+                subnets=TEST_SUBNETS,
+                env_vars=TEST_ENV_VARS,
+            ),
+            call(
+                task_definition=TEST_TASK_DEFNITION,
+                container=TEST_CONTAINER_DEFNITION,
+                cmd=TEST_CMD_2,
+                cluster=TEST_CLUSTER,
+                subnets=TEST_SUBNETS,
+                env_vars=TEST_ENV_VARS,
+            ),
+        ]
+
+        # Act
         container_instances = self.container_svc.create_instances(
-            TEST_CONTAINER_DEFNITION, cmd_list
+            f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+            cmd_list,
+            TEST_ENV_VARS,
         )
+
+        # Assert
         self.assertEqual(container_instances, created_instances)
+        self.container_svc.ecs_gateway.run_task.assert_has_calls(
+            run_task_calls, any_order=False
+        )
         self.assertEqual(
             self.container_svc.ecs_gateway.run_task.call_count, len(created_instances)
         )
 
     def test_create_instance(self):
+        # Arrange
         created_instance = ContainerInstance(
             TEST_INSTANCE_ID_1,
             TEST_IP_ADDRESS,
@@ -72,8 +106,22 @@ class TestAWSContainerService(unittest.TestCase):
         self.container_svc.ecs_gateway.run_task = MagicMock(
             return_value=created_instance
         )
+
+        # Act
         container_instance = self.container_svc.create_instance(
-            TEST_CONTAINER_DEFNITION, "test-cmd"
+            f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+            TEST_CMD_1,
+            TEST_ENV_VARS,
+        )
+
+        # Assert
+        self.container_svc.ecs_gateway.run_task.assert_called_with(
+            task_definition=TEST_TASK_DEFNITION,
+            container=TEST_CONTAINER_DEFNITION,
+            cmd=TEST_CMD_1,
+            cluster=TEST_CLUSTER,
+            subnets=TEST_SUBNETS,
+            env_vars=TEST_ENV_VARS,
         )
         self.assertEqual(container_instance, created_instance)
 
