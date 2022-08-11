@@ -73,9 +73,9 @@ class ECSGateway(AWSGateway, MetricsGetter):
         cmd: str,
         cluster: str,
         subnets: List[str],
+        env_vars: Optional[Dict[str, str]] = None,
         cpu: Optional[int] = None,
         memory: Optional[int] = None,
-        env_vars: Optional[Dict[str, str]] = None,
     ) -> ContainerInstance:
         environment = []
         if env_vars:

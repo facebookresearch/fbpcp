@@ -64,7 +64,12 @@ class AWSContainerService(ContainerService):
             )
 
         return self.ecs_gateway.run_task(
-            task_definition, container, cmd, self.cluster, self.subnets, env_vars
+            task_definition=task_definition,
+            container=container,
+            cmd=cmd,
+            cluster=self.cluster,
+            subnets=self.subnets,
+            env_vars=env_vars,
         )
 
     def create_instances(
