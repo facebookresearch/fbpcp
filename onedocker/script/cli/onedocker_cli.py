@@ -11,6 +11,7 @@ CLI for uploading an executable to one docker repo
 
 Usage:
     onedocker-cli upload --config=<config> --package_name=<package_name> --package_dir=<package_dir> [--version=<version> ] [options]
+    onedocker-cli archive --config=<config> --package_name=<package_name> [--version=<version> ] [options]
     onedocker-cli test --config=<config> --package_name=<package_name> --cmd_args=<cmd_args> [--version=<version> --timeout=<timeout>][options]
     onedocker-cli show --config=<config> --package_name=<package_name> [--version=<version>] [options]
     onedocker-cli stop --config=<config> --container=<container_id> [options]
@@ -61,6 +62,16 @@ def _upload(
     logger.info(f"Uploading binary for package {package_name}: {version}")
     onedocker_package_repo.upload(package_name, version, package_dir)
     logger.info(f" Finished uploading '{package_name}, version {version}'.\n")
+
+
+def _archive(
+    package_name: str,
+    version: str,
+) -> None:
+    logger.info(f" Starting archiving package {package_name} version {version}...")
+    logger.info(f"Archiving binary for package {package_name}: {version}")
+    onedocker_package_repo.archive_package(package_name, version)
+    logger.info(f" Finished Archiving '{package_name}, version {version}'.\n")
 
 
 def _test(
@@ -165,6 +176,7 @@ def main() -> None:
             "test": bool,
             "show": bool,
             "stop": bool,
+            "archive": bool,
             "--verbose": bool,
             "--help": bool,
             "--config": schema.And(schema.Use(PurePath), os.path.exists),
@@ -202,6 +214,8 @@ def main() -> None:
 
     if arguments["upload"]:
         _upload(package_dir, package_name, version)
+    elif arguments["archive"]:
+        _archive(package_name, version)
     elif arguments["test"]:
         timeout = arguments["--timeout"] if arguments["--timeout"] else DEFAULT_TIMEOUT
         _test(package_name, version, arguments["--cmd_args"], timeout)
