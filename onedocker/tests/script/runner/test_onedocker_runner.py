@@ -235,10 +235,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 "--repository_path=local",
             ],
         ):
-            with patch(
-                "os.getenv",
-                side_effect=lambda x: getenv(x),
-            ):
+            with patch("os.getenv", return_value=None):
                 with self.assertRaises(SystemExit) as cm:
                     main()
                 # Assert
