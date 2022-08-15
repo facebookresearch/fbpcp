@@ -10,6 +10,8 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
+from fbpcp.entity.certificate_request import CertificateRequest
+
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.entity.mpc_instance import MPCInstance, MPCInstanceStatus, MPCParty
 from fbpcp.error.pcp import PcpError
@@ -128,6 +130,7 @@ class MPCService:
         timeout: Optional[int] = None,
         version: str = DEFAULT_BINARY_VERSION,
         env_vars: Optional[Dict[str, str]] = None,
+        certificate_request: Optional[CertificateRequest] = None,
     ) -> MPCInstance:
         return asyncio.run(
             self.start_instance_async(
@@ -137,6 +140,7 @@ class MPCService:
                 timeout,
                 version,
                 env_vars,
+                certificate_request,
             )
         )
 
@@ -148,6 +152,7 @@ class MPCService:
         timeout: Optional[int] = None,
         version: str = DEFAULT_BINARY_VERSION,
         env_vars: Optional[Dict[str, str]] = None,
+        certificate_request: Optional[CertificateRequest] = None,
     ) -> MPCInstance:
         """To run a distributed MPC game
         Keyword arguments:
@@ -166,11 +171,12 @@ class MPCService:
             instance.game_name,
             instance.mpc_party,
             instance.num_workers,
-            game_args,
-            server_ips,
-            timeout,
-            version,
-            env_vars,
+            game_args=game_args,
+            ip_addresses=server_ips,
+            timeout=timeout,
+            version=version,
+            env_vars=env_vars,
+            certificate_request=certificate_request,
         )
 
         if len(instance.containers) != instance.num_workers:
@@ -248,6 +254,7 @@ class MPCService:
         timeout: Optional[int] = None,
         version: str = DEFAULT_BINARY_VERSION,
         env_vars: Optional[Dict[str, str]] = None,
+        certificate_request: Optional[CertificateRequest] = None,
     ) -> List[ContainerInstance]:
         if game_args is not None and len(game_args) != num_containers:
             raise ValueError(
@@ -278,6 +285,7 @@ class MPCService:
             cmd_args_list=cmd_args_list,
             timeout=timeout,
             env_vars=env_vars,
+            certificate_request=certificate_request,
         )
 
         self.logger.info(
