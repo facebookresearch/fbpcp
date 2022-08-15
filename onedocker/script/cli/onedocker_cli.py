@@ -37,12 +37,12 @@ from fbpcp.service.log import LogService
 from fbpcp.service.onedocker import OneDockerService
 from fbpcp.service.storage import StorageService
 from fbpcp.util import reflect, yaml
-from onedocker.repository.onedocker_package import OneDockerPackageRepository
+from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
 
 logger = None
 onedocker_svc = None
 container_svc = None
-onedocker_package_repo = None
+onedocker_repo_svc = None
 log_svc = None
 task_definition = None
 repository_path = None
@@ -60,7 +60,7 @@ def _upload(
         f" Starting uploading package {package_name} at '{package_dir}', version {version}..."
     )
     logger.info(f"Uploading binary for package {package_name}: {version}")
-    onedocker_package_repo.upload(package_name, version, package_dir)
+    onedocker_repo_svc.upload(package_name, version, package_dir)
     logger.info(f" Finished uploading '{package_name}, version {version}'.\n")
 
 
@@ -70,7 +70,7 @@ def _archive(
 ) -> None:
     logger.info(f" Starting archiving package {package_name} version {version}...")
     logger.info(f"Archiving binary for package {package_name}: {version}")
-    onedocker_package_repo.archive_package(package_name, version)
+    onedocker_repo_svc.archive_package(package_name, version)
     logger.info(f" Finished Archiving '{package_name}, version {version}'.\n")
 
 
@@ -120,17 +120,21 @@ def _show(
     )
 
     if version:
-        package_info = onedocker_package_repo.get_package_info(package_name, version)
+        package_info = onedocker_repo_svc.package_repo.get_package_info(
+            package_name, version
+        )
         print(
             f" Package [{package_info.package_name}], version {package_info.version}: Last modified: {package_info.last_modified}; Size: {package_info.package_size} bytes"
         )
     else:
-        package_versions = onedocker_package_repo.get_package_versions(package_name)
+        package_versions = onedocker_repo_svc.package_repo.get_package_versions(
+            package_name
+        )
         print(
             f" All available versions for package {package_name} : {package_versions}"
         )
         for version in package_versions:
-            package_info = onedocker_package_repo.get_package_info(
+            package_info = onedocker_repo_svc.package_repo.get_package_info(
                 package_name, version
             )
             print(
@@ -169,7 +173,7 @@ def _build_exe_s3_path(repository_path: str, package_name: str, version: str) ->
 
 
 def main() -> None:
-    global container_svc, onedocker_svc, onedocker_package_repo, log_svc, logger, task_definition, repository_path
+    global container_svc, onedocker_svc, onedocker_repo_svc, log_svc, logger, task_definition, repository_path
     s = schema.Schema(
         {
             "upload": bool,
@@ -209,7 +213,7 @@ def main() -> None:
     storage_svc = _build_storage_service(config["dependency"]["StorageService"])
     container_svc = _build_container_service(config["dependency"]["ContainerService"])
     onedocker_svc = OneDockerService(container_svc, task_definition)
-    onedocker_package_repo = OneDockerPackageRepository(storage_svc, repository_path)
+    onedocker_repo_svc = OneDockerRepositoryService(storage_svc, repository_path)
     log_svc = _build_log_service(config["dependency"]["LogService"])
 
     if arguments["upload"]:
