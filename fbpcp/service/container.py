@@ -109,11 +109,3 @@ class ContainerService(abc.ABC):
             Integer that represent the total pending and running instances count for cluster
         """
         pass
-
-    @abc.abstractmethod
-    def validate_container_definition(self, container_definition: str) -> None:
-        """Validate the format of a specific container definition.
-        Raises:
-            InvalidParameterError: The container definition is not in a valid format.
-        """
-        pass
