@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from fbpcp.entity.cluster_instance import Cluster
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
-from fbpcp.error.pcp import InvalidParameterError, PcpError
+from fbpcp.error.pcp import PcpError
 from fbpcp.service.container_aws import AWS_API_INPUT_SIZE_LIMIT, AWSContainerService
 
 TEST_INSTANCE_ID_1 = "test-instance-id-1"
@@ -239,22 +239,6 @@ class TestAWSContainerService(unittest.TestCase):
         count = self.container_svc.get_current_instances_count()
         # Assert
         self.assertEqual(count, TEST_TASKS_COUNT)
-
-    def test_validate_container_definition_simple(self):
-        self.container_svc.validate_container_definition(
-            "pl-task-fake-business:2#pl-container-fake-business"
-        )
-
-    def test_validate_container_definition_complex(self):
-        # PCE service task definitions
-        self.container_svc.validate_container_definition(
-            "arn:aws:ecs:us-west-2:539290649537:task-definition/onedocker-task-shared-us-west-2:1#onedocker-container-shared-us-west-2"
-        )
-
-    def test_validate_container_definition_invalid(self):
-        # this is something we've seen in real runs
-        with self.assertRaises(InvalidParameterError):
-            self.container_svc.validate_container_definition("pl-task-fake-business:2#")
 
     def test_auth_keys_with_session_token(self):
         container_aws = AWSContainerService(
