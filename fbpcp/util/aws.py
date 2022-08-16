@@ -7,8 +7,11 @@
 # pyre-strict
 
 
+import re
 from functools import reduce
 from typing import Any, Dict, List, Optional, Tuple, Union
+
+from fbpcp.error.pcp import InvalidParameterError
 
 
 def convert_dict_to_list(
@@ -108,5 +111,14 @@ def split_container_definition(container_definition: str) -> Tuple[str, str]:
     container: ECS cluster name, e.g. test-cluster
     example: test-definition:1#test-cluster
     """
+    if not is_container_definition_valid(container_definition):
+        raise InvalidParameterError(
+            "Parameter container_definition must be in format <task definition name>:<revision>#<container name>"
+        )
     s = container_definition.split("#")
     return (s[0], s[1])
+
+
+def is_container_definition_valid(container_definition: str) -> bool:
+    is_valid = bool(re.fullmatch(r"[\w\-/:]+?:\d+#[\w\-/]+?", container_definition))
+    return is_valid
