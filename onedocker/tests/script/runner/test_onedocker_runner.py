@@ -13,7 +13,7 @@ from docopt import docopt
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.error.pcp import InvalidParameterError
 from onedocker.common.core_dump_handler_aws import AWSCoreDumpHandler
-from onedocker.repository.onedocker_package import OneDockerPackageRepository
+from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
 from onedocker.script.runner.onedocker_runner import (
     __doc__ as __onedocker_runner_doc__,
     main,
@@ -134,10 +134,10 @@ class TestOnedockerRunner(unittest.TestCase):
             # Assert
             self.assertEqual(cm.exception.code, 1)
 
-    @patch.object(OneDockerPackageRepository, "download")
+    @patch.object(OneDockerRepositoryService, "download")
     def test_main(
         self,
-        mockOneDockerPackageRepositoryDownload,
+        mockOneDockerRepositoryServiceDownload,
     ):
         # Arrange
         with patch.object(
@@ -159,7 +159,7 @@ class TestOnedockerRunner(unittest.TestCase):
 
             # Assert
             self.assertEqual(cm.exception.code, 0)
-            mockOneDockerPackageRepositoryDownload.assert_called_once_with(
+            mockOneDockerRepositoryServiceDownload.assert_called_once_with(
                 "echo",
                 "latest",
                 "/usr/bin/echo",

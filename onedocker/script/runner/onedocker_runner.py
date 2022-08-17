@@ -48,7 +48,7 @@ from onedocker.common.env import (
     ONEDOCKER_REPOSITORY_PATH,
 )
 from onedocker.common.util import run_cmd
-from onedocker.repository.onedocker_package import OneDockerPackageRepository
+from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
 from onedocker.service.certificate_self_signed import SelfSignedCertificateService
 
 
@@ -210,11 +210,12 @@ def _download_executables(
     exe_local_path = executable_path + exe_name
     exe_s3_path = f"{repository_path}{package_name}/{version}/{exe_name}"
     storage_svc = S3StorageService(S3Path(repository_path).region)
-    onedocker_package_repository = OneDockerPackageRepository(
-        storage_svc, repository_path
-    )
+    onedocker_repo_svc = OneDockerRepositoryService(storage_svc, repository_path)
     logger.info(f"Downloading package {package_name}: {version} from {exe_s3_path}")
-    onedocker_package_repository.download(package_name, version, exe_local_path)
+    onedocker_repo_svc.download(package_name, version, exe_local_path)
+    logger.info(
+        f"Downloaded package {package_name}: {version} from {exe_s3_path} to {exe_local_path}"
+    )
 
 
 def _parse_package_name(package_name: str) -> str:
