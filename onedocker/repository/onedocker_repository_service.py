@@ -10,6 +10,8 @@ from fbpcp.service.storage import StorageService
 from onedocker.entity.object_metadata import PackageMetadata
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
+DEFAULT_PROD_VERSION = "latest"
+
 
 class OneDockerRepositoryService:
     def __init__(
@@ -29,6 +31,12 @@ class OneDockerRepositoryService:
         source: str,
         metadata: Optional[dict] = None,
     ) -> None:
+        if not self._skip_version_validation_check(version):
+            all_versions = self.package_repo.get_package_versions(package_name)
+            if version in all_versions:
+                raise ValueError(
+                    f"Version {version} already exists. Please specify another version."
+                )
         self.package_repo.upload(package_name, version, source)
 
     def download(self, package_name: str, version: str, destination: str) -> None:
@@ -53,3 +61,9 @@ class OneDockerRepositoryService:
     def archive_package(self, package_name: str, version: str) -> None:
         # TODO: Archive or delete checksum file associated with the archived package if exists.
         self.package_repo.archive_package(package_name, version)
+
+    def _skip_version_validation_check(self, version: str) -> bool:
+        # TODO: T129388192 remove this check when latest is no longer in use.
+        if version == DEFAULT_PROD_VERSION:
+            return True
+        return False

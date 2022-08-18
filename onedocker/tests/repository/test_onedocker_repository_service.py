@@ -7,13 +7,16 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
+from onedocker.repository.onedocker_repository_service import (
+    DEFAULT_PROD_VERSION,
+    OneDockerRepositoryService,
+)
 
 
 class TestOneDockerRepositoryService(unittest.TestCase):
     TEST_PACKAGE_PATH = "private_lift/lift"
     TEST_PACKAGE_NAME = TEST_PACKAGE_PATH.split("/")[-1]
-    TEST_PACKAGE_VERSION = "latest"
+    TEST_PACKAGE_VERSION = "1.0"
 
     @patch(
         "onedocker.repository.onedocker_repository_service.OneDockerPackageRepository"
@@ -37,6 +40,9 @@ class TestOneDockerRepositoryService(unittest.TestCase):
         )
 
         # Assert
+        self.package_repo.get_package_versions.assert_called_with(
+            self.TEST_PACKAGE_PATH
+        )
         self.package_repo.upload.assert_called_with(
             self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION, source_path
         )
@@ -63,4 +69,19 @@ class TestOneDockerRepositoryService(unittest.TestCase):
         # Assert
         self.package_repo.archive_package.assert_called_once_with(
             self.TEST_PACKAGE_PATH, self.TEST_PACKAGE_VERSION
+        )
+
+    def test_onedocker_repo_service_upload_to_latest(self) -> None:
+        # Arrange
+        source_path = "test_source_path"
+
+        # Act
+        self.repo_service.upload(
+            self.TEST_PACKAGE_PATH, DEFAULT_PROD_VERSION, source_path
+        )
+
+        # Assert
+        self.package_repo.get_package_versions.assert_not_called()
+        self.package_repo.upload.assert_called_with(
+            self.TEST_PACKAGE_PATH, DEFAULT_PROD_VERSION, source_path
         )
