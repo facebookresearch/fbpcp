@@ -9,6 +9,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 
+from fbpcp.entity.cluster_instance import Cluster
 from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.error.pcp import PcpError
 from fbpcp.gateway.ecs import ECSGateway
@@ -126,3 +127,7 @@ class AWSContainerService(ContainerService):
     def get_current_instances_count(self) -> int:
         cluster = self.ecs_gateway.describe_cluster(self.cluster)
         return cluster.running_tasks + cluster.pending_tasks
+
+    def get_cluster_instance(self) -> Cluster:
+        cluster = self.ecs_gateway.describe_cluster(self.cluster)
+        return cluster

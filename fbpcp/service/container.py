@@ -9,6 +9,8 @@
 import abc
 from typing import Dict, List, Optional
 
+from fbpcp.entity.cluster_instance import Cluster
+
 from fbpcp.entity.container_instance import ContainerInstance
 from fbpcp.error.pcp import PcpError
 
@@ -107,5 +109,13 @@ class ContainerService(abc.ABC):
         """Get total pending and running instances count for cluster
         Returns:
             Integer that represent the total pending and running instances count for cluster
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_cluster_instance(self) -> Cluster:
+        """Get cluster instance
+        Returns:
+            Cluster that represent a cluster instance
         """
         pass
