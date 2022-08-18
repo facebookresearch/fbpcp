@@ -270,7 +270,11 @@ class TestOnedockerCli(unittest.TestCase):
         # Assert
         self.assertDictEqual(expected_args, args)
 
-    def test_upload(self):
+    @patch(
+        "onedocker.repository.onedocker_repository_service.OneDockerRepositoryService._skip_version_validation_check",
+        return_value=True,
+    )
+    def test_upload(self, mockRepoSvc):
         # Arrange & Act
         with patch.object(
             sys,
