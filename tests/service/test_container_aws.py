@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import call, MagicMock, patch
 from uuid import uuid4
 
-from fbpcp.entity.cluster_instance import Cluster
+from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.container_aws import AWS_API_INPUT_SIZE_LIMIT, AWSContainerService
@@ -271,3 +271,30 @@ class TestAWSContainerService(unittest.TestCase):
         }
 
         self.assertEqual(container_aws.ecs_gateway.config, expected_config)
+
+    def test_get_cluster_instance(self) -> None:
+        # Arrange
+        test_cluster_arn = "test_cluster_arn"
+        test_cluster_name = TEST_CLUSTER
+        test_pending_tasks_account = 2
+        test_running_tasks_account = 3
+        test_status = ClusterStatus.ACTIVE
+        self.container_svc.ecs_gateway.describe_cluster = MagicMock(
+            return_value=Cluster(
+                cluster_arn=test_cluster_arn,
+                cluster_name=test_cluster_name,
+                pending_tasks=test_pending_tasks_account,
+                running_tasks=test_running_tasks_account,
+                status=test_status,
+            )
+        )
+        # Act
+        cluster_instant = self.container_svc.ecs_gateway.describe_cluster(
+            test_cluster_name
+        )
+        # Assert
+        self.assertEqual(cluster_instant.cluster_arn, test_cluster_arn)
+        self.assertEqual(cluster_instant.cluster_name, test_cluster_name)
+        self.assertEqual(cluster_instant.pending_tasks, test_pending_tasks_account)
+        self.assertEqual(cluster_instant.running_tasks, test_running_tasks_account)
+        self.assertEqual(cluster_instant.status, test_status)
