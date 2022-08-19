@@ -4,10 +4,11 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from fbpcp.service.storage import StorageService
 from onedocker.entity.object_metadata import PackageMetadata
+from onedocker.repository.onedocker_metadata_service import OneDockerMetadataService
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 
 DEFAULT_PROD_VERSION = "latest"
@@ -23,6 +24,7 @@ class OneDockerRepositoryService:
         self.package_repo = OneDockerPackageRepository(
             storage_svc, package_repository_path
         )
+        self.metadata_svc = OneDockerMetadataService(storage_svc)
 
     def upload(
         self,
@@ -46,17 +48,18 @@ class OneDockerRepositoryService:
         self,
         package_name: str,
         version: str,
-        metadata: PackageMetadata,
+        metadata_dict: Dict[Any, Any],
     ) -> None:
-        # TODO: T127441856 handle storing metadata
-        raise NotImplementedError
+        path = self.package_repo._build_package_path(package_name, version)
+        self.metadata_svc.set_metadata(path, metadata_dict)
 
     def _get_metadata(
         self,
         package_name: str,
         version: str,
     ) -> PackageMetadata:
-        raise NotImplementedError
+        path = self.package_repo._build_package_path(package_name, version)
+        return self.metadata_svc.get_metadata(path)
 
     def archive_package(self, package_name: str, version: str) -> None:
         # TODO: Archive or delete checksum file associated with the archived package if exists.
