@@ -44,12 +44,12 @@ def map_gb_to_mb(gb: int) -> int:
     return gb * MEMORY_GB_TO_MB
 
 
-def map_unit_to_vcpu(cpu_unit: int) -> int:
-    return cpu_unit // CPU_VIRTUAL_TO_UNIT
+def map_unit_to_vcpu(cpu_unit: str) -> int:
+    return int(cpu_unit) // CPU_VIRTUAL_TO_UNIT
 
 
-def map_mb_to_gb(mb: int) -> int:
-    return mb // MEMORY_GB_TO_MB
+def map_mb_to_gb(mb: str) -> int:
+    return int(mb) // MEMORY_GB_TO_MB
 
 
 def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
@@ -70,8 +70,15 @@ def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
             status = ContainerInstanceStatus.FAILED
     else:
         status = ContainerInstanceStatus.UNKNOWN
-
-    return ContainerInstance(task["taskArn"], ip_v4, status)
+    vcpu = map_unit_to_vcpu(task["cpu"]) if "cpu" in task else None
+    memory_in_gb = map_mb_to_gb(task["memory"]) if "memory" in task else None
+    return ContainerInstance(
+        instance_id=task["taskArn"],
+        ip_address=ip_v4,
+        status=status,
+        cpu=vcpu,
+        memory=memory_in_gb,
+    )
 
 
 def map_esccluster_to_clusterinstance(cluster: Dict[str, Any]) -> Cluster:
