@@ -10,7 +10,7 @@ CLI for uploading an executable to one docker repo
 
 
 Usage:
-    onedocker-cli upload --config=<config> --package_name=<package_name> --package_dir=<package_dir> [--version=<version> ] [options]
+    onedocker-cli upload --config=<config> --package_name=<package_name> --package_path=<package_path> [--version=<version> ] [options]
     onedocker-cli archive --config=<config> --package_name=<package_name> [--version=<version> ] [options]
     onedocker-cli test --config=<config> --package_name=<package_name> --cmd_args=<cmd_args> [--version=<version> --timeout=<timeout>][options]
     onedocker-cli show --config=<config> --package_name=<package_name> [--version=<version>] [options]
@@ -52,15 +52,15 @@ DEFAULT_TIMEOUT = 18000
 
 
 def _upload(
-    package_dir: str,
+    package_path: str,
     package_name: str,
     version: str,
 ) -> None:
     logger.info(
-        f" Starting uploading package {package_name} at '{package_dir}', version {version}..."
+        f" Starting uploading package {package_name} at '{package_path}', version {version}..."
     )
     logger.info(f"Uploading binary for package {package_name}: {version}")
-    onedocker_repo_svc.upload(package_name, version, package_dir)
+    onedocker_repo_svc.upload(package_name, version, package_path)
     logger.info(f" Finished uploading '{package_name}, version {version}'.\n")
 
 
@@ -185,7 +185,7 @@ def main() -> None:
             "--help": bool,
             "--config": schema.And(schema.Use(PurePath), os.path.exists),
             "--package_name": schema.Or(None, schema.And(str, len)),
-            "--package_dir": schema.Or(None, schema.And(str, len)),
+            "--package_path": schema.Or(None, schema.And(str, len)),
             "--cmd_args": schema.Or(None, schema.And(str, len)),
             "--container": schema.Or(None, schema.And(str, len)),
             "--log_path": schema.Or(None, schema.Use(Path)),
@@ -201,7 +201,7 @@ def main() -> None:
     logging.basicConfig(filename=log_path, level=log_level)
 
     package_name = arguments["--package_name"]
-    package_dir = arguments["--package_dir"]
+    package_path = arguments["--package_path"]
     version = (
         arguments["--version"] if arguments["--version"] else DEFAULT_BINARY_VERSION
     )
@@ -217,7 +217,7 @@ def main() -> None:
     log_svc = _build_log_service(config["dependency"]["LogService"])
 
     if arguments["upload"]:
-        _upload(package_dir, package_name, version)
+        _upload(package_path, package_name, version)
     elif arguments["archive"]:
         _archive(package_name, version)
     elif arguments["test"]:
