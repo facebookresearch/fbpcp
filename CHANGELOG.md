@@ -1,4 +1,23 @@
 # Change log
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+### Added
+### Changed
+### Removed
+
+## [0.3.0] - 2022-08-22
+### Added
+- Add ContainerType enity for different types of containers
+### Removed
+- Remove unrelated API validate_container_definition out of container service
+
+---
+> Older releases are below this line. We're changing the changelog format for better readability. The latest release log should be at the top.
+
 ## 0.3.0 -> 0.3.1
 ### Types of changes
 *  New feature (non-breaking change which adds functionality)
