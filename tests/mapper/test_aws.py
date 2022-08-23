@@ -107,11 +107,15 @@ class TestAWSMapper(unittest.TestCase):
                 self.TEST_TASK_ARN,
                 None,
                 ContainerInstanceStatus.COMPLETED,
+                self.TEST_CPU,
+                self.TEST_MEMORY,
             ),
             ContainerInstance(
                 self.TEST_TASK_ARN,
                 None,
                 ContainerInstanceStatus.FAILED,
+                self.TEST_CPU,
+                self.TEST_MEMORY,
             ),
             ContainerInstance(
                 self.TEST_TASK_ARN,

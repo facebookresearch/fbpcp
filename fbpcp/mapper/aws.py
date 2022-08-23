@@ -70,8 +70,20 @@ def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
             status = ContainerInstanceStatus.FAILED
     else:
         status = ContainerInstanceStatus.UNKNOWN
-
-    return ContainerInstance(task["taskArn"], ip_v4, status)
+    task_overrides = None
+    if (
+        "overrides" in task
+        and "cpu" in task["overrides"]
+        and "memory" in task["overrides"]
+    ):
+        task_overrides = task["overrides"]
+    elif "cpu" in task and "memory" in task:
+        task_overrides = task
+    vcpu = map_unit_to_vcpu(int(task_overrides["cpu"])) if task_overrides else None
+    memory_in_gb = (
+        map_mb_to_gb(int(task_overrides["memory"])) if task_overrides else None
+    )
+    return ContainerInstance(task["taskArn"], ip_v4, status, vcpu, memory_in_gb)
 
 
 def map_esccluster_to_clusterinstance(cluster: Dict[str, Any]) -> Cluster:
