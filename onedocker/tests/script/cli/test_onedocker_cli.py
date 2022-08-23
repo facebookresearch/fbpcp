@@ -10,7 +10,9 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import yaml
-from docopt import docopt
+
+# pyre-ignore[21]
+from docopt import docopt, DocoptExit
 from fbpcp.entity.container_instance import ContainerInstanceStatus
 from fbpcp.service.container_aws import AWSContainerService
 from fbpcp.service.log_cloudwatch import CloudWatchLogService
@@ -295,6 +297,26 @@ class TestOnedockerCli(unittest.TestCase):
         self.mockODPRUpload.assert_called_once_with(
             self.package_name, self.version, self.package_path
         )
+
+    def test_upload_throw_without_version(self):
+        # Arrange & Act
+        with self.assertRaises(DocoptExit):
+            with patch.object(
+                sys,
+                "argv",
+                [
+                    "onedocker-cli",
+                    "upload",
+                    "--config=" + self.config_file,
+                    "--package_name=" + self.package_name,
+                    "--package_path=" + self.package_path,
+                ],
+            ):
+                main()
+
+        # Assert
+        self.mockYamlLoad.assert_not_called()
+        self.mockODPRUpload.assert_not_called()
 
     def test_archive(self):
         # Arrange & Act

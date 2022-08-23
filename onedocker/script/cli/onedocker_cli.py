@@ -10,7 +10,7 @@ CLI for uploading an executable to one docker repo
 
 
 Usage:
-    onedocker-cli upload --config=<config> --package_name=<package_name> --package_path=<package_path> [--version=<version> ] [options]
+    onedocker-cli upload --config=<config> --package_name=<package_name> --package_path=<package_path> --version=<version>
     onedocker-cli archive --config=<config> --package_name=<package_name> [--version=<version> ] [options]
     onedocker-cli test --config=<config> --package_name=<package_name> --cmd_args=<cmd_args> [--version=<version> --timeout=<timeout>][options]
     onedocker-cli show --config=<config> --package_name=<package_name> [--version=<version>] [options]
@@ -47,7 +47,6 @@ log_svc = None
 task_definition = None
 repository_path = None
 
-DEFAULT_BINARY_VERSION = "latest"
 DEFAULT_TIMEOUT = 18000
 
 
@@ -202,9 +201,7 @@ def main() -> None:
 
     package_name = arguments["--package_name"]
     package_path = arguments["--package_path"]
-    version = (
-        arguments["--version"] if arguments["--version"] else DEFAULT_BINARY_VERSION
-    )
+    version = arguments["--version"]
 
     config = yaml.load(Path(arguments["--config"])).get("onedocker-cli")
     task_definition = config["setting"]["task_definition"]
