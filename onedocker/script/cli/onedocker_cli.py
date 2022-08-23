@@ -46,6 +46,7 @@ onedocker_repo_svc = None
 log_svc = None
 task_definition = None
 repository_path = None
+storage_svc = None
 
 DEFAULT_BINARY_VERSION = "latest"
 DEFAULT_TIMEOUT = 18000
@@ -173,7 +174,7 @@ def _build_exe_s3_path(repository_path: str, package_name: str, version: str) ->
 
 
 def main() -> None:
-    global container_svc, onedocker_svc, onedocker_repo_svc, log_svc, logger, task_definition, repository_path
+    global container_svc, onedocker_svc, onedocker_repo_svc, log_svc, logger, task_definition, repository_path, storage_svc
     s = schema.Schema(
         {
             "upload": bool,
@@ -207,14 +208,23 @@ def main() -> None:
     )
 
     config = yaml.load(Path(arguments["--config"])).get("onedocker-cli")
-    task_definition = config["setting"]["task_definition"]
-    repository_path = config["setting"]["repository_path"]
 
-    storage_svc = _build_storage_service(config["dependency"]["StorageService"])
-    container_svc = _build_container_service(config["dependency"]["ContainerService"])
-    onedocker_svc = OneDockerService(container_svc, task_definition)
-    onedocker_repo_svc = OneDockerRepositoryService(storage_svc, repository_path)
-    log_svc = _build_log_service(config["dependency"]["LogService"])
+    config_setting = config["setting"]
+    config_dependency = config["dependency"]
+    if config_dependency.get("StorageService"):
+        storage_svc = _build_storage_service(config_dependency["StorageService"])
+    if config_dependency.get("ContainerService"):
+        container_svc = _build_container_service(config_dependency["ContainerService"])
+    if container_svc and config_setting.get("task_definition"):
+        onedocker_svc = OneDockerService(
+            container_svc, config_setting["task_definition"]
+        )
+    if storage_svc and config_setting.get("repository_path"):
+        onedocker_repo_svc = OneDockerRepositoryService(
+            storage_svc, config_setting["repository_path"]
+        )
+    if config_dependency.get("LogService"):
+        log_svc = _build_log_service(config_dependency["LogService"])
 
     if arguments["upload"]:
         _upload(package_path, package_name, version)
