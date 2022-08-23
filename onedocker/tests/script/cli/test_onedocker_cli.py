@@ -49,7 +49,7 @@ class TestOnedockerCli(unittest.TestCase):
         )
 
         self.package_name = "foo"
-        self.package_dir = "test/bar/"
+        self.package_path = "test/bar/"
         self.version = "baz"
         self.config_file = "test_config_file.yml"
         self.timeout = "100"
@@ -73,7 +73,7 @@ class TestOnedockerCli(unittest.TestCase):
             "--verbose": False,
             "--package_name": None,
             "--version": None,
-            "--package_dir": None,
+            "--package_path": None,
             "--config": None,
             "--log_path": None,
             "--cmd_args": None,
@@ -140,7 +140,7 @@ class TestOnedockerCli(unittest.TestCase):
                 "upload": True,
                 "--package_name": self.package_name,
                 "--version": self.version,
-                "--package_dir": self.package_dir,
+                "--package_path": self.package_path,
                 "--config": self.config_file,
             }
         )
@@ -152,7 +152,7 @@ class TestOnedockerCli(unittest.TestCase):
                 "upload",
                 "--config=" + self.config_file,
                 "--package_name=" + self.package_name,
-                "--package_dir=" + self.package_dir,
+                "--package_path=" + self.package_path,
                 "--version=" + self.version,
             ],
         )
@@ -284,7 +284,7 @@ class TestOnedockerCli(unittest.TestCase):
                 "upload",
                 "--config=" + self.config_file,
                 "--package_name=" + self.package_name,
-                "--package_dir=" + self.package_dir,
+                "--package_path=" + self.package_path,
                 "--version=" + self.version,
             ],
         ):
@@ -293,7 +293,7 @@ class TestOnedockerCli(unittest.TestCase):
         # Assert
         self.mockYamlLoad.assert_called_once()
         self.mockODPRUpload.assert_called_once_with(
-            self.package_name, self.version, self.package_dir
+            self.package_name, self.version, self.package_path
         )
 
     def test_archive(self):
