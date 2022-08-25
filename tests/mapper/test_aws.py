@@ -40,6 +40,7 @@ class TestAWSMapper(unittest.TestCase):
     TEST_MEMORY = 2
 
     def test_map_ecstask_to_containerinstance(self):
+        # Arrange
         cpu_response = map_vcpu_to_unit(self.TEST_CPU)
         memory_response = map_gb_to_mb(self.TEST_MEMORY)
         ecs_task_response = {
@@ -79,10 +80,6 @@ class TestAWSMapper(unittest.TestCase):
                         },
                     ],
                     "taskArn": self.TEST_TASK_ARN,
-                    "overrides": {
-                        "cpu": cpu_response,
-                        "memory": memory_response,
-                    },
                 },
                 {
                     "containers": [
@@ -96,7 +93,6 @@ class TestAWSMapper(unittest.TestCase):
                 },
             ]
         }
-
         expected_task_list = [
             ContainerInstance(
                 self.TEST_TASK_ARN,
@@ -107,23 +103,22 @@ class TestAWSMapper(unittest.TestCase):
                 self.TEST_TASK_ARN,
                 None,
                 ContainerInstanceStatus.COMPLETED,
+                cpu=self.TEST_CPU,
+                memory=self.TEST_MEMORY,
             ),
-            ContainerInstance(
-                self.TEST_TASK_ARN,
-                None,
-                ContainerInstanceStatus.FAILED,
-            ),
+            ContainerInstance(self.TEST_TASK_ARN, None, ContainerInstanceStatus.FAILED),
             ContainerInstance(
                 self.TEST_TASK_ARN,
                 None,
                 ContainerInstanceStatus.UNKNOWN,
             ),
         ]
+        # Act
         tasks_list = [
             map_ecstask_to_containerinstance(task)
             for task in ecs_task_response["tasks"]
         ]
-
+        # Assert
         self.assertEqual(tasks_list, expected_task_list)
 
     def test_map_esccluster_to_clusterinstance(self):
