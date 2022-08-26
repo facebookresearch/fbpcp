@@ -147,6 +147,7 @@ class S3Gateway(AWSGateway):
 
     class ProgressPercentage(object):
         def __init__(self, file_name: str, file_size: int) -> None:
+            # pyre-fixme[4]: Attribute must be annotated.
             self._progressbar = tqdm(total=file_size, desc=file_name)
 
         def __call__(self, bytes_amount: int) -> None:
