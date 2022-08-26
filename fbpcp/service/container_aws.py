@@ -9,8 +9,11 @@
 import logging
 from typing import Any, Dict, List, Optional
 
+from fbpcp.entity.cloud_provider import CloudProvider
+
 from fbpcp.entity.cluster_instance import Cluster
 from fbpcp.entity.container_instance import ContainerInstance
+from fbpcp.entity.container_type import ContainerType, ContainerTypeConfig
 from fbpcp.error.pcp import PcpError
 from fbpcp.gateway.ecs import ECSGateway
 from fbpcp.metrics.emitter import MetricsEmitter
@@ -55,6 +58,7 @@ class AWSContainerService(ContainerService):
         container_definition: str,
         cmd: str,
         env_vars: Optional[Dict[str, str]] = None,
+        container_type: Optional[ContainerType] = None,
     ) -> ContainerInstance:
         task_definition, container = split_container_definition(container_definition)
 
@@ -62,7 +66,13 @@ class AWSContainerService(ContainerService):
             raise PcpError(
                 "No subnets specified. It's required to create container instances."
             )
-
+        cpu = None
+        memory = None
+        if container_type is not None:
+            container_config = ContainerTypeConfig.get_config(
+                CloudProvider.AWS, container_type
+            )
+            cpu, memory = container_config.cpu, container_config.memory
         return self.ecs_gateway.run_task(
             task_definition=task_definition,
             container=container,
@@ -70,6 +80,8 @@ class AWSContainerService(ContainerService):
             cluster=self.cluster,
             subnets=self.subnets,
             env_vars=env_vars,
+            cpu=cpu,
+            memory=memory,
         )
 
     def create_instances(
@@ -77,9 +89,16 @@ class AWSContainerService(ContainerService):
         container_definition: str,
         cmds: List[str],
         env_vars: Optional[Dict[str, str]] = None,
+        container_type: Optional[ContainerType] = None,
     ) -> List[ContainerInstance]:
         instances = [
-            self.create_instance(container_definition, cmd, env_vars) for cmd in cmds
+            self.create_instance(
+                container_definition=container_definition,
+                cmd=cmd,
+                env_vars=env_vars,
+                container_type=container_type,
+            )
+            for cmd in cmds
         ]
         self.logger.info(
             f"AWSContainerService created {len(instances)} containers successfully"
