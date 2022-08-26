@@ -154,9 +154,9 @@ class OneDockerService(MetricsGetter):
                 "task definition should be specified when spinning up containers"
             )
         containers = self.container_svc.create_instances(
-            task_definition,
-            cmds,
-            env_vars,
+            container_definition=task_definition,
+            cmds=cmds,
+            env_vars=env_vars,
         )
 
         if self.metrics:

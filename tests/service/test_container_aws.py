@@ -6,11 +6,15 @@
 
 import math
 import unittest
+from typing import List
 from unittest.mock import call, MagicMock, patch
 from uuid import uuid4
 
+from fbpcp.entity.cloud_provider import CloudProvider
+
 from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_type import ContainerType, ContainerTypeConfig
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.container_aws import AWS_API_INPUT_SIZE_LIMIT, AWSContainerService
 
@@ -30,6 +34,8 @@ TEST_CONTAINER_DEFNITION = "test-container-definition"
 TEST_ENV_VARS = {"k1": "v1", "k2": "v2"}
 TEST_CMD_1 = "test_1"
 TEST_CMD_2 = "test_2"
+TEST_CONTAINER_TYPE = ContainerType.DEFAULT
+TEST_CLOUD_PROVIDER = CloudProvider.AWS
 
 
 class TestAWSContainerService(unittest.TestCase):
@@ -39,19 +45,26 @@ class TestAWSContainerService(unittest.TestCase):
             TEST_REGION, TEST_CLUSTER, TEST_SUBNETS, TEST_KEY_ID, TEST_KEY_DATA
         )
         self.container_svc.ecs_gateway = MockECSGateway()
+        self.test_container_config: ContainerTypeConfig = (
+            ContainerTypeConfig.get_config(TEST_CLOUD_PROVIDER, TEST_CONTAINER_TYPE)
+        )
 
     def test_create_instances(self):
         # Arrange
-        created_instances = [
+        created_instances: List[ContainerInstance] = [
             ContainerInstance(
                 TEST_INSTANCE_ID_1,
                 TEST_IP_ADDRESS,
                 ContainerInstanceStatus.STARTED,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
             ),
             ContainerInstance(
                 TEST_INSTANCE_ID_2,
                 TEST_IP_ADDRESS,
                 ContainerInstanceStatus.STARTED,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
             ),
         ]
 
@@ -60,7 +73,7 @@ class TestAWSContainerService(unittest.TestCase):
         )
 
         cmd_list = [TEST_CMD_1, TEST_CMD_2]
-        run_task_calls = [
+        run_task_calls: List[call] = [
             call(
                 task_definition=TEST_TASK_DEFNITION,
                 container=TEST_CONTAINER_DEFNITION,
@@ -68,6 +81,8 @@ class TestAWSContainerService(unittest.TestCase):
                 cluster=TEST_CLUSTER,
                 subnets=TEST_SUBNETS,
                 env_vars=TEST_ENV_VARS,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
             ),
             call(
                 task_definition=TEST_TASK_DEFNITION,
@@ -76,14 +91,19 @@ class TestAWSContainerService(unittest.TestCase):
                 cluster=TEST_CLUSTER,
                 subnets=TEST_SUBNETS,
                 env_vars=TEST_ENV_VARS,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
             ),
         ]
 
         # Act
-        container_instances = self.container_svc.create_instances(
-            f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
-            cmd_list,
-            TEST_ENV_VARS,
+        container_instances: List[
+            ContainerInstance
+        ] = self.container_svc.create_instances(
+            container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+            cmds=cmd_list,
+            env_vars=TEST_ENV_VARS,
+            container_type=TEST_CONTAINER_TYPE,
         )
 
         # Assert
@@ -97,10 +117,12 @@ class TestAWSContainerService(unittest.TestCase):
 
     def test_create_instance(self):
         # Arrange
-        created_instance = ContainerInstance(
+        created_instance: ContainerInstance = ContainerInstance(
             TEST_INSTANCE_ID_1,
             TEST_IP_ADDRESS,
             ContainerInstanceStatus.STARTED,
+            cpu=self.test_container_config.cpu,
+            memory=self.test_container_config.memory,
         )
 
         self.container_svc.ecs_gateway.run_task = MagicMock(
@@ -108,10 +130,11 @@ class TestAWSContainerService(unittest.TestCase):
         )
 
         # Act
-        container_instance = self.container_svc.create_instance(
+        container_instance: ContainerInstance = self.container_svc.create_instance(
             f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
             TEST_CMD_1,
             TEST_ENV_VARS,
+            container_type=TEST_CONTAINER_TYPE,
         )
 
         # Assert
@@ -122,6 +145,8 @@ class TestAWSContainerService(unittest.TestCase):
             cluster=TEST_CLUSTER,
             subnets=TEST_SUBNETS,
             env_vars=TEST_ENV_VARS,
+            cpu=self.test_container_config.cpu,
+            memory=self.test_container_config.memory,
         )
         self.assertEqual(container_instance, created_instance)
 
