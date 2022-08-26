@@ -66,7 +66,7 @@ class AWSPolicyValidationService(PolicyValidationService):
                 rule.effect,
                 rule.principal,
                 rule.actions,
-                [f"arn:aws:s3:::{bucket}/*"],
+                rule.resources,
             ):
                 self.logger.error(
                     "The policy of bucket %s does not satisfy the following policy settings: %s.",

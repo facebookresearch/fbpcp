@@ -22,9 +22,11 @@ class PolicySettingsConfig:
         effect: The specified effect.
         principal: The specified principal. Use normal string or "re(<principal regex>)" for regex matching.
         actions: List of specified actions.
+        resources: List of resources.
     """
 
     exist: bool
     effect: Effect
     principal: str
     actions: List[str]
+    resources: List[str]
