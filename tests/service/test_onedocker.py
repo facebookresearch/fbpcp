@@ -6,11 +6,14 @@
 
 import unittest
 from shlex import quote
+from typing import List
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import ANY, call, MagicMock, patch
 
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
+from fbpcp.entity.cloud_provider import CloudProvider
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_type import ContainerType, ContainerTypeConfig
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.onedocker import (
     METRICS_START_CONTAINERS_COUNT,
@@ -34,6 +37,11 @@ TEST_PASSPHRASE = "test"
 TEST_ORGANIZATION_NAME = "Test Company"
 TEST_COUNTRY_NAME = "US"
 TEST_CLUSTER_STR = "Test Cluster"
+TEST_CLOUD_PROVIDER: CloudProvider = CloudProvider.AWS
+TEST_CONTAINER_TYPE: ContainerType = ContainerType.LARGE
+TEST_CONTAINER_CONFIG: ContainerTypeConfig = ContainerTypeConfig.get_config(
+    TEST_CLOUD_PROVIDER, TEST_CONTAINER_TYPE
+)
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
@@ -47,16 +55,20 @@ class TestOneDockerServiceSync(unittest.TestCase):
         )
 
     def test_start_container(self):
-        mocked_container_info = _get_pending_container_instances()[0]
+        # Arrange
+        mocked_container_info: ContainerInstance = _get_pending_container_instances()[0]
         self.container_svc.create_instances = MagicMock(
             return_value=[mocked_container_info]
         )
-        returned_container_info = self.onedocker_svc.start_container(
+        # Act
+        returned_container_info: ContainerInstance = self.onedocker_svc.start_container(
             task_definition=TEST_TASK_DEF,
             package_name=TEST_PACKAGE_NAME,
             cmd_args=TEST_CMD_ARGS_LIST[0],
             certificate_request=None,
+            container_type=TEST_CONTAINER_TYPE,
         )
+        # Assert
         self.assertEqual(returned_container_info, mocked_container_info)
 
     def test_start_containers(self):
@@ -100,7 +112,9 @@ class TestOneDockerServiceSync(unittest.TestCase):
         self.onedocker_svc._get_cmd = MagicMock()
 
         # Act
-        returned_container_info = self.onedocker_svc.start_containers(
+        returned_container_info: List[
+            ContainerInstance
+        ] = self.onedocker_svc.start_containers(
             task_definition=TEST_TASK_DEF,
             package_name=TEST_PACKAGE_NAME,
             cmd_args_list=TEST_CMD_ARGS_LIST,
@@ -108,6 +122,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             env_vars=TEST_ENV_VARS,
             timeout=TEST_TIMEOUT,
             certificate_request=test_cert_request,
+            container_type=TEST_CONTAINER_TYPE,
         )
 
         # Assert
@@ -285,22 +300,26 @@ class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
         self.assertEqual(expected_containers, running_containers)
 
 
-def _get_pending_container_instances():
+def _get_pending_container_instances() -> List[ContainerInstance]:
     return [
         ContainerInstance(
             TEST_INSTANCE_ID_1,
             TEST_IP_ADDRESS,
             ContainerInstanceStatus.UNKNOWN,
+            cpu=TEST_CONTAINER_CONFIG.cpu,
+            memory=TEST_CONTAINER_CONFIG.memory,
         ),
         ContainerInstance(
             TEST_INSTANCE_ID_2,
             TEST_IP_ADDRESS,
             ContainerInstanceStatus.UNKNOWN,
+            cpu=TEST_CONTAINER_CONFIG.cpu,
+            memory=TEST_CONTAINER_CONFIG.memory,
         ),
     ]
 
 
-def _get_running_container_instances():
+def _get_running_container_instances() -> List[ContainerInstance]:
     return [
         ContainerInstance(
             TEST_INSTANCE_ID_1,

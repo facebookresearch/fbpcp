@@ -13,6 +13,7 @@ from typing import Dict, Final, List, Optional
 from fbpcp.decorator.metrics import duration_time, error_counter, request_counter
 from fbpcp.entity.certificate_request import CertificateRequest
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_type import ContainerType
 from fbpcp.error.pcp import PcpError
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter
@@ -81,6 +82,7 @@ class OneDockerService(MetricsGetter):
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
         certificate_request: Optional[CertificateRequest] = None,
+        container_type: Optional[ContainerType] = None,
     ) -> ContainerInstance:
         """
         This function statrts one container for running MPC games.
@@ -98,14 +100,15 @@ class OneDockerService(MetricsGetter):
 
         """
         return self.start_containers(
-            package_name,
-            task_definition,
-            version,
-            [cmd_args] if cmd_args else None,
-            env_vars,
-            timeout,
-            tag,
-            certificate_request,
+            package_name=package_name,
+            task_definition=task_definition,
+            version=version,
+            cmd_args_list=[cmd_args] if cmd_args else None,
+            env_vars=env_vars,
+            timeout=timeout,
+            tag=tag,
+            certificate_request=certificate_request,
+            container_type=container_type,
         )[0]
 
     @error_counter(METRICS_START_CONTAINERS_ERROR_COUNT)
@@ -121,6 +124,7 @@ class OneDockerService(MetricsGetter):
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
         certificate_request: Optional[CertificateRequest] = None,
+        container_type: Optional[ContainerType] = None,
     ) -> List[ContainerInstance]:
         """Spin up cloud containers according to command arg list.
 
@@ -157,6 +161,7 @@ class OneDockerService(MetricsGetter):
             container_definition=task_definition,
             cmds=cmds,
             env_vars=env_vars,
+            container_type=container_type,
         )
 
         if self.metrics:
