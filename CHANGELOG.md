@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.3.1] - 2022-08-30
+### Added
+- Add customized container type to OneDocker & ContainerService
+
 ## [0.3.0] - 2022-08-22
 ### Added
 - Add ContainerType enity for different types of containers
