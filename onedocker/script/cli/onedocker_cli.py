@@ -154,22 +154,49 @@ def _stop(container_id: str) -> None:
 
 
 def _build_storage_service(config: Dict[str, Any]) -> StorageService:
-    storage_class = reflect.get_class(config["class"])
-    return storage_class(**config["constructor"])
+    config_dependency: Optional[Dict[str, Any]] = config.get("dependency")
+    if not config_dependency or "StorageService" not in config_dependency:
+        raise KeyError("StorageService is absent in the config.")
+    storage_svc_config: Dict[str, Any] = config_dependency["StorageService"]
+    storage_class = reflect.get_class(storage_svc_config["class"])
+    return storage_class(**storage_svc_config["constructor"])
 
 
 def _build_container_service(config: Dict[str, Any]) -> ContainerService:
-    container_class = reflect.get_class(config["class"])
-    return container_class(**config["constructor"])
+    config_dependency: Optional[Dict[str, Any]] = config.get("dependency")
+    if not config_dependency or "ContainerService" not in config_dependency:
+        raise KeyError("ContainerService is absent in the config.")
+    container_svc_config: Dict[str, Any] = config_dependency["ContainerService"]
+    container_class = reflect.get_class(container_svc_config["class"])
+    return container_class(**container_svc_config["constructor"])
 
 
 def _build_log_service(config: Dict[str, Any]) -> LogService:
-    log_class = reflect.get_class(config["class"])
-    return log_class(**config["constructor"])
+    config_dependency: Optional[Dict[str, Any]] = config.get("dependency")
+    if not config_dependency or "LogService" not in config_dependency:
+        raise KeyError("LogService is absent in the config.")
+    log_svc_config: Dict[str, Any] = config_dependency["LogService"]
+    log_class = reflect.get_class(log_svc_config["class"])
+    return log_class(**log_svc_config["constructor"])
 
 
 def _build_exe_s3_path(repository_path: str, package_name: str, version: str) -> str:
     return f"{repository_path}{package_name}/{version}/{package_name.split('/')[-1]}"
+
+
+def _build_repo_service(config: Dict[str, Any]) -> OneDockerRepositoryService:
+    config_setting: Optional[Dict[str, str]] = config.get("setting")
+    if not config_setting or "repository_path" not in config_setting:
+        raise KeyError("repository_path is absent in the config.")
+    storage_svc = _build_storage_service(config)
+    return OneDockerRepositoryService(storage_svc, config_setting["repository_path"])
+
+
+def _build_onedocker_service(config: Dict[str, Any], container_svc) -> OneDockerService:
+    config_setting: Optional[Dict[str, str]] = config.get("setting")
+    if not config_setting or "task_definition" not in config_setting:
+        raise KeyError("task_definition is absent in the config.")
+    return OneDockerService(container_svc, config_setting["task_definition"])
 
 
 def main() -> None:
@@ -206,33 +233,24 @@ def main() -> None:
 
     config = yaml.load(Path(arguments["--config"])).get("onedocker-cli")
 
-    config_setting = config["setting"]
-    config_dependency = config["dependency"]
-    if config_dependency.get("StorageService"):
-        storage_svc = _build_storage_service(config_dependency["StorageService"])
-    if config_dependency.get("ContainerService"):
-        container_svc = _build_container_service(config_dependency["ContainerService"])
-    if container_svc and config_setting.get("task_definition"):
-        onedocker_svc = OneDockerService(
-            container_svc, config_setting["task_definition"]
-        )
-    if storage_svc and config_setting.get("repository_path"):
-        onedocker_repo_svc = OneDockerRepositoryService(
-            storage_svc, config_setting["repository_path"]
-        )
-    if config_dependency.get("LogService"):
-        log_svc = _build_log_service(config_dependency["LogService"])
-
     if arguments["upload"]:
+        onedocker_repo_svc = _build_repo_service(config)
         _upload(package_path, package_name, version)
     elif arguments["archive"]:
+        onedocker_repo_svc = _build_repo_service(config)
         _archive(package_name, version)
     elif arguments["test"]:
+        container_svc = _build_container_service(config)
+        onedocker_svc = _build_onedocker_service(config, container_svc)
+        log_svc = _build_log_service(config)
         timeout = arguments["--timeout"] if arguments["--timeout"] else DEFAULT_TIMEOUT
         _test(package_name, version, arguments["--cmd_args"], timeout)
     elif arguments["show"]:
+        onedocker_repo_svc = _build_repo_service(config)
         _show(package_name, arguments["--version"])
     elif arguments["stop"]:
+        container_svc = _build_container_service(config)
+        onedocker_svc = _build_onedocker_service(config, container_svc)
         _stop(arguments["--container"])
 
 
