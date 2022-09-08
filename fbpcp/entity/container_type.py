@@ -17,10 +17,12 @@ from fbpcp.error.pcp import InvalidParameterError
 class ContainerType(Enum):
     DEFAULT = "DEFAULT"
     LARGE = "LARGE"
+    SMALL = "SMALL"
 
 
 CONTAINER_TYPES: Dict[CloudProvider, Dict[ContainerType, Dict[str, int]]] = {
     CloudProvider.AWS: {
+        ContainerType.SMALL: {"cpu": 1, "memory": 8},
         ContainerType.DEFAULT: {"cpu": 4, "memory": 30},
         ContainerType.LARGE: {"cpu": 16, "memory": 120},
     }
