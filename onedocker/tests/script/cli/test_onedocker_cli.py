@@ -7,6 +7,7 @@
 import os
 import sys
 import unittest
+from typing import Any, Dict, Optional
 from unittest.mock import MagicMock, patch
 
 import yaml
@@ -25,30 +26,7 @@ from onedocker.script.cli.onedocker_cli import __doc__ as __onedocker_cli_doc__,
 
 class TestOnedockerCli(unittest.TestCase):
     def setUp(self):
-        test_config_file_contents = """
-            onedocker-cli:
-                dependency:
-                    StorageService:
-                        class: fbpcp.service.storage_s3.S3StorageService
-                        constructor:
-                            region: "us-west-2"
-                    ContainerService:
-                        class: fbpcp.service.container_aws.AWSContainerService
-                        constructor:
-                            region: us-west-2
-                            cluster: pl-cluster-test
-                    LogService:
-                        class: fbpcp.service.log_cloudwatch.CloudWatchLogService
-                        constructor:
-                            region: us-west-2
-                            log_group: /ecs/onedocker-cli-test
-                setting:
-                    repository_path: "https://onedocker-checksum-test.s3.us-west-2.amazonaws.com/binaries/"
-                    task_definition: onedocker-cli-test:2#onedocker-cli-test
-            """
-        self.test_config_dict = yaml.load(
-            test_config_file_contents, Loader=yaml.SafeLoader
-        )
+        self.test_config_dict = self._get_test_config_dict()
 
         self.package_name = "foo"
         self.package_path = "test/bar/"
@@ -131,6 +109,83 @@ class TestOnedockerCli(unittest.TestCase):
         ).start()
 
         self.addCleanup(patch.stopall)
+
+    def _get_test_config_dict(self, command: Optional[str] = None) -> Dict[str, Any]:
+        if not command:
+            # return full config
+            test_config_file_contents = """
+            onedocker-cli:
+                dependency:
+                    StorageService:
+                        class: fbpcp.service.storage_s3.S3StorageService
+                        constructor:
+                            region: "us-west-2"
+                    ContainerService:
+                        class: fbpcp.service.container_aws.AWSContainerService
+                        constructor:
+                            region: us-west-2
+                            cluster: pl-cluster-test
+                    LogService:
+                        class: fbpcp.service.log_cloudwatch.CloudWatchLogService
+                        constructor:
+                            region: us-west-2
+                            log_group: /ecs/onedocker-cli-test
+                setting:
+                    repository_path: "https://onedocker-checksum-test.s3.us-west-2.amazonaws.com/binaries/"
+                    task_definition: onedocker-cli-test:2#onedocker-cli-test
+            """
+        elif command in ["upload", "archive", "show"]:
+            test_config_file_contents = """
+            onedocker-cli:
+                dependency:
+                    StorageService:
+                        class: fbpcp.service.storage_s3.S3StorageService
+                        constructor:
+                            region: "us-west-2"
+                setting:
+                    repository_path: "https://onedocker-checksum-test.s3.us-west-2.amazonaws.com/binaries/"
+            """
+        elif command == "test":
+            test_config_file_contents = """
+            onedocker-cli:
+                dependency:
+                    StorageService:
+                        class: fbpcp.service.storage_s3.S3StorageService
+                        constructor:
+                            region: "us-west-2"
+                    ContainerService:
+                        class: fbpcp.service.container_aws.AWSContainerService
+                        constructor:
+                            region: us-west-2
+                            cluster: pl-cluster-test
+                    LogService:
+                        class: fbpcp.service.log_cloudwatch.CloudWatchLogService
+                        constructor:
+                            region: us-west-2
+                            log_group: /ecs/onedocker-cli-test
+                setting:
+                    task_definition: onedocker-cli-test:2#onedocker-cli-test
+            """
+        elif command == "stop":
+            test_config_file_contents = """
+            onedocker-cli:
+                dependency:
+                    StorageService:
+                        class: fbpcp.service.storage_s3.S3StorageService
+                        constructor:
+                            region: "us-west-2"
+                    ContainerService:
+                        class: fbpcp.service.container_aws.AWSContainerService
+                        constructor:
+                            region: us-west-2
+                            cluster: pl-cluster-test
+                setting:
+                    task_definition: onedocker-cli-test:2#onedocker-cli-test
+            """
+        else:
+            raise ValueError("Invalid command.")
+
+        return yaml.load(test_config_file_contents, Loader=yaml.SafeLoader)
 
     def test_docopt_args_upload(self):
         # Arrange
@@ -298,6 +353,67 @@ class TestOnedockerCli(unittest.TestCase):
             self.package_name, self.version, self.package_path
         )
 
+    @patch(
+        "onedocker.repository.onedocker_repository_service.OneDockerRepositoryService._skip_version_validation_check",
+        return_value=True,
+    )
+    def test_upload_with_partial_config(self, mockRepoSvc):
+        # Arrange
+        partial_config_dict = self._get_test_config_dict("upload")
+        mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=partial_config_dict),
+        ).start()
+
+        # Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "upload",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+                "--package_path=" + self.package_path,
+                "--version=" + self.version,
+            ],
+        ):
+            main()
+
+        # Assert
+        mockYamlLoad.assert_called_once()
+        self.mockODPRUpload.assert_called_once_with(
+            self.package_name, self.version, self.package_path
+        )
+
+    def test_upload_with_partial_config_throw(self):
+        # Arrange
+        invalid_config_dict = self._get_test_config_dict("test")
+        mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=invalid_config_dict),
+        ).start()
+
+        # Act
+        with self.assertRaises(KeyError):
+            with patch.object(
+                sys,
+                "argv",
+                [
+                    "onedocker-cli",
+                    "upload",
+                    "--config=" + self.config_file,
+                    "--package_name=" + self.package_name,
+                    "--package_path=" + self.package_path,
+                    "--version=" + self.version,
+                ],
+            ):
+                main()
+
+            mockYamlLoad.assert_called_once()
+
     def test_upload_throw_without_version(self):
         # Arrange & Act
         with self.assertRaises(DocoptExit):
@@ -394,6 +510,98 @@ class TestOnedockerCli(unittest.TestCase):
             mockContainerInstance
         )
 
+    @patch.object(CloudWatchLogService, "get_log_path")
+    @patch.object(OneDockerService, "wait_for_pending_container")
+    @patch.object(OneDockerService, "start_container")
+    @patch.object(CloudWatchLogService, "fetch")
+    @patch.object(AWSContainerService, "get_instance")
+    def test_test_with_partial_config(
+        self,
+        mockAWSContainerServiceGetInstance,
+        mockCloudWatchLogServiceFetch,
+        mockOnedockerServiceStartContainer,
+        mockOnedockerServiceWaitForPendingContainer,
+        mockCloudWatchLogServiceGetLogPath,
+    ):
+        # Arrange
+        config_dict = self._get_test_config_dict("test")
+        mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=config_dict),
+        ).start()
+        mockCloudWatchLogServiceGetLogPath.return_value = (
+            "Clearly/Bogus/File/Path/Here/"
+        )
+        mockCloudWatchLogServiceFetch.return_value = []
+
+        mockContainerInstance = MagicMock(instance_id=1)
+
+        mockContainerInstance.status.side_effect = [
+            ContainerInstanceStatus.STARTED,
+            ContainerInstanceStatus.STARTED,
+            ContainerInstanceStatus.COMPLETED,
+        ]
+        mockOnedockerServiceStartContainer.return_value = mockContainerInstance
+        mockOnedockerServiceWaitForPendingContainer.return_value = mockContainerInstance
+        mockAWSContainerServiceGetInstance.return_value = mockContainerInstance
+
+        # Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "test",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+                "--version=" + self.version,
+                "--cmd_args=" + self.cmd_args,
+            ],
+        ):
+            main()
+
+        # Assert
+        mockYamlLoad.assert_called_once()
+        mockOnedockerServiceStartContainer.assert_called_once_with(
+            package_name=self.package_name,
+            version=self.version,
+            cmd_args=self.cmd_args,
+            timeout=18000,
+        )
+        mockCloudWatchLogServiceGetLogPath.assert_called_once_with(
+            mockContainerInstance
+        )
+
+    def test_test_with_partial_config_throw(
+        self,
+    ):
+        # Arrange
+        invalid_config_dict = self._get_test_config_dict("upload")
+        mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=invalid_config_dict),
+        ).start()
+
+        # Act & Assert
+        with self.assertRaises(KeyError):
+            with patch.object(
+                sys,
+                "argv",
+                [
+                    "onedocker-cli",
+                    "test",
+                    "--config=" + self.config_file,
+                    "--package_name=" + self.package_name,
+                    "--version=" + self.version,
+                    "--cmd_args=" + self.cmd_args,
+                ],
+            ):
+                main()
+
+            mockYamlLoad.assert_called_once()
+
     def test_show(self):
         # Arrange & Act
         with patch.object(
@@ -414,6 +622,64 @@ class TestOnedockerCli(unittest.TestCase):
         self.mockODPRGetPackageInfo.assert_called_once_with(
             self.package_name, self.version
         )
+
+    def test_show_partial_config(self):
+        # Arrange
+        config_dict = self._get_test_config_dict("show")
+        mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=config_dict),
+        ).start()
+
+        # Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "show",
+                "--config=" + self.config_file,
+                "--package_name=" + self.package_name,
+                "--version=" + self.version,
+            ],
+        ):
+            main()
+
+        # Assert
+        mockYamlLoad.assert_called_once()
+        self.mockODPRGetPackageInfo.assert_called_once_with(
+            self.package_name, self.version
+        )
+
+    def test_show_partial_config_throw(self):
+        # Arrange
+        _invalid_config_dict = self._get_test_config_dict("test")
+        mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=_invalid_config_dict),
+        ).start()
+
+        # Act & Assert
+        with self.assertRaises(KeyError):
+            with patch.object(
+                sys,
+                "argv",
+                [
+                    "onedocker-cli",
+                    "show",
+                    "--config=" + self.config_file,
+                    "--package_name=" + self.package_name,
+                    "--version=" + self.version,
+                ],
+            ):
+                main()
+
+            mockYamlLoad.assert_called_once()
+            self.mockODPRGetPackageInfo.assert_called_once_with(
+                self.package_name, self.version
+            )
 
     def test_show_no_version(self):
         # Arrange & Act
@@ -459,3 +725,58 @@ class TestOnedockerCli(unittest.TestCase):
         mockOnedockerServiceStopContainers.assert_called_once_with(
             [self.container],
         )
+
+    @patch.object(OneDockerService, "stop_containers")
+    def test_stop_with_partial_config(self, mockOnedockerServiceStopContainers):
+        # Arrange
+        config_dict = self._get_test_config_dict("stop")
+        mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=config_dict),
+        ).start()
+        mockOnedockerServiceStopContainers.return_value = [None]
+
+        # Act
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-cli",
+                "stop",
+                "--config=" + self.config_file,
+                "--container=" + self.container,
+            ],
+        ):
+            main()
+
+        # Assert
+        mockYamlLoad.assert_called_once()
+        mockOnedockerServiceStopContainers.assert_called_once_with(
+            [self.container],
+        )
+
+    def test_stop_with_partial_config_throw(self):
+        # Arrange
+        invalid_config_dict = self._get_test_config_dict("upload")
+        mockYamlLoad = patch.object(
+            util_yaml,
+            "load",
+            MagicMock(return_value=invalid_config_dict),
+        ).start()
+
+        # Act & Assert
+        with self.assertRaises(KeyError):
+            with patch.object(
+                sys,
+                "argv",
+                [
+                    "onedocker-cli",
+                    "stop",
+                    "--config=" + self.config_file,
+                    "--container=" + self.container,
+                ],
+            ):
+                main()
+
+            mockYamlLoad.assert_called_once()
