@@ -34,7 +34,7 @@ TEST_CONTAINER_DEFNITION = "test-container-definition"
 TEST_ENV_VARS = {"k1": "v1", "k2": "v2"}
 TEST_CMD_1 = "test_1"
 TEST_CMD_2 = "test_2"
-TEST_CONTAINER_TYPE = ContainerType.DEFAULT
+TEST_CONTAINER_TYPE = ContainerType.MEDIUM
 TEST_CLOUD_PROVIDER = CloudProvider.AWS
 
 
