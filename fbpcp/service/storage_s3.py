@@ -26,9 +26,15 @@ class S3StorageService(StorageService):
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
         session_token: Optional[str] = None,
+        unsigned_enabled: bool = False,
     ) -> None:
         self.s3_gateway = S3Gateway(
-            region, access_key_id, access_key_data, config, session_token
+            region,
+            access_key_id,
+            access_key_data,
+            config,
+            session_token,
+            unsigned_enabled,
         )
 
     def read(self, filename: str) -> str:

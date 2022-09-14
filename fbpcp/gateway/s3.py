@@ -11,7 +11,8 @@ import os
 from typing import Any, Dict, List, Optional
 
 import boto3
-from botocore.client import BaseClient
+from botocore import UNSIGNED
+from botocore.client import BaseClient, Config
 from botocore.exceptions import ClientError
 from fbpcp.decorator.error_handler import error_handler
 from fbpcp.entity.policy_statement import PolicyStatement, PublicAccessBlockConfig
@@ -29,8 +30,12 @@ class S3Gateway(AWSGateway):
         access_key_data: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None,
         session_token: Optional[str] = None,
+        # TODO: This is a short term solution. For long term, OneDocker Repository might need to take care.
+        unsigned_enabled: bool = False,
     ) -> None:
         super().__init__(region, access_key_id, access_key_data, config, session_token)
+        if unsigned_enabled:
+            self.config.update(config=Config(signature_version=UNSIGNED))
         self.client: BaseClient = boto3.client(
             "s3", region_name=self.region, **self.config
         )
