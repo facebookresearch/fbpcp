@@ -209,7 +209,14 @@ def _download_executables(
     exe_name = _parse_package_name(package_name)
     exe_local_path = executable_path + exe_name
     exe_s3_path = f"{repository_path}{package_name}/{version}/{exe_name}"
-    storage_svc = S3StorageService(S3Path(repository_path).region)
+    # TODO: This is a short term solution. For long term, OneDocker Repository might need to take care.
+    is_onedocker_package_unsigned_request = bool(
+        os.environ.get("ONEDOCKER_PACKAGE_UNSIGNED_REQUEST", False)
+    )
+    storage_svc = S3StorageService(
+        S3Path(repository_path).region,
+        unsigned_enabled=is_onedocker_package_unsigned_request,
+    )
     onedocker_repo_svc = OneDockerRepositoryService(storage_svc, repository_path)
     logger.info(f"Downloading package {package_name}: {version} from {exe_s3_path}")
     onedocker_repo_svc.download(package_name, version, exe_local_path)
