@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.3.2] - 2022-09-19
+### Added
+- Add `wait_for_containers_to_start_up` (default True) in mpc service to support lazy container spin-up
+
 ## [0.3.1] - 2022-08-30
 ### Added
 - Add customized container type to OneDocker & ContainerService
