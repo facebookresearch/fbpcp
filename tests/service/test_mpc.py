@@ -189,6 +189,37 @@ class TestMPCService(IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             self.mpc_service.start_instance(TEST_INSTANCE_ID)
 
+    def test_start_instance_skip_start_up(self):
+        # prep
+        self.mpc_service.instance_repository.read = MagicMock(
+            side_effect=self._read_side_effect_start
+        )
+        created_instances = [
+            ContainerInstance(
+                "arn:aws:ecs:us-west-1:592513842793:task/57850450-7a81-43cc-8c73-2071c52e4a68",  # noqa
+                None,
+                ContainerInstanceStatus.UNKNOWN,
+            )
+        ]
+        self.mpc_service.onedocker_svc.start_containers = MagicMock(
+            return_value=created_instances
+        )
+        self.mpc_service.onedocker_svc.wait_for_pending_containers = AsyncMock()
+        built_onedocker_args = ("private_lift/lift", "test one docker arguments")
+        self.mpc_service.mpc_game_svc.build_onedocker_args = MagicMock(
+            return_value=built_onedocker_args
+        )
+        # check that update is called with correct status
+        self.mpc_service.start_instance(
+            instance_id=TEST_INSTANCE_ID, wait_for_containers_to_start_up=False
+        )
+        # asserts
+        self.mpc_service.onedocker_svc.wait_for_pending_containers.assert_not_called()
+        self.mpc_service.instance_repository.update.assert_called()
+        latest_update = self.mpc_service.instance_repository.update.call_args_list[-1]
+        updated_status = latest_update[0][0].status
+        self.assertEqual(updated_status, MPCInstanceStatus.CREATED)
+
     def _read_side_effect_update(self, instance_id):
         """
         mock MPCInstanceRepository.read for test_update,
@@ -225,6 +256,36 @@ class TestMPCService(IsolatedAsyncioTestCase):
         )
         self.mpc_service.update_instance(TEST_INSTANCE_ID)
         self.mpc_service.instance_repository.update.assert_called()
+
+    def test_update_instance_from_unknown(self):
+        # prep
+        mpc_instance = self._get_sample_mpcinstance()
+        mpc_instance.containers = [
+            ContainerInstance(
+                "arn:aws:ecs:us-west-1:592513842793:task/cd34aed2-321f-49d1-8641-c54baff8b77b",  # noqa
+                None,
+                ContainerInstanceStatus.UNKNOWN,
+            )
+        ]
+        self.mpc_service.instance_repository.read = MagicMock(return_value=mpc_instance)
+        updated_container_instances = [
+            ContainerInstance(
+                "arn:aws:ecs:us-west-1:592513842793:task/cd34aed2-321f-49d1-8641-c54baff8b77b",  # noqa
+                "10.0.1.130",
+                ContainerInstanceStatus.STARTED,
+            )
+        ]
+        self.mpc_service.container_svc.get_instances = MagicMock(
+            return_value=updated_container_instances
+        )
+        # act
+        self.mpc_service.update_instance(TEST_INSTANCE_ID)
+        # asserts
+        self.mpc_service.instance_repository.update.assert_called()
+        latest_update = self.mpc_service.instance_repository.update.call_args_list[-1]
+        updated_instance = latest_update[0][0]
+        self.assertEqual(updated_instance.status, MPCInstanceStatus.STARTED)
+        self.assertEqual(updated_instance.server_ips, ["10.0.1.130"])
 
     def test_stop_instance(self):
         self.mpc_service.instance_repository.read = MagicMock(
