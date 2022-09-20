@@ -131,6 +131,7 @@ class MPCService:
         version: str = DEFAULT_BINARY_VERSION,
         env_vars: Optional[Dict[str, str]] = None,
         certificate_request: Optional[CertificateRequest] = None,
+        wait_for_containers_to_start_up: bool = True,
     ) -> MPCInstance:
         return asyncio.run(
             self.start_instance_async(
@@ -141,6 +142,7 @@ class MPCService:
                 version,
                 env_vars,
                 certificate_request,
+                wait_for_containers_to_start_up,
             )
         )
 
@@ -153,6 +155,7 @@ class MPCService:
         version: str = DEFAULT_BINARY_VERSION,
         env_vars: Optional[Dict[str, str]] = None,
         certificate_request: Optional[CertificateRequest] = None,
+        wait_for_containers_to_start_up: bool = True,
     ) -> MPCInstance:
         """To run a distributed MPC game
         Keyword arguments:
@@ -177,6 +180,7 @@ class MPCService:
             version=version,
             env_vars=env_vars,
             certificate_request=certificate_request,
+            wait_for_containers_to_start_up=wait_for_containers_to_start_up,
         )
 
         if len(instance.containers) != instance.num_workers:
@@ -184,14 +188,18 @@ class MPCService:
                 f"Instance {instance_id} has {len(instance.containers)} containers spun up, but expecting {instance.num_workers} containers!"
             )
 
-        if instance.mpc_party is MPCParty.SERVER:
-            ip_addresses = [
-                checked_cast(str, instance.ip_address)
-                for instance in instance.containers
-            ]
-            instance.server_ips = ip_addresses
+        if wait_for_containers_to_start_up:
+            if instance.mpc_party is MPCParty.SERVER:
+                ip_addresses = [
+                    checked_cast(str, instance.ip_address)
+                    for instance in instance.containers
+                ]
+                instance.server_ips = ip_addresses
 
-        instance.status = MPCInstanceStatus.STARTED
+            instance.status = MPCInstanceStatus.STARTED
+        else:
+            instance.status = MPCInstanceStatus.CREATED
+
         self.instance_repository.update(instance)
 
         return instance
@@ -240,6 +248,15 @@ class MPCService:
                 )
 
             instance.status = self._get_instance_status(instance)
+            if (
+                instance.status is MPCInstanceStatus.STARTED
+                and instance.mpc_party is MPCParty.SERVER
+            ):
+                ip_addresses = [
+                    checked_cast(str, c.ip_address) for c in instance.containers
+                ]
+                instance.server_ips = ip_addresses
+
             self.instance_repository.update(instance)
 
         return instance
@@ -255,6 +272,7 @@ class MPCService:
         version: str = DEFAULT_BINARY_VERSION,
         env_vars: Optional[Dict[str, str]] = None,
         certificate_request: Optional[CertificateRequest] = None,
+        wait_for_containers_to_start_up: bool = True,
     ) -> List[ContainerInstance]:
         if game_args is not None and len(game_args) != num_containers:
             raise ValueError(
@@ -287,6 +305,8 @@ class MPCService:
             env_vars=env_vars,
             certificate_request=certificate_request,
         )
+        if not wait_for_containers_to_start_up:
+            return containers
 
         self.logger.info(
             f"Waiting for {len(containers)} container(s) to become started"
