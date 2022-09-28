@@ -43,7 +43,6 @@ from fbpcp.util.s3path import S3Path
 from onedocker.common.env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
 from onedocker.common.util import run_cmd
 from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
-from onedocker.service.certificate_self_signed import SelfSignedCertificateService
 
 
 # The default OneDocker repository path on S3
@@ -223,14 +222,9 @@ def _read_config(
 def _generate_certificate(
     certificate_request: CertificateRequest, exe_path: str
 ) -> Optional[str]:
-    try:
-        logger.info("generating certificate")
-        cert_svc = SelfSignedCertificateService(certificate_request, exe_path)
-        return cert_svc.generate_certificate()
-
-    except Exception as err:
-        logger.exception(f"An error was raised while generating certificate: {err}")
-        sys.exit(1)
+    raise NotImplementedError(
+        "Self signed Certificate is only available in development, CA certificate is pending for implementation."
+    )
 
 
 def main() -> None:
