@@ -13,8 +13,5 @@ ONEDOCKER_CHECKSUM_REPOSITORY_PATH = "ONEDOCKER_CHECKSUM_REPOSITORY_PATH"
 # This is the local path that the binaries reside
 ONEDOCKER_EXE_PATH = "ONEDOCKER_EXE_PATH"
 
-# This is the path user specified to upload the core dump file to
-CORE_DUMP_REPOSITORY_PATH = "CORE_DUMP_REPOSITORY_PATH"
-
 # This is the type of checksum we want to compare when running program
 ONEDOCKER_CHECKSUM_TYPE = "ONEDOCKER_CHECKSUM_TYPE"

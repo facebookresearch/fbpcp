@@ -4,7 +4,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-import signal
 import sys
 import unittest
 from unittest.mock import patch
@@ -12,7 +11,6 @@ from unittest.mock import patch
 from docopt import docopt
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.error.pcp import InvalidParameterError
-from onedocker.common.core_dump_handler_aws import AWSCoreDumpHandler
 from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
 from onedocker.script.runner.onedocker_runner import (
     __doc__ as __onedocker_runner_doc__,
@@ -241,48 +239,9 @@ class TestOnedockerRunner(unittest.TestCase):
                 # Assert
                 self.assertEqual(cm.exception.code, 0)
 
-    @patch("onedocker.script.runner.onedocker_runner.run_cmd")
-    @patch.object(AWSCoreDumpHandler, "locate_core_dump_file")
-    @patch.object(AWSCoreDumpHandler, "upload_core_dump_file")
-    def test_main_core_dump(
-        self, mockUploadCoreDumpFile, mockLocateCoreDumpFile, mockRunCMD
-    ):
-        # Arrange & Act
-        error_code = 128 + signal.SIGSEGV
-        mockRunCMD.return_value = error_code
-        core_dump_file = "core_dump.txt"
-        mockLocateCoreDumpFile.return_value = core_dump_file
-
-        with patch.object(
-            sys,
-            "argv",
-            [
-                "onedocker-runner",
-                "echo",
-                "--version=latest",
-                '--exe_args="Test Message"',
-                "--exe_path=/usr/bin/",
-                "--repository_path=local",
-            ],
-        ):
-            with patch(
-                "os.getenv",
-                side_effect=lambda x: getenv(x),
-            ):
-                with self.assertRaises(SystemExit) as cm:
-                    main()
-                # Assert
-                self.assertEqual(cm.exception.code, error_code)
-        mockLocateCoreDumpFile.assert_called_once()
-        mockUploadCoreDumpFile.assert_called_once_with(
-            core_dump_file, getenv("CORE_DUMP_REPOSITORY_PATH")
-        )
-
 
 def getenv(key):
     if key == "ONEDOCKER_REPOSITORY_PATH":
         return "https://onedocker-package-repo.s3.us-west-2.amazonaws.com/"
-    elif key == "CORE_DUMP_REPOSITORY_PATH":
-        return "https://onedocker-package-repo.s3.us-west-2.amazonaws.com/core_dump/"
     else:
         raise KeyError from None

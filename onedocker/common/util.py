@@ -10,12 +10,10 @@ import os
 import signal
 import subprocess
 from types import FrameType
-from typing import Callable, Optional
+from typing import Optional
 
 
-def run_cmd(
-    cmd: str, timeout: Optional[int], preexec_fn: Optional[Callable[[], None]]
-) -> int:
+def run_cmd(cmd: str, timeout: Optional[int]) -> int:
     # The handler dealing signal SIGINT, which could be Ctrl + C from user's terminal
     def _handler(signum: int, frame: Optional[FrameType]) -> None:
         raise InterruptedError
@@ -27,9 +25,7 @@ def run_cmd(
      every process in the same process group can be killed by OS if timeout occurs.
      note: setsid() will set the pgid to its pid.
     """
-    with subprocess.Popen(
-        cmd, shell=True, start_new_session=True, preexec_fn=preexec_fn
-    ) as proc:
+    with subprocess.Popen(cmd, shell=True, start_new_session=True) as proc:
         try:
             proc.communicate(timeout=timeout)
         except (subprocess.TimeoutExpired, InterruptedError) as e:
