@@ -16,7 +16,6 @@ from onedocker.script.runner.onedocker_runner import (
     __doc__ as __onedocker_runner_doc__,
     main,
 )
-from onedocker.service.certificate_self_signed import SelfSignedCertificateService
 
 
 class TestOnedockerRunner(unittest.TestCase):
@@ -162,33 +161,6 @@ class TestOnedockerRunner(unittest.TestCase):
                 "latest",
                 "/usr/bin/echo",
             )
-
-    @patch.object(SelfSignedCertificateService, "generate_certificate")
-    def test_main_good_cert(
-        self,
-        mockSelfSignedCertificateServiceGenerateCertificate,
-    ):
-        # Arrange
-        with patch.object(
-            sys,
-            "argv",
-            [
-                "onedocker-runner",
-                "echo",
-                "--version=latest",
-                "--repository_path=local",
-                "--exe_path=/usr/bin/",
-                "--exe_args=test_message",
-                f"--cert_params={self.test_cert_params}",
-            ],
-        ):
-            with self.assertRaises(SystemExit) as cm:
-                # Act
-                main()
-
-            # Assert
-            self.assertEqual(cm.exception.code, 0)
-            mockSelfSignedCertificateServiceGenerateCertificate.assert_called_once_with()
 
     def test_main_bad_cert(self):
         # Arrange
