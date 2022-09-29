@@ -167,21 +167,40 @@ class MPCService:
         if instance.mpc_party is MPCParty.CLIENT and not server_ips:
             raise ValueError("Missing server_ips")
 
-        # spin up containers
-        self.logger.info("Spinning up container instances")
-        game_args = instance.game_args
-        instance.containers = await self._spin_up_containers_onedocker(
-            instance.game_name,
-            instance.mpc_party,
-            instance.num_workers,
-            game_args=game_args,
-            ip_addresses=server_ips,
-            timeout=timeout,
-            version=version,
-            env_vars=env_vars,
-            certificate_request=certificate_request,
-            wait_for_containers_to_start_up=wait_for_containers_to_start_up,
+        existing_containers = instance.containers
+
+        containers_to_start = self.get_containers_to_start(
+            instance.num_workers, existing_containers
         )
+
+        if containers_to_start:
+            # spin up containers
+            self.logger.info(f"Spinning up {len(containers_to_start)} containers")
+            self.logger.info(f"Containers to start: {containers_to_start}")
+            game_args = instance.game_args
+            new_pending_containers = await self._spin_up_containers_onedocker(
+                instance.game_name,
+                instance.mpc_party,
+                len(containers_to_start),
+                game_args=[game_args[i] for i in containers_to_start]
+                if game_args
+                else game_args,
+                ip_addresses=[server_ips[i] for i in containers_to_start]
+                if server_ips
+                else server_ips,
+                timeout=timeout,
+                version=version,
+                env_vars=env_vars,
+                certificate_request=certificate_request,
+                wait_for_containers_to_start_up=wait_for_containers_to_start_up,
+            )
+            instance.containers = self.get_pending_containers(
+                new_pending_containers, containers_to_start, existing_containers
+            )
+        else:
+            self.logger.info(
+                "No containers are in a failed state - skipping container start-up"
+            )
 
         if len(instance.containers) != instance.num_workers:
             self.logger.warning(
@@ -370,3 +389,45 @@ class MPCService:
                 status = MPCInstanceStatus.STARTED
 
         return status
+
+    @classmethod
+    def get_containers_to_start(
+        cls,
+        num_containers: int,
+        existing_containers: Optional[List[ContainerInstance]] = None,
+    ) -> List[int]:
+        if not existing_containers:
+            # if there are no existing containers, we need to spin containers up for
+            # every command
+            return list(range(num_containers))
+
+        if num_containers != len(existing_containers):
+            raise ValueError(
+                "Cannot retry stage - list of existing containers is not consistent with number of requested containers"
+            )
+
+        # only start containers that previously failed
+        return [
+            i
+            for i, container in enumerate(existing_containers)
+            if container.status is ContainerInstanceStatus.FAILED
+        ]
+
+    @classmethod
+    def get_pending_containers(
+        cls,
+        new_pending_containers: List[ContainerInstance],
+        containers_to_start: List[int],
+        existing_containers: Optional[List[ContainerInstance]] = None,
+    ) -> List[ContainerInstance]:
+        if not existing_containers:
+            return new_pending_containers
+
+        pending_containers = existing_containers.copy()
+        for i, new_pending_container in zip(
+            containers_to_start, new_pending_containers
+        ):
+            # replace existing container with the new pending container
+            pending_containers[i] = new_pending_container
+
+        return pending_containers
