@@ -4,6 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import json
+
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -18,17 +20,21 @@ class TestOneDockerRepositoryService(unittest.TestCase):
     TEST_PACKAGE_NAME = TEST_PACKAGE_PATH.split("/")[-1]
     TEST_PACKAGE_VERSION = "1.0"
 
+    @patch("onedocker.repository.onedocker_repository_service.OneDockerMetadataService")
     @patch(
         "onedocker.repository.onedocker_repository_service.OneDockerPackageRepository"
     )
-    @patch("fbpcp.service.storage_s3.S3StorageService")
-    def setUp(self, mockStorageService, mockPackageRepoCall) -> None:
+    @patch("onedocker.repository.onedocker_repository_service.StorageService")
+    def setUp(self, mockStorageService, mockPackageRepo, mockMetadataService) -> None:
         package_repo_path = "/package_repo_path/"
         self.package_repo = MagicMock()
-        mockPackageRepoCall.return_value = self.package_repo
+        self.metadata_svc = MagicMock()
+        mockPackageRepo.return_value = self.package_repo
+        mockMetadataService.return_value = self.metadata_svc
         self.repo_service = OneDockerRepositoryService(
             mockStorageService, package_repo_path
         )
+        self.storage_svc = mockStorageService
 
     def test_onedocker_repo_service_upload(self) -> None:
         # Arrange
@@ -85,3 +91,30 @@ class TestOneDockerRepositoryService(unittest.TestCase):
         self.package_repo.upload.assert_called_with(
             self.TEST_PACKAGE_PATH, DEFAULT_PROD_VERSION, source_path
         )
+
+    def test_onedocker_repo_service_set_metadata(self) -> None:
+        # Arrange
+        metadata_dict = {"checksum": "checksum_data", "not_a_valid_field": "some_data"}
+        path = "test_metadata_path"
+        self.package_repo._build_package_path.return_value = path
+        # Act
+        self.repo_service._set_metadata(
+            self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION, metadata_dict
+        )
+        # Assert
+        self.metadata_svc.set_metadata.assert_called_once_with(path, metadata_dict)
+
+    def test_onedocker_repo_service_get_metadata(self) -> None:
+        # Arrange
+        metadata_dict = {"checksum": "checksum_data"}
+        metadata_json = json.dumps(metadata_dict)
+        path = "test_metadata_path"
+        self.package_repo._build_package_path.return_value = path
+        self.storage_svc.read.return_value = metadata_json
+        # Act
+        self.repo_service._get_metadata(
+            self.TEST_PACKAGE_NAME, self.TEST_PACKAGE_VERSION
+        )
+        # Assert
+        self.metadata_svc.get_metadata.assert_called_once_with(path)
+        # TODO: add result validation after implementing get_metadata
