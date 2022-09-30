@@ -28,7 +28,7 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="fbpcp",
-    version="0.3.3",
+    version="0.3.4",
     description="Facebook Private Computation Platform",
     author="Facebook",
     author_email="researchtool-help@fb.com",

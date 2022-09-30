@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.3.4] - 2022-09-30
+### Changed
+- MPCService container start-up only retry failed containers
+
 ## [0.3.3] - 2022-09-29
 ### Removed
 - Remove self-signed certificate and core dump uploader functionalities from onedocker_runner
