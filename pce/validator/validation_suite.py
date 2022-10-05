@@ -146,13 +146,15 @@ class ValidationSuite:
             vpc_peering = pce.pce_network.vpc_peering
         else:
             vpc = pce.pce_network.vpc
-            vpc_peering = (
+            vpc_peering_list = (
                 self.ec2_gateway.describe_vpc_peering_connections_with_accepter_vpc_id(
                     vpc_id=vpc.vpc_id
                 )
                 if vpc
                 else None
             )
+
+            vpc_peering = vpc_peering_list[0] if vpc_peering_list else None
 
         if not vpc_peering:
             return ValidationResult(

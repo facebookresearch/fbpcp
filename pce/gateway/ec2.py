@@ -37,15 +37,17 @@ class EC2Gateway(AWSGateway):
     def describe_vpc_peering_connections_with_accepter_vpc_id(
         self,
         vpc_id: str,
-    ) -> Optional[VpcPeering]:
+    ) -> Optional[List[VpcPeering]]:
         filters = [
             {"Name": "accepter-vpc-info.vpc-id", "Values": [vpc_id]},
         ]
+
         response = self.client.describe_vpc_peering_connections(Filters=filters)
         return (
-            map_ec2vpcpeering_to_vpcpeering(
-                response["VpcPeeringConnections"][0], vpc_id
-            )
+            [
+                map_ec2vpcpeering_to_vpcpeering(vpc_conn, vpc_id)
+                for vpc_conn in response["VpcPeeringConnections"]
+            ]
             if response["VpcPeeringConnections"]
             else None
         )

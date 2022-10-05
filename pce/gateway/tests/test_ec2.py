@@ -110,7 +110,7 @@ class TestEC2Gateway(TestCase):
         vpc_peering_connection = (
             self.ec2.describe_vpc_peering_connections_with_accepter_vpc_id(
                 vpc_id=self.TEST_ACCEPTER_VPC_ID
-            )
+            )[0]
         )
 
         # Assert
