@@ -19,6 +19,8 @@ class TestEC2Gateway(TestCase):
     TEST_ACCEPTER_VPC_ID = "vpc-12345"
     TEST_REQUESTER_VPC_ID = "vpc-56789"
     TEST_VPC_PEERING_ID = "pcx-77889900"
+    TEST_ACCEPTER_CIDR_BLOCK = "10.0.0.0/16"
+    TEST_REQUESTER_CIDR_BLOCK = "10.1.0.0/16"
 
     def setUp(self) -> None:
         self.aws_ec2 = MagicMock()
@@ -72,14 +74,14 @@ class TestEC2Gateway(TestCase):
             "VpcPeeringConnections": [
                 {
                     "AccepterVpcInfo": {
-                        "CidrBlock": "10.0.0.0/16",
+                        "CidrBlock": self.TEST_ACCEPTER_CIDR_BLOCK,
                         "CidrBlockSet": [{"CidrBlock": "10.0.0.0/16"}],
                         "OwnerId": self.TEST_AWS_ACCOUNT_ID,
                         "VpcId": self.TEST_ACCEPTER_VPC_ID,
                         "Region": self.REGION,
                     },
                     "RequesterVpcInfo": {
-                        "CidrBlock": "10.1.0.0/16",
+                        "CidrBlock": self.TEST_REQUESTER_CIDR_BLOCK,
                         "CidrBlockSet": [{"CidrBlock": "10.1.0.0/16"}],
                         "OwnerId": self.TEST_AWS_ACCOUNT_ID,
                         "VpcId": self.TEST_REQUESTER_VPC_ID,
@@ -100,6 +102,8 @@ class TestEC2Gateway(TestCase):
             role=VpcPeeringRole.ACCEPTER,
             requester_vpc_id=self.TEST_REQUESTER_VPC_ID,
             accepter_vpc_id=self.TEST_ACCEPTER_VPC_ID,
+            requester_vpc_cidr=self.TEST_REQUESTER_CIDR_BLOCK,
+            accepter_vpc_cidr=self.TEST_ACCEPTER_CIDR_BLOCK,
         )
 
         # Act
