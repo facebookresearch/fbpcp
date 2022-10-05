@@ -78,6 +78,14 @@ def validate_pce(
     arn = get_arn(region, key_id, key_data)
     logging.info(f"ARN: {arn}")
 
+    if skip_steps:
+        logging.info("==== Skipping provided PCE validation steps ====")
+        for step in skip_steps:
+            logging.info(f"\t- {step.code_name} ({step})")
+        logging.info("================================================")
+
+    return
+
     validator = ValidationSuite(region, key_id, key_data, None, role)
 
     failed_results = validator.validate_network_and_compute(pce, skip_steps)
