@@ -238,6 +238,8 @@ class TestEC2Gateway(unittest.TestCase):
                 VpcPeeringRole.REQUESTER,
                 test_requester_vpc_id,
                 test_accepter_vpc_id,
+                TEST_CIDR_BLOCK,
+                TEST_CIDR_BLOCK,
             ),
         ]
         self.assertEqual(vpc_peerings, expected_vpc_peerings)

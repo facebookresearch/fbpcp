@@ -214,13 +214,24 @@ def map_ec2vpcpeering_to_vpcpeering(
         status = VpcPeeringState.REJECTED
     requester_vpc_id = vpc_peering["RequesterVpcInfo"]["VpcId"]
     accepter_vpc_id = vpc_peering["AccepterVpcInfo"]["VpcId"]
+    requester_cidr_block = vpc_peering["RequesterVpcInfo"]["CidrBlock"]
+    accepter_cidr_block = vpc_peering["AccepterVpcInfo"]["CidrBlock"]
     role = (
         VpcPeeringRole.REQUESTER
         if requester_vpc_id == vpc_id
         else VpcPeeringRole.ACCEPTER
     )
     tags = convert_list_to_dict(vpc_peering.get("Tags"), "Key", "Value")
-    return VpcPeering(id, status, role, requester_vpc_id, accepter_vpc_id, tags)
+    return VpcPeering(
+        id,
+        status,
+        role,
+        requester_vpc_id,
+        accepter_vpc_id,
+        requester_cidr_block,
+        accepter_cidr_block,
+        tags,
+    )
 
 
 def map_ecstaskdefinition_to_containerdefinition(
