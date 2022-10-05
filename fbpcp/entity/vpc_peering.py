@@ -7,7 +7,7 @@
 # pyre-strict
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional
 
 
 class VpcPeeringState(Enum):
@@ -29,4 +29,6 @@ class VpcPeering:
     role: VpcPeeringRole
     requester_vpc_id: str
     accepter_vpc_id: str
+    requester_vpc_cidr: Optional[str] = None
+    accepter_vpc_cidr: Optional[str] = None
     tags: Dict[str, str] = field(default_factory=dict)
