@@ -214,8 +214,8 @@ def map_ec2vpcpeering_to_vpcpeering(
         status = VpcPeeringState.REJECTED
     requester_vpc_id = vpc_peering["RequesterVpcInfo"]["VpcId"]
     accepter_vpc_id = vpc_peering["AccepterVpcInfo"]["VpcId"]
-    requester_vpc_cidr = vpc_peering["RequesterVpcInfo"]["CidrBlock"]
-    accepter_vpc_cidr = vpc_peering["AccepterVpcInfo"]["CidrBlock"]
+    requester_vpc_cidr = vpc_peering["RequesterVpcInfo"].get("CidrBlock", None)
+    accepter_vpc_cidr = vpc_peering["AccepterVpcInfo"].get("CidrBlock", None)
     role = (
         VpcPeeringRole.REQUESTER
         if requester_vpc_id == vpc_id
