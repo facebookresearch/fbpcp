@@ -8,6 +8,7 @@
 from typing import Any, Dict, List, Optional
 
 import boto3
+from fbpcp.decorator.error_handler import error_handler
 from fbpcp.entity.vpc_peering import VpcPeering
 from fbpcp.gateway.aws import AWSGateway
 from fbpcp.mapper.aws import map_ec2vpcpeering_to_vpcpeering
@@ -49,5 +50,20 @@ class EC2Gateway(AWSGateway):
                 for vpc_conn in response["VpcPeeringConnections"]
             ]
             if response["VpcPeeringConnections"]
+            else None
+        )
+
+    @error_handler
+    def accept_vpc_peering_connection(
+        self, vpc_peering_connection_id: str, vpc_id: str
+    ) -> Optional[VpcPeering]:
+
+        response = self.client.accept_vpc_peering_connection(
+            VpcPeeringConnectionId=vpc_peering_connection_id
+        )
+
+        return (
+            map_ec2vpcpeering_to_vpcpeering(response["VpcPeeringConnection"], vpc_id)
+            if response["VpcPeeringConnection"]
             else None
         )
