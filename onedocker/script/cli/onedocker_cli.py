@@ -85,7 +85,7 @@ def _test(
         package_name=package_name,
         version=version,
         cmd_args=cmd_args,
-        timeout=DEFAULT_TIMEOUT,
+        timeout=timeout,
     )
     container = asyncio.run(
         onedocker_svc.wait_for_pending_container(container.instance_id)
