@@ -980,8 +980,8 @@ class TestValidationStepSkipping(TestCase):
         # arrange
         self._mock_all_validate_methods()
         skip_steps = [ValidationStepNames.VPC_CIDR, ValidationStepNames.LOG_GROUP]
-        filtered_validation_steps = filter(
-            lambda step: step not in skip_steps, ValidationStepNames
+        filtered_validation_steps = list(
+            filter(lambda step: step not in skip_steps, ValidationStepNames)
         )
         # act
         _ = self.validator.validate_network_and_compute(
@@ -997,3 +997,18 @@ class TestValidationStepSkipping(TestCase):
         # assert: skipped validate_* methods not called
         self.validator.validate_vpc_cidr.assert_not_called()
         self.validator.validate_log_group.assert_not_called()
+
+    def test_multiple_run_steps(self) -> None:
+        # arrange
+        self._mock_all_validate_methods()
+        run_steps = [ValidationStepNames.SUBNETS, ValidationStepNames.FIREWALL]
+        # act
+        _ = self.validator.validate_network_and_compute(self.pce, run_steps=run_steps)
+
+        # assert: correct validate_* methods called
+        self.validator.validate_subnets.assert_called_once()
+        self.validator.validate_firewall.assert_called_once()
+
+        # assert: other validate_* methods not called
+        self.validator.validate_vpc_peering.assert_not_called()
+        self.validator.validate_route_table.assert_not_called()
