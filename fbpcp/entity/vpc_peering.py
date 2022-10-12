@@ -13,8 +13,9 @@ from typing import Dict, Optional
 class VpcPeeringState(Enum):
     PENDING_ACCEPTANCE = "PENDING_ACCEPTANCE"
     ACTIVE = "ACTIVE"
-    REJECTED = "REJECTED"
-    NOT_READY = "NOT_READY"
+    INACTIVE = "INACTIVE"
+    PROVISIONING = "PROVISIONING"
+    INITIATING = "INITIATING"
 
 
 class VpcPeeringRole(Enum):
