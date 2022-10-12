@@ -67,3 +67,16 @@ class EC2Gateway(AWSGateway):
             if response["VpcPeeringConnection"]
             else None
         )
+
+    @error_handler
+    def create_route(
+        self, route_table_id: str, vpc_peering_connection_id: str, dest_cidr: str
+    ) -> bool:
+
+        response = self.client.create_route(
+            RouteTableId=route_table_id,
+            DestinationCidrBlock=dest_cidr,
+            VpcPeeringConnectionId=vpc_peering_connection_id,
+        )
+
+        return response["Return"]
