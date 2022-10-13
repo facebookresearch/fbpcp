@@ -20,6 +20,7 @@ TEST_REQUESTER_VPC_ID = "vpc-56789"
 TEST_VPC_PEERING_ID = "pcx-77889900"
 TEST_ACCEPTER_CIDR_BLOCK = "10.0.0.0/16"
 TEST_REQUESTER_CIDR_BLOCK = "10.1.0.0/16"
+TEST_ROUTE_TABLE_ID = "rtb-123456"
 TEST_VPC_PEERING_CONNECTION = {
     "AccepterVpcInfo": {
         "CidrBlock": TEST_ACCEPTER_CIDR_BLOCK,
@@ -115,7 +116,7 @@ class TestEC2Gateway(TestCase):
 
         # Assert
         self.assertEqual(vpc_peering_connection, expected_vpc_peering)
-        self.aws_ec2.describe_vpc_peering_connections.assert_called
+        self.aws_ec2.describe_vpc_peering_connections.assert_called()
 
     def test_describe_vpc_peering_connections_with_no_accepter_vpc_id(self) -> None:
         # Arrange
@@ -131,7 +132,7 @@ class TestEC2Gateway(TestCase):
 
         # Assert
         self.assertIsNone(vpc_peering_connection, "vpc peering connection is None")
-        self.aws_ec2.describe_vpc_peering_connections.assert_called
+        self.aws_ec2.describe_vpc_peering_connections.assert_called()
 
     def test_accept_vpc_peering_connection_success(self) -> None:
         # Arrange
@@ -157,7 +158,7 @@ class TestEC2Gateway(TestCase):
 
         # Assert
         self.assertEqual(vpc_peering_connection, expected_vpc_peering)
-        self.aws_ec2.accept_vpc_peering_connection.assert_called
+        self.aws_ec2.accept_vpc_peering_connection.assert_called()
 
     def test_accept_vpc_peering_connection_fail(self) -> None:
         # Arrange
@@ -178,6 +179,47 @@ class TestEC2Gateway(TestCase):
             self.ec2.accept_vpc_peering_connection(
                 vpc_peering_connection_id=TEST_VPC_PEERING_ID,
                 vpc_id=TEST_ACCEPTER_VPC_ID,
+            )
+
+        # Assert
+        self.assertEqual(str(err.exception), expect_msg)
+
+    def test_create_route_success(self) -> None:
+        # Arrange
+        client_return_response = {"Return": True}
+        self.aws_ec2.create_route = MagicMock(return_value=client_return_response)
+
+        # Act
+        creation_res = self.ec2.create_route(
+            route_table_id=TEST_ROUTE_TABLE_ID,
+            vpc_peering_connection_id=TEST_VPC_PEERING_ID,
+            dest_cidr=TEST_REQUESTER_CIDR_BLOCK,
+        )
+
+        # Assert
+        self.assertTrue(creation_res)
+        self.aws_ec2.create_route.assert_called()
+
+    def test_create_route_fail(self) -> None:
+        # Arrange
+        self.aws_ec2.create_route = MagicMock(
+            side_effect=ClientError(
+                {
+                    "Error": {"Message": "client error", "Code": "RouteAlreadyExists"},
+                    "ResponseMetadata": {},
+                },
+                None,
+            )
+        )
+        # patternlint-disable-next-line f-string-may-be-missing-leading-f
+        expect_msg = "An error occurred (RouteAlreadyExists) when calling the None operation: client error\n\n Details: {}\n"
+
+        # Act
+        with self.assertRaises(PcpError) as err:
+            self.ec2.create_route(
+                route_table_id=TEST_ROUTE_TABLE_ID,
+                vpc_peering_connection_id=TEST_VPC_PEERING_ID,
+                dest_cidr=TEST_REQUESTER_CIDR_BLOCK,
             )
 
         # Assert
