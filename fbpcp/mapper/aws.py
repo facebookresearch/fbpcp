@@ -204,14 +204,16 @@ def map_ec2vpcpeering_to_vpcpeering(
     vpc_peering: Dict[str, Any], vpc_id: str
 ) -> VpcPeering:
     id = vpc_peering["VpcPeeringConnectionId"]
-    status = VpcPeeringState.NOT_READY
+    status = VpcPeeringState.INACTIVE
     status_code = vpc_peering["Status"]["Code"]
     if status_code == "active":
         status = VpcPeeringState.ACTIVE
     elif status_code == "pending-acceptance":
         status = VpcPeeringState.PENDING_ACCEPTANCE
-    elif status_code == "rejected":
-        status = VpcPeeringState.REJECTED
+    elif status_code == "provisioning":
+        status = VpcPeeringState.PROVISIONING
+    elif status_code == "initiating-request":
+        status = VpcPeeringState.INITIATING
     requester_vpc_id = vpc_peering["RequesterVpcInfo"]["VpcId"]
     accepter_vpc_id = vpc_peering["AccepterVpcInfo"]["VpcId"]
     requester_vpc_cidr = vpc_peering["RequesterVpcInfo"].get("CidrBlock", None)
