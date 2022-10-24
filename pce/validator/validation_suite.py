@@ -7,10 +7,11 @@
 # pyre-strict
 
 import ipaddress
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import click
 from fbpcp.entity.firewall_ruleset import FirewallRuleset
@@ -487,16 +488,29 @@ class ValidationSuite:
         )
 
     def validate_network_and_compute(
-        self, pce: PCE, skip_steps: Optional[List[ValidationStepNames]] = None
+        self,
+        pce: PCE,
+        skip_steps: Optional[List[ValidationStepNames]] = None,
+        run_steps: Optional[List[ValidationStepNames]] = None,
     ) -> List[ValidationResult]:
         """
         Execute all existing validations returning warnings and errors encapsulated in `ValidationResult` objects
         """
-        validation_steps: Iterable[ValidationStepNames] = list(ValidationStepNames)
+        validation_steps: List[ValidationStepNames] = (
+            run_steps if run_steps else list(ValidationStepNames)
+        )
         if skip_steps:
-            validation_steps = filter(
-                lambda step: step not in skip_steps, validation_steps
+            validation_steps = list(
+                filter(lambda step: step not in skip_steps, validation_steps)
             )
+            logging.info(
+                f"Skipping the following validation steps: {', '.join([step.code_name for step in skip_steps])}"
+            )
+
+        logging.info(
+            f"Running the following validation steps: {', '.join([step.code_name for step in validation_steps])}"
+        )
+
         with click.progressbar(
             [
                 (

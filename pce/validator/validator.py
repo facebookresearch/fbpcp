@@ -7,7 +7,7 @@
 
 
 Usage:
-    pce_validator --region=<region> --pce-id=<pce_id> [--key-id=<key_id>] [--key-data=<key_data>] [--role=<role>] [--skip-step=<skip-step>]...
+    pce_validator --region=<region> --pce-id=<pce_id> [--key-id=<key_id>] [--key-data=<key_data>] [--role=<role>] [--run-step=<run-step> | --skip-step=<skip-step>]...
 
 Options ([+] can be repeated):
     --region=<region>               (AWS) Region name
@@ -15,6 +15,7 @@ Options ([+] can be repeated):
     --key-data=<key_data>           Key data
     --pce-id=<pce_id>               PCE id
     --role=<role>                   publisher, partner
+    --run-step=<run-step> [+]       name of a validation step to be explicitly run, eg vpc_cidr
     --skip-step=<skip-step> [+]     name of a validation step to be skipped, eg vpc_peering
 """
 
@@ -50,6 +51,7 @@ def validate_pce(
     pce_id: str,
     role: MPCRoles,
     skip_steps: List[ValidationStepNames],
+    run_steps: List[ValidationStepNames],
 ) -> None:
     duplicate_resource_checker = DuplicatePCEResourcesChecker(
         region, key_id, key_data, None
@@ -80,7 +82,7 @@ def validate_pce(
 
     validator = ValidationSuite(region, key_id, key_data, None, role)
 
-    failed_results = validator.validate_network_and_compute(pce, skip_steps)
+    failed_results = validator.validate_network_and_compute(pce, skip_steps, run_steps)
     if failed_results:
         logging.error(
             f"Validation failed for PCE {pce_id}:\n{ValidationSuite.summarize_errors(failed_results)}"
@@ -108,6 +110,15 @@ def main() -> None:
                     Use(MPCRoles),
                 ),
             ),
+            Optional("--run-step"): Or(
+                None,
+                And(
+                    list,
+                    lambda step_list: all(
+                        [step in ValidationStepNames.code_names() for step in step_list]
+                    ),
+                ),
+            ),
             Optional("--skip-step"): Or(
                 None,
                 And(
@@ -128,11 +139,21 @@ def main() -> None:
     pce_id = arguments["--pce-id"]
     role = arguments["--role"]
     skip_step_code_names = arguments["--skip-step"]
+    run_step_code_names = arguments["--run-step"]
+
+    if run_step_code_names and skip_step_code_names:
+        sys.exit("Only either of --run-step or --skip-step should be provided")
+
     skip_steps = [
         ValidationStepNames.from_code_name(code_name)
         for code_name in skip_step_code_names
     ]
-    validate_pce(region, key_id, key_data, pce_id, role, skip_steps)
+    run_steps = [
+        ValidationStepNames.from_code_name(code_name)
+        for code_name in run_step_code_names
+    ]
+
+    validate_pce(region, key_id, key_data, pce_id, role, skip_steps, run_steps)
 
 
 if __name__ == "__main__":
