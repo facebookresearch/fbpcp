@@ -149,8 +149,10 @@ class OneDockerService(MetricsGetter):
             self._get_cmd(package_name, version, cmd_args, timeout, certificate_request)
             for cmd_args in cmd_args_list
         ]
-
-        self.logger.info(f"Spinning up {len(cmds)} container instance[s]")
+        container_type_log = f" of {container_type} type" if container_type else ""
+        self.logger.info(
+            f"Spinning up {len(cmds)} container instance[s]" + container_type_log
+        )
 
         task_definition = task_definition or self.task_definition
         if not task_definition:
@@ -163,6 +165,10 @@ class OneDockerService(MetricsGetter):
             env_vars=env_vars,
             container_type=container_type,
         )
+        if containers:
+            self.logger.info(
+                f"Spun up {len(containers)} ({containers[0].cpu}vCPU, {containers[0].memory}GB) containers"
+            )
 
         if self.metrics:
             name = f"{METRICS_CONTAINER_COUNT}.{self.container_svc.get_region()}.{self.container_svc.get_cluster()}"
