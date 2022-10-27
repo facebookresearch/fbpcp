@@ -224,3 +224,46 @@ class TestEC2Gateway(TestCase):
 
         # Assert
         self.assertEqual(str(err.exception), expect_msg)
+
+    def test_replace_route_success(self) -> None:
+        # Arrange
+        self.aws_ec2.replace_route = MagicMock()
+
+        # Act
+        self.ec2.replace_route(
+            route_table_id=TEST_ROUTE_TABLE_ID,
+            vpc_peering_connection_id=TEST_VPC_PEERING_ID,
+            dest_cidr=TEST_REQUESTER_CIDR_BLOCK,
+        )
+
+        # Assert
+        self.aws_ec2.replace_route.assert_called_once_with(
+            RouteTableId=TEST_ROUTE_TABLE_ID,
+            VpcPeeringConnectionId=TEST_VPC_PEERING_ID,
+            DestinationCidrBlock=TEST_REQUESTER_CIDR_BLOCK,
+        )
+
+    def test_replace_route_fail(self) -> None:
+        # Arrange
+        self.aws_ec2.replace_route = MagicMock(
+            side_effect=ClientError(
+                {
+                    "Error": {"Message": "client error", "Code": "RouteNotExists"},
+                    "ResponseMetadata": {},
+                },
+                None,
+            )
+        )
+        # patternlint-disable-next-line f-string-may-be-missing-leading-f
+        expect_msg = "An error occurred (RouteNotExists) when calling the None operation: client error\n\n Details: {}\n"
+
+        # Act
+        with self.assertRaises(PcpError) as err:
+            self.ec2.replace_route(
+                route_table_id=TEST_ROUTE_TABLE_ID,
+                vpc_peering_connection_id=TEST_VPC_PEERING_ID,
+                dest_cidr=TEST_REQUESTER_CIDR_BLOCK,
+            )
+
+        # Assert
+        self.assertEqual(str(err.exception), expect_msg)
