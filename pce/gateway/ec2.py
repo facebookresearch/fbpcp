@@ -80,3 +80,14 @@ class EC2Gateway(AWSGateway):
         )
 
         return response["Return"]
+
+    @error_handler
+    def replace_route(
+        self, route_table_id: str, vpc_peering_connection_id: str, dest_cidr: str
+    ) -> None:
+
+        self.client.replace_route(
+            RouteTableId=route_table_id,
+            DestinationCidrBlock=dest_cidr,
+            VpcPeeringConnectionId=vpc_peering_connection_id,
+        )
