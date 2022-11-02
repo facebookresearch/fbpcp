@@ -37,6 +37,7 @@ class MPCInstance:
     containers: List[ContainerInstance]
     status: MPCInstanceStatus
     game_args: Optional[List[Dict[str, Any]]]
+    server_uris: Optional[List[str]] = None
 
     def get_instance_id(self) -> str:
         return self.instance_id
