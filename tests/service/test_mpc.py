@@ -64,6 +64,7 @@ class TestMPCService(IsolatedAsyncioTestCase):
             [],
             MPCInstanceStatus.CREATED,
             GAME_ARGS,
+            [],
         )
 
     @staticmethod
@@ -77,6 +78,7 @@ class TestMPCService(IsolatedAsyncioTestCase):
             [],
             MPCInstanceStatus.CREATED,
             GAME_ARGS,
+            [],
         )
 
     @staticmethod
@@ -90,6 +92,7 @@ class TestMPCService(IsolatedAsyncioTestCase):
             [],
             MPCInstanceStatus.CREATED,
             GAME_ARGS,
+            [],
         )
 
     async def test_spin_up_containers_onedocker_inconsistent_arguments(self):

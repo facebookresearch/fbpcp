@@ -117,6 +117,7 @@ class MPCService:
             [],
             MPCInstanceStatus.CREATED,
             game_args,
+            [],
         )
 
         self.instance_repository.create(instance)
