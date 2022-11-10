@@ -14,8 +14,10 @@ import inspect
 import unittest
 
 from fbpcp.service.mpc import MPCService
+from fbpcp.service.mpc_game import MPCGameService
 
 from .test_mpc import TestMPCService
+from .test_mpc_game import TestMPCGameService
 
 NO_CHANGE_FILES = (
     {
@@ -25,6 +27,14 @@ NO_CHANGE_FILES = (
     {
         "cls": TestMPCService,
         "file_md5": "6a1c7a74f28d164e113b68dbcab29962",
+    },
+    {
+        "cls": MPCGameService,
+        "file_md5": "36a2142e36759e382855e970f12c7403",
+    },
+    {
+        "cls": TestMPCGameService,
+        "file_md5": "e1e4517471ff5630a7a7dc5db645ed5f",
     },
 )
 
