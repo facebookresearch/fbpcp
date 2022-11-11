@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.3.5] - 2022-11-02
+### Changed
+- New field server_uris added to MPCInstance
+
 ## [0.3.4] - 2022-09-30
 ### Changed
 - MPCService container start-up only retry failed containers
