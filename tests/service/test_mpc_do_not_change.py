@@ -14,7 +14,9 @@ import inspect
 import unittest
 
 from fbpcp.entity.mpc_game_config import MPCGameConfig
+from fbpcp.entity.mpc_instance import MPCInstance
 from fbpcp.repository.mpc_game_repository import MPCGameRepository
+from fbpcp.repository.mpc_instance import MPCInstanceRepository
 
 from fbpcp.service.mpc import MPCService
 from fbpcp.service.mpc_game import MPCGameService
@@ -46,6 +48,14 @@ NO_CHANGE_FILES = (
     {
         "cls": MPCGameRepository,
         "file_md5": "d2d09421e3ab8c612a2208d7a0269996",
+    },
+    {
+        "cls": MPCInstance,
+        "file_md5": "4a52cc896d438cb8900649265eb46b71",
+    },
+    {
+        "cls": MPCInstanceRepository,
+        "file_md5": "251b27ef762c7421a43fe1e8062ce86b",
     },
 )
 
