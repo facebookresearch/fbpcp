@@ -13,6 +13,9 @@ import hashlib
 import inspect
 import unittest
 
+from fbpcp.entity.mpc_game_config import MPCGameConfig
+from fbpcp.repository.mpc_game_repository import MPCGameRepository
+
 from fbpcp.service.mpc import MPCService
 from fbpcp.service.mpc_game import MPCGameService
 
@@ -35,6 +38,14 @@ NO_CHANGE_FILES = (
     {
         "cls": TestMPCGameService,
         "file_md5": "e1e4517471ff5630a7a7dc5db645ed5f",
+    },
+    {
+        "cls": MPCGameConfig,
+        "file_md5": "39326c1de0bb8795313ce84560d25c97",
+    },
+    {
+        "cls": MPCGameRepository,
+        "file_md5": "d2d09421e3ab8c612a2208d7a0269996",
     },
 )
 
