@@ -8,6 +8,7 @@
 # This test file is a short-term to freeze the file change during migration.
 # After migration completed, we shall delete this ut test
 # TODO: T137598681 clean up FBPCS mpc related files after migration complete
+# NOTE: please make further change on fbcode/fbpcs/private_computation/service/mpc/
 #############################################################################
 import hashlib
 import inspect
@@ -27,7 +28,7 @@ from .test_mpc_game import TestMPCGameService
 NO_CHANGE_FILES = (
     {
         "cls": MPCService,
-        "file_md5": "35dbe2a73b1016d6d631b03abc612929",
+        "file_md5": "45dc9ee0e1f36882c06c6959b3a7d365",
     },
     {
         "cls": TestMPCService,
@@ -35,7 +36,7 @@ NO_CHANGE_FILES = (
     },
     {
         "cls": MPCGameService,
-        "file_md5": "36a2142e36759e382855e970f12c7403",
+        "file_md5": "b6e129eed50447bcbc7a7c0537771130",
     },
     {
         "cls": TestMPCGameService,
@@ -43,19 +44,19 @@ NO_CHANGE_FILES = (
     },
     {
         "cls": MPCGameConfig,
-        "file_md5": "39326c1de0bb8795313ce84560d25c97",
+        "file_md5": "02d7ca709340b4fb6aa3f1a3d1616e29",
     },
     {
         "cls": MPCGameRepository,
-        "file_md5": "d2d09421e3ab8c612a2208d7a0269996",
+        "file_md5": "3ce0126b0a3602c362789e6a17e1bb0e",
     },
     {
         "cls": MPCInstance,
-        "file_md5": "4a52cc896d438cb8900649265eb46b71",
+        "file_md5": "f461fe24c29f68b1350c96567ddf28ef",
     },
     {
         "cls": MPCInstanceRepository,
-        "file_md5": "251b27ef762c7421a43fe1e8062ce86b",
+        "file_md5": "9e3e1b712782fbec3f9a869d13954e08",
     },
 )
 
@@ -68,7 +69,7 @@ class TestMPCDontChange(unittest.TestCase):
             self.assertEqual(
                 no_change_file["file_md5"],
                 self.gen_file_md5(file_name),
-                msg=f"assertion on file: {file_name}",
+                msg=f"assertion on file: {file_name}. you should change mpc in fbcode/fbpcs/private_computation/service/mpc/",
             )
 
     def gen_file_md5(self, file_name):

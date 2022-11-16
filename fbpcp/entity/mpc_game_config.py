@@ -8,6 +8,14 @@
 
 from dataclasses import dataclass
 from typing import List
+from warnings import warn
+
+
+warn(
+    f"{__file__} has been moved to fbpcs repo. Please consider https://github.com/facebookresearch/fbpcs/tree/main/fbpcs/private_computation/service/mpc instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @dataclass

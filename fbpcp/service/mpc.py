@@ -10,6 +10,8 @@ import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
+from warnings import warn
+
 from fbpcp.entity.certificate_request import CertificateRequest
 
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
@@ -22,6 +24,13 @@ from fbpcp.service.onedocker import OneDockerService
 from fbpcp.util.typing import checked_cast
 
 DEFAULT_BINARY_VERSION = "latest"
+
+
+warn(
+    f"{__file__} has been moved to fbpcs repo. Please consider https://github.com/facebookresearch/fbpcs/tree/main/fbpcs/private_computation/service/mpc instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class MPCService:
@@ -43,6 +52,13 @@ class MPCService:
         task_definition -- containers task definition
         mpc_game_svc -- service to generate package name and game arguments.
         """
+
+        warn(
+            f"{self.__class__.__name__} has been moved to fbpcs repo. Please consider https://github.com/facebookresearch/fbpcs/tree/main/fbpcs/private_computation/service/mpc instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         if container_svc is None or instance_repository is None or mpc_game_svc is None:
             raise ValueError(
                 f"Dependency is missing. container_svc={container_svc}, mpc_game_svc={mpc_game_svc}, "

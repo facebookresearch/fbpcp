@@ -9,8 +9,16 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional
+from warnings import warn
 
 from fbpcp.entity.container_instance import ContainerInstance
+
+
+warn(
+    f"{__file__} has been moved to fbpcs repo. Please consider https://github.com/facebookresearch/fbpcs/tree/main/fbpcs/private_computation/service/mpc instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class MPCParty(Enum):
