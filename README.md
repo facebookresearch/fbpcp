@@ -58,7 +58,7 @@ python3.8 -m pip install fbpcp --upgrade
 * MPCService is the public interface that provides APIs to distribute a MPC application with large dataset to multiple MPC workers on cloud.
 
 
-### [Other components](https://github.com/facebookresearch/fbpcp/blob/main/docs/FBPCPComponents.md)
+### [Other components](https://github.com/facebookresearch/fbpcp/blob/main/docs/PCPComponents.md)
 
 ## Contributing to the community
 * Website: https://github.com/facebookresearch/fbpcp
