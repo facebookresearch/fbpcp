@@ -1,7 +1,7 @@
-# FBPCP (Facebook Private Computation Platform)
+# PCP (Private Computation Platform)
 [Secure multi-party computation](https://en.wikipedia.org/wiki/Secure_multi-party_computation) (also known as secure computation, multi-party computation (MPC), or privacy-preserving computation) is a subfield of cryptography with the goal of creating methods for parties to jointly compute a function over their inputs while keeping those inputs private.
 
-FBPCP (Facebook Private Computation Platform) is a secure, privacy safe and scalable architecture to deploy MPC (Multi Party Computation) applications in a distributed way on virtual private clouds. [FBPCF](https://github.com/facebookresearch/fbpcf) (Facebook Private Computation Framework) is for scaling MPC computation up via threading, while FBPCP is for scaling MPC computation out via [Private Scaling](https://github.com/facebookresearch/fbpcp/blob/main/docs/PrivateScaling.md) architecture. FBPCP consists of various services, interfaces that enable various private measurement solutions, e.g. [Private Lift](https://github.com/facebookresearch/fbpcf/blob/master/docs/PrivateLift.md).
+PCP (Private Computation Platform) is a secure, privacy safe and scalable architecture to deploy MPC (Multi Party Computation) applications in a distributed way on virtual private clouds. [PCF](https://github.com/facebookresearch/fbpcf) (Private Computation Framework) is for scaling MPC computation up via threading, while PCP is for scaling MPC computation out via [Private Scaling](https://github.com/facebookresearch/fbpcp/blob/main/docs/PrivateScaling.md) architecture. PCP consists of various services, interfaces that enable various private measurement solutions, e.g. [Private Lift](https://github.com/facebookresearch/fbpcf/blob/master/docs/PrivateLift.md).
 
 [Private Scaling](https://github.com/facebookresearch/fbpcp/blob/main/docs/PrivateScaling.md) resembles the map/reduce architecture and is secure against a semi-honest adversary who tries to learn the inputs of the computation. The goal is to secure the intermediate output of each shard to prevent potential privacy leak.
 
@@ -60,7 +60,7 @@ python3.8 -m pip install fbpcp --upgrade
 
 ### [Other components](https://github.com/facebookresearch/fbpcp/blob/main/docs/FBPCPComponents.md)
 
-## Join the FBPCP community
+## Contributing to the community
 * Website: https://github.com/facebookresearch/fbpcp
 * See the [CONTRIBUTING](https://github.com/facebookresearch/fbpcp/blob/main/CONTRIBUTING.md) file for how to help out.
 
