@@ -1,5 +1,5 @@
 ### Components:
-Facebook Private Computation Service follows [MVCS(Model View Controller Service)](MVCS.md) design pattern.
+Private Computation Platform follows [MVCS(Model View Controller Service)](MVCS.md) design pattern.
 
 ### Repository
 Repository is responsible for encapsulating database-like operations. In our design, we have MPC instance repositories for both Amazon S3 and local storage. The end point service will call MPC service to create an MPC instance and all the files and information related to this instance will be stored on Amazon S3 or local storage, depending on which repository the end point service is using.
@@ -18,7 +18,7 @@ MPC Instance contains information about a MPC game. For example, MPC game name, 
 Container Instance contains information about a container on an ECS cluster. For example, the instance id, ip address and container status.
 
 ### Service:
-MPCService is the public interface that FBPCP provides. All other services are internal only so subject to changes.
+MPCService is the public interface that PCP provides. All other services are internal only so subject to changes.
 
 Service holds all business logic and exposes internal APIs to controllers or other services within the same code base. Besides MPC Sevice, MPC Game Service and OneDocker Service:
 
