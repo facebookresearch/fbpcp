@@ -1,4 +1,4 @@
-# Contributing to FBPCP
+# Contributing to PCP
 We want to make contributing to this project as easy and transparent as
 possible.
 
@@ -35,5 +35,5 @@ outlined on that page and do not file a public issue.
 * ...
 
 ## License
-By contributing to FBPCS, you agree that your contributions will be licensed
+By contributing to PCP, you agree that your contributions will be licensed
 under the LICENSE file in the root directory of this source tree.
