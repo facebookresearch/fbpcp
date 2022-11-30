@@ -8,6 +8,7 @@
 
 import logging
 from typing import Any, Dict, Optional, Tuple
+from warnings import warn
 
 from fbpcp.entity.mpc_game_config import MPCGameConfig
 from fbpcp.entity.mpc_instance import MPCParty
@@ -18,8 +19,20 @@ LIFT_GAME_NAME = "lift"
 LIFT_AGGREGATOR_GAME_NAME = "aggregator"
 
 
+warn(
+    f"{__file__} has been moved to fbpcs repo. Please consider https://github.com/facebookresearch/fbpcs/tree/main/fbpcs/private_computation/service/mpc instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+
 class MPCGameService:
     def __init__(self, mpc_game_repository: MPCGameRepository) -> None:
+        warn(
+            f"{self.__class__.__name__} has been moved to fbpcs repo. Please consider https://github.com/facebookresearch/fbpcs/tree/main/fbpcs/private_computation/service/mpc instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.logger: logging.Logger = logging.getLogger(__name__)
         self.mpc_game_repository: MPCGameRepository = mpc_game_repository
 
