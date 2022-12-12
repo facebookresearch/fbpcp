@@ -33,6 +33,9 @@ METRICS_START_CONTAINERS_COUNT = "onedocker.start_containers.count"
 METRICS_START_CONTAINERS_ERROR_COUNT = "onedocker.start_containers.error.count"
 METRICS_START_CONTAINERS_DURATION = "onedocker.start_containers.duration"
 
+METRICS_FAILED_CONTAINERS_COUNT = "onedocker.failed.containers.count"
+METRICS_REQUESTED_CONTAINERS_COUNT = "onedocker.requested.containers.count"
+
 
 class OneDockerService(MetricsGetter):
     """OneDockerService is responsible for executing a package(binary) in a container on Cloud"""
@@ -184,6 +187,25 @@ class OneDockerService(MetricsGetter):
             for container_id in container_ids
         ]
         res = await asyncio.gather(*tasks)
+
+        if self.metrics:
+            failed_metrics = f"{METRICS_FAILED_CONTAINERS_COUNT}.{self.container_svc.get_region()}.{self.container_svc.get_cluster()}"
+            requested_metrics = f"{METRICS_REQUESTED_CONTAINERS_COUNT}.{self.container_svc.get_region()}.{self.container_svc.get_cluster()}"
+            self.metrics.count(requested_metrics, len(res))
+
+            """ The following sum(condition(c) for c in list) will count the number of elements c that match a certain condition(c).
+            This creates a generator expression returns True for each element that matches the condition and False otherwise.
+            Since the True and False values are represented as integer values 1 and 0, by summing over the iterable, we will get the total number of matching elements.
+            """
+            failed_count = sum(
+                not (container and container.status == ContainerInstanceStatus.STARTED)
+                for container in res
+            )
+            self.metrics.count(
+                failed_metrics,
+                failed_count,
+            )
+
         return [checked_cast(ContainerInstance, container) for container in res]
 
     async def wait_for_pending_container(
