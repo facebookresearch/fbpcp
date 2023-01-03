@@ -46,6 +46,9 @@ class ValidatorResult(Enum):
 
 
 OVERALL_SUCCESS_MESSAGE = "Your PCE environments are set up correctly."
+INCOMPATIBLE_STEP_ARG_ERROR_MESSAGE = (
+    "Only either of --run-step or --skip-step should be provided"
+)
 
 
 def get_arn(
@@ -159,7 +162,7 @@ def main() -> None:
     run_step_code_names = arguments["--run-step"]
 
     if run_step_code_names and skip_step_code_names:
-        sys.exit("Only either of --run-step or --skip-step should be provided")
+        sys.exit(INCOMPATIBLE_STEP_ARG_ERROR_MESSAGE)
 
     skip_steps = [
         ValidationStepNames.from_code_name(code_name)
