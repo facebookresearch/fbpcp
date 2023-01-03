@@ -22,6 +22,7 @@ Options ([+] can be repeated):
 
 import logging
 import sys
+from enum import Enum
 from typing import List
 
 from docopt import docopt
@@ -32,6 +33,19 @@ from pce.validator.duplicate_pce_resources_checker import DuplicatePCEResourcesC
 from pce.validator.message_templates.validator_step_names import ValidationStepNames
 from pce.validator.validation_suite import ValidationSuite
 from schema import And, Optional, Or, Schema, Use
+
+
+# The main method in this module explicitly sets an exit code to indicate
+# success or non-success of the validation, but has no further classification
+# of errors and corresponding exit codes. Invalid CLI args also result in a
+# exitcode of 1, either explicitly via sys.exit("message") or implicitly due
+# to schema.SchemaError exception raised by schema.Schema.validate().
+class ValidatorResult(Enum):
+    SUCCESS = 0
+    ERROR = 1
+
+
+OVERALL_SUCCESS_MESSAGE = "Your PCE environments are set up correctly."
 
 
 def get_arn(
@@ -52,7 +66,7 @@ def validate_pce(
     role: MPCRoles,
     skip_steps: List[ValidationStepNames],
     run_steps: List[ValidationStepNames],
-) -> None:
+) -> ValidatorResult:
     duplicate_resource_checker = DuplicatePCEResourcesChecker(
         region, key_id, key_data, None
     )
@@ -70,7 +84,7 @@ def validate_pce(
                 f"Multiple {duplicate_resource.resource_name_plural} tagged "
                 f"with pce:pce-id ({pce_id}): {duplicate_resource.duplicate_resource_ids}"
             )
-        sys.exit(1)
+        return ValidatorResult.ERROR
 
     pce_service = AWSPCEService(region, key_id, key_data, None)
     logging.info(f"Loading the PCE {pce_id}...")
@@ -87,10 +101,13 @@ def validate_pce(
         logging.error(
             f"Validation failed for PCE {pce_id}:\n{ValidationSuite.summarize_errors(failed_results)}"
         )
+        # check if any error level results, to set overall result as ValidatorResult.ERROR
+        # warning level results don't set overall result as ValidatorResult.ERROR
         if ValidationSuite.contains_error_result(failed_results):
-            sys.exit(1)
+            return ValidatorResult.ERROR
     else:
-        print("Your PCE environments are set up correctly.")
+        print(OVERALL_SUCCESS_MESSAGE)
+    return ValidatorResult.SUCCESS
 
 
 def main() -> None:
@@ -153,7 +170,9 @@ def main() -> None:
         for code_name in run_step_code_names
     ]
 
-    validate_pce(region, key_id, key_data, pce_id, role, skip_steps, run_steps)
+    result = validate_pce(region, key_id, key_data, pce_id, role, skip_steps, run_steps)
+    # set program's exitcode to the value defined in the ValidatorResult enum
+    sys.exit(result.value)
 
 
 if __name__ == "__main__":
