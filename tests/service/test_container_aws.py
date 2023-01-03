@@ -32,6 +32,8 @@ TEST_TASK_DEFNITION = "test-task-definition:1"
 TEST_CONTAINER_DEFNITION = "test-container-definition"
 
 TEST_ENV_VARS = {"k1": "v1", "k2": "v2"}
+TEST_ENV_VARS_2 = {"k3": "v3", "k4": "v4"}
+TEST_LIST_OF_ENV_VARS = [TEST_ENV_VARS, TEST_ENV_VARS_2]
 TEST_CMD_1 = "test_1"
 TEST_CMD_2 = "test_2"
 TEST_CONTAINER_TYPE = ContainerType.MEDIUM
@@ -103,6 +105,72 @@ class TestAWSContainerService(unittest.TestCase):
             container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
             cmds=cmd_list,
             env_vars=TEST_ENV_VARS,
+            container_type=TEST_CONTAINER_TYPE,
+        )
+
+        # Assert
+        self.assertEqual(container_instances, created_instances)
+        self.container_svc.ecs_gateway.run_task.assert_has_calls(
+            run_task_calls, any_order=False
+        )
+        self.assertEqual(
+            self.container_svc.ecs_gateway.run_task.call_count, len(created_instances)
+        )
+
+    def test_create_instances_with_list_of_env_vars(self):
+        # Arrange
+        created_instances: List[ContainerInstance] = [
+            ContainerInstance(
+                TEST_INSTANCE_ID_1,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
+            ),
+            ContainerInstance(
+                TEST_INSTANCE_ID_2,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
+            ),
+        ]
+
+        self.container_svc.ecs_gateway.run_task = MagicMock(
+            side_effect=created_instances
+        )
+
+        cmd_list = [TEST_CMD_1, TEST_CMD_2]
+        run_task_calls: List[call] = [
+            call(
+                task_definition=TEST_TASK_DEFNITION,
+                container=TEST_CONTAINER_DEFNITION,
+                cmd=TEST_CMD_1,
+                cluster=TEST_CLUSTER,
+                subnets=TEST_SUBNETS,
+                env_vars=TEST_ENV_VARS,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
+            ),
+            call(
+                task_definition=TEST_TASK_DEFNITION,
+                container=TEST_CONTAINER_DEFNITION,
+                cmd=TEST_CMD_2,
+                cluster=TEST_CLUSTER,
+                subnets=TEST_SUBNETS,
+                env_vars=TEST_ENV_VARS,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
+            ),
+        ]
+
+        # Act
+        container_instances: List[
+            ContainerInstance
+        ] = self.container_svc.create_instances(
+            container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+            cmds=cmd_list,
+            env_vars=TEST_LIST_OF_ENV_VARS,
             container_type=TEST_CONTAINER_TYPE,
         )
 

@@ -7,7 +7,7 @@
 # pyre-strict
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from fbpcp.entity.cloud_provider import CloudProvider
 
@@ -88,9 +88,12 @@ class AWSContainerService(ContainerService):
         self,
         container_definition: str,
         cmds: List[str],
-        env_vars: Optional[Dict[str, str]] = None,
+        env_vars: Optional[Union[Dict[str, str], List[Dict[str, str]]]] = None,
         container_type: Optional[ContainerType] = None,
     ) -> List[ContainerInstance]:
+        # TODO: When given a list of env_vars, pass each env_var_dict to one instance
+        if type(env_vars) is list:
+            env_vars = env_vars[0] if env_vars else None
         instances = [
             self.create_instance(
                 container_definition=container_definition,

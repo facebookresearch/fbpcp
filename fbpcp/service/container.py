@@ -7,7 +7,7 @@
 # pyre-strict
 
 import abc
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from fbpcp.entity.cluster_instance import Cluster
 
@@ -44,7 +44,7 @@ class ContainerService(abc.ABC):
         self,
         container_definition: str,
         cmds: List[str],
-        env_vars: Optional[Dict[str, str]] = None,
+        env_vars: Optional[Union[Dict[str, str], List[Dict[str, str]]]] = None,
         container_type: Optional[ContainerType] = None,
     ) -> List[ContainerInstance]:
         pass
