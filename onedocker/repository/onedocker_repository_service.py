@@ -4,11 +4,13 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Optional
+from typing import Dict, Optional
 
+from fbpcp.error.pcp import PcpError
 from fbpcp.service.storage import StorageService
 from onedocker.entity.object_metadata import PackageMetadata
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
+from onedocker.service.metadata import MetadataService
 
 DEFAULT_PROD_VERSION = "latest"
 
@@ -18,11 +20,12 @@ class OneDockerRepositoryService:
         self,
         storage_svc: StorageService,
         package_repository_path: str,
+        metadata_svc: Optional[MetadataService] = None,
     ) -> None:
-        self.storage_svc = storage_svc
         self.package_repo = OneDockerPackageRepository(
             storage_svc, package_repository_path
         )
+        self.metadata_svc = metadata_svc
 
     def upload(
         self,
@@ -67,3 +70,15 @@ class OneDockerRepositoryService:
         if version == DEFAULT_PROD_VERSION:
             return True
         return False
+
+    def get_package_measurements(
+        self, package_name: str, version: str
+    ) -> Dict[str, str]:
+        if not self.metadata_svc:
+            raise PcpError(
+                "No MetadataService has been provided for OneDockerRepositoryService, which is required for get_package_measurements function"
+            )
+
+        md = self.metadata_svc.get_medadata(package_name=package_name, version=version)
+
+        return {k.value: v for k, v in md.measurements.items()}
