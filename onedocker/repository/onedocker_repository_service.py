@@ -12,6 +12,7 @@ from onedocker.entity.measurement import MeasurementType
 from onedocker.entity.metadata import PackageMetadata
 
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
+from onedocker.service.measurement import MeasurementService
 from onedocker.service.metadata import MetadataService
 
 DEFAULT_PROD_VERSION: str = "latest"
@@ -29,6 +30,7 @@ class OneDockerRepositoryService:
             storage_svc, package_repository_path
         )
         self.metadata_svc = metadata_svc
+        self.measurement_svc = MeasurementService()
 
     def upload(
         self,
@@ -55,9 +57,10 @@ class OneDockerRepositoryService:
         self.package_repo.download(package_name, version, destination)
 
     def _generate_measurements(self, source: str) -> Dict[MeasurementType, str]:
-        # TODO: replace this logic with acutal call to measurement service T138464450
-        mock_measurements = {t: t.value + "hash" for t in MEASUREMENT_TYPES}
-        return mock_measurements
+        measurements = self.measurement_svc.generate_measurements(
+            measurement_types=MEASUREMENT_TYPES, file_path=source
+        )
+        return measurements
 
     def _generate_metadata(
         self,
