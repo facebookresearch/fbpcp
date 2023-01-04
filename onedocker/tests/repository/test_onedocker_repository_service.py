@@ -30,20 +30,33 @@ class TestOneDockerRepositoryService(unittest.TestCase):
     )
     @patch("fbpcp.service.storage_s3.S3StorageService")
     @patch("onedocker.service.metadata.MetadataService")
+    @patch("onedocker.service.measurement.MeasurementService")
     def setUp(
-        self, mockMetadataService, mockStorageService, mockPackageRepoCall
+        self,
+        MockMeasurementService,
+        MockMetadataService,
+        MockStorageService,
+        MockPackageRepoCall,
     ) -> None:
         package_repo_path = "/package_repo_path/"
         self.package_repo = MagicMock()
-        mockPackageRepoCall.return_value = self.package_repo
+        MockPackageRepoCall.return_value = self.package_repo
         self.repo_service = OneDockerRepositoryService(
-            mockStorageService, package_repo_path, mockMetadataService
+            MockStorageService, package_repo_path, MockMetadataService
         )
-        self.metadata_service = mockMetadataService
+        self.metadata_service = MockMetadataService
+        self.repo_service.measurement_svc = MockMeasurementService()
 
     def test_onedocker_repo_service_upload(self) -> None:
         # Arrange
         source_path = "test_source_path"
+        expected_measurements = {
+            MeasurementType(self.TEST_MEASUREMENT_KEY1): self.TEST_MEASUREMENT1,
+            MeasurementType(self.TEST_MEASUREMENT_KEY2): self.TEST_MEASUREMENT2,
+        }
+        self.repo_service.measurement_svc.generate_measurements = MagicMock(
+            return_value=expected_measurements
+        )
 
         # Act
         self.repo_service.upload(
