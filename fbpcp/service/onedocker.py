@@ -8,7 +8,7 @@
 
 import asyncio
 import logging
-from typing import Dict, Final, List, Optional
+from typing import Dict, Final, List, Optional, Union
 
 from fbpcp.decorator.metrics import duration_time, error_counter, request_counter
 from fbpcp.entity.certificate_request import CertificateRequest
@@ -81,7 +81,7 @@ class OneDockerService(MetricsGetter):
         task_definition: Optional[str] = None,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args: str = "",
-        env_vars: Optional[Dict[str, str]] = None,
+        env_vars: Optional[Union[Dict[str, str], List[Dict[str, str]]]] = None,
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
         certificate_request: Optional[CertificateRequest] = None,
@@ -96,7 +96,9 @@ class OneDockerService(MetricsGetter):
                                 when starting this container
             version:            The version of the MPC binary to run. This parameter defaults to the 'latest' binary version.
             cmd_args:           A string that is used to override the command in docker containers
-            env_vars:           environment variable overrides in docker containers
+            env_vars:           Environment variable overrides in docker containers. When given a single dictionary,
+                                it will be applied to all container. When given a list of dictionraies, each will be assigned
+                                to one container.
             timeout:            container timeout. If specified, docker container would be forced to stop
             tag:                Tag for docker containers
             certificate_request: An optional instance of CertificateRequest that contains the parameters required to create a TLS certificate
@@ -123,7 +125,7 @@ class OneDockerService(MetricsGetter):
         task_definition: Optional[str] = None,
         version: str = DEFAULT_BINARY_VERSION,
         cmd_args_list: Optional[List[str]] = None,
-        env_vars: Optional[Dict[str, str]] = None,
+        env_vars: Optional[Union[Dict[str, str], List[Dict[str, str]]]] = None,
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
         certificate_request: Optional[CertificateRequest] = None,
@@ -137,7 +139,9 @@ class OneDockerService(MetricsGetter):
                                 when starting this container
             version:            The version of the MPC binary to run. This parameter defaults to the 'latest' binary version.
             cmd_args_list:      A list of command overrides in docker containers
-            env_vars:           environment variable overrides in docker containers
+            env_vars:           Environment variable overrides in docker containers. When given a single dictionary,
+                                it will be applied to all container. When given a list of dictionraies, each will be assigned
+                                to one container.
             timeout:            container timeout. If specified, docker container would be forced to stop
             tag:                Tag for docker containers
             certificate_request: An optional instance of CertificateRequest that contains the parameters required to create a TLS certificate
@@ -147,6 +151,11 @@ class OneDockerService(MetricsGetter):
         """
         if not cmd_args_list:
             raise ValueError("Command Argument List shouldn't be None or Empty")
+
+        if type(env_vars) is list and len(env_vars) != len(cmd_args_list):
+            raise ValueError(
+                f"Length of env_vars {len(env_vars)} not equal to the length of cmd_args_list {len(cmd_args_list)}."
+            )
 
         cmds = [
             self._get_cmd(package_name, version, cmd_args, timeout, certificate_request)
