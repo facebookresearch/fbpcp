@@ -4,15 +4,18 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.storage import StorageService
-from onedocker.entity.object_metadata import PackageMetadata
+from onedocker.entity.measurement import MeasurementType
+from onedocker.entity.metadata import PackageMetadata
+
 from onedocker.repository.onedocker_package import OneDockerPackageRepository
 from onedocker.service.metadata import MetadataService
 
-DEFAULT_PROD_VERSION = "latest"
+DEFAULT_PROD_VERSION: str = "latest"
+MEASUREMENT_TYPES: List[MeasurementType] = [MeasurementType.sha256]
 
 
 class OneDockerRepositoryService:
@@ -32,7 +35,6 @@ class OneDockerRepositoryService:
         package_name: str,
         version: str,
         source: str,
-        metadata: Optional[dict] = None,
     ) -> None:
         if not self._skip_version_validation_check(version):
             all_versions = self.package_repo.get_package_versions(package_name)
@@ -42,24 +44,31 @@ class OneDockerRepositoryService:
                 )
         self.package_repo.upload(package_name, version, source)
 
+        if self.metadata_svc:
+            self.metadata_svc.put_metadata(
+                metadata=self._generate_metadata(
+                    package_name=package_name, version=version, source=source
+                )
+            )
+
     def download(self, package_name: str, version: str, destination: str) -> None:
         self.package_repo.download(package_name, version, destination)
 
-    def _set_metadata(
-        self,
-        package_name: str,
-        version: str,
-        metadata: PackageMetadata,
-    ) -> None:
-        # TODO: T127441856 handle storing metadata
-        raise NotImplementedError
+    def _generate_measurements(self, source: str) -> Dict[MeasurementType, str]:
+        # TODO: replace this logic with acutal call to measurement service T138464450
+        mock_measurements = {t: t.value + "hash" for t in MEASUREMENT_TYPES}
+        return mock_measurements
 
-    def _get_metadata(
+    def _generate_metadata(
         self,
         package_name: str,
         version: str,
+        source: str,
     ) -> PackageMetadata:
-        raise NotImplementedError
+        measurements = self._generate_measurements(source)
+        return PackageMetadata(
+            package_name=package_name, version=version, measurements=measurements
+        )
 
     def archive_package(self, package_name: str, version: str) -> None:
         # TODO: Archive or delete checksum file associated with the archived package if exists.

@@ -20,9 +20,9 @@ class TestOneDockerRepositoryService(unittest.TestCase):
     TEST_PACKAGE_PATH = "private_lift/lift"
     TEST_PACKAGE_NAME = TEST_PACKAGE_PATH.split("/")[-1]
     TEST_PACKAGE_VERSION = "1.0"
-    TEST_MEASUREMENT_KEY1 = "MD5"
-    TEST_MEASUREMENT_KEY2 = "SHA256"
-    TEST_MEASUREMENT1 = "md5-hash"
+    TEST_MEASUREMENT_KEY1 = "sha512"
+    TEST_MEASUREMENT_KEY2 = "sha256"
+    TEST_MEASUREMENT1 = "sha512-hash"
     TEST_MEASUREMENT2 = "sha256-hash"
 
     @patch(
