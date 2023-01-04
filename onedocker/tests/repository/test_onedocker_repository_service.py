@@ -7,6 +7,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from onedocker.entity.measurement import MeasurementType
+
+from onedocker.entity.metadata import PackageMetadata
 from onedocker.repository.onedocker_repository_service import (
     DEFAULT_PROD_VERSION,
     OneDockerRepositoryService,
@@ -17,18 +20,26 @@ class TestOneDockerRepositoryService(unittest.TestCase):
     TEST_PACKAGE_PATH = "private_lift/lift"
     TEST_PACKAGE_NAME = TEST_PACKAGE_PATH.split("/")[-1]
     TEST_PACKAGE_VERSION = "1.0"
+    TEST_MEASUREMENT_KEY1 = "MD5"
+    TEST_MEASUREMENT_KEY2 = "SHA256"
+    TEST_MEASUREMENT1 = "md5-hash"
+    TEST_MEASUREMENT2 = "sha256-hash"
 
     @patch(
         "onedocker.repository.onedocker_repository_service.OneDockerPackageRepository"
     )
     @patch("fbpcp.service.storage_s3.S3StorageService")
-    def setUp(self, mockStorageService, mockPackageRepoCall) -> None:
+    @patch("onedocker.service.metadata.MetadataService")
+    def setUp(
+        self, mockMetadataService, mockStorageService, mockPackageRepoCall
+    ) -> None:
         package_repo_path = "/package_repo_path/"
         self.package_repo = MagicMock()
         mockPackageRepoCall.return_value = self.package_repo
         self.repo_service = OneDockerRepositoryService(
-            mockStorageService, package_repo_path
+            mockStorageService, package_repo_path, mockMetadataService
         )
+        self.metadata_service = mockMetadataService
 
     def test_onedocker_repo_service_upload(self) -> None:
         # Arrange
@@ -84,4 +95,30 @@ class TestOneDockerRepositoryService(unittest.TestCase):
         self.package_repo.get_package_versions.assert_not_called()
         self.package_repo.upload.assert_called_with(
             self.TEST_PACKAGE_PATH, DEFAULT_PROD_VERSION, source_path
+        )
+
+    def test_get_package_measurements(self) -> None:
+        # Arrange
+        self.metadata_service.get_medadata.return_value = PackageMetadata(
+            package_name=self.TEST_PACKAGE_NAME,
+            version=self.TEST_PACKAGE_VERSION,
+            measurements={
+                MeasurementType(self.TEST_MEASUREMENT_KEY1): self.TEST_MEASUREMENT1,
+                MeasurementType(self.TEST_MEASUREMENT_KEY2): self.TEST_MEASUREMENT2,
+            },
+        )
+        expect_res = {
+            self.TEST_MEASUREMENT_KEY1: self.TEST_MEASUREMENT1,
+            self.TEST_MEASUREMENT_KEY2: self.TEST_MEASUREMENT2,
+        }
+
+        # Act
+        res = self.repo_service.get_package_measurements(
+            package_name=self.TEST_PACKAGE_NAME, version=self.TEST_PACKAGE_VERSION
+        )
+
+        # Assert
+        self.assertEqual(expect_res, res)
+        self.metadata_service.get_medadata.assert_called_with(
+            package_name=self.TEST_PACKAGE_NAME, version=self.TEST_PACKAGE_VERSION
         )
