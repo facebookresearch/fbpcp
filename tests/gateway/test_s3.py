@@ -18,6 +18,7 @@ TEST_ACCESS_KEY_ID = "test-access-key-id"
 TEST_ACCESS_KEY_DATA = "test-access-key-data"
 TEST_SESSION_TOKEN = "test-session-token"
 TEST_S3_OPERATION = "head_object"
+TEST_BASE_BUCKET_PATH = "lift"
 TEST_DEFAULT_CONFIG = {}
 REGION = "us-west-1"
 
@@ -220,3 +221,35 @@ class TestS3Gateway(unittest.TestCase):
             aws_session_token=TEST_SESSION_TOKEN,
         )
         self.assertEqual(gateway.config, expected_config)
+
+    @patch("boto3.client")
+    def test_list_folders_returns_processed_list(self, BotoClient):
+        test_prefix1 = f"{TEST_BASE_BUCKET_PATH}/binary/binary1/"
+        test_prefix2 = f"{TEST_BASE_BUCKET_PATH}/binary2/binary/"
+        client_return_response = {
+            "CommonPrefixes": [
+                {"Prefix": test_prefix1},
+                {"Prefix": test_prefix2},
+            ],
+        }
+        gw = S3Gateway(REGION)
+        gw.client = BotoClient()
+        gw.client.list_objects_v2 = MagicMock(return_value=client_return_response)
+        key_list = gw.list_folders(TEST_BUCKET, TEST_BASE_BUCKET_PATH)
+        expected_key_list = [
+            "binary/binary1",
+            "binary2/binary",
+        ]
+        self.assertEqual(key_list, expected_key_list)
+        gw.client.list_objects_v2.assert_called_once()
+
+    @patch("boto3.client")
+    def test_list_folders_returns_empty_list_if_response_is_empty(self, BotoClient):
+        client_return_response = {}
+        gw = S3Gateway(REGION)
+        gw.client = BotoClient()
+        gw.client.list_objects_v2 = MagicMock(return_value=client_return_response)
+        key_list = gw.list_folders(TEST_BUCKET, TEST_BASE_BUCKET_PATH)
+
+        self.assertEqual(key_list, [])
+        gw.client.list_objects_v2.assert_called_once()
