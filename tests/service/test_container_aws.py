@@ -33,7 +33,6 @@ TEST_CONTAINER_DEFNITION = "test-container-definition"
 
 TEST_ENV_VARS = {"k1": "v1", "k2": "v2"}
 TEST_ENV_VARS_2 = {"k3": "v3", "k4": "v4"}
-TEST_LIST_OF_ENV_VARS = [TEST_ENV_VARS, TEST_ENV_VARS_2]
 TEST_CMD_1 = "test_1"
 TEST_CMD_2 = "test_2"
 TEST_CONTAINER_TYPE = ContainerType.MEDIUM
@@ -158,7 +157,7 @@ class TestAWSContainerService(unittest.TestCase):
                 cmd=TEST_CMD_2,
                 cluster=TEST_CLUSTER,
                 subnets=TEST_SUBNETS,
-                env_vars=TEST_ENV_VARS,
+                env_vars=TEST_ENV_VARS_2,
                 cpu=self.test_container_config.cpu,
                 memory=self.test_container_config.memory,
             ),
@@ -170,7 +169,7 @@ class TestAWSContainerService(unittest.TestCase):
         ] = self.container_svc.create_instances(
             container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
             cmds=cmd_list,
-            env_vars=TEST_LIST_OF_ENV_VARS,
+            env_vars=[TEST_ENV_VARS, TEST_ENV_VARS_2],
             container_type=TEST_CONTAINER_TYPE,
         )
 
@@ -182,6 +181,27 @@ class TestAWSContainerService(unittest.TestCase):
         self.assertEqual(
             self.container_svc.ecs_gateway.run_task.call_count, len(created_instances)
         )
+
+    def test_create_instances_throw_with_invalid_list_of_env_vars(self):
+        # Arrange
+        cmd_list = [TEST_CMD_1, TEST_CMD_2, TEST_CMD_2]
+
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            self.container_svc.create_instances(
+                container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+                cmds=cmd_list,
+                env_vars=[TEST_ENV_VARS],
+                container_type=TEST_CONTAINER_TYPE,
+            )
+
+        with self.assertRaises(ValueError):
+            self.container_svc.create_instances(
+                container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+                cmds=cmd_list,
+                env_vars=[],
+                container_type=TEST_CONTAINER_TYPE,
+            )
 
     def test_create_instance(self):
         # Arrange

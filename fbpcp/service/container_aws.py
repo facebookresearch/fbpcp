@@ -91,18 +91,32 @@ class AWSContainerService(ContainerService):
         env_vars: Optional[Union[Dict[str, str], List[Dict[str, str]]]] = None,
         container_type: Optional[ContainerType] = None,
     ) -> List[ContainerInstance]:
-        # TODO: When given a list of env_vars, pass each env_var_dict to one instance
-        if type(env_vars) is list:
-            env_vars = env_vars[0] if env_vars else None
+        """
+        Args:
+            container_definition: a string representing the container definition.
+            cmds: A list of cmds per instance to run inside each instance.
+            env_vars: A dictionary or list of dictionaries of env_vars to be set in instances.
+            When it is a single dictionary, all env vars in the dict will be set in all
+            instances. When it is a list of dicts, it is expected that the length of the list
+            is the same as the length of the cmds list, such that each item corresponds
+            to one instance.
+            container_type: The type of container to create.
+        """
+        if type(env_vars) is list and len(env_vars) != len(cmds):
+            raise ValueError(
+                f"Length of env_vars list {len(env_vars)} is different from length of cmds {len(cmds)}."
+            )
+
         instances = [
             self.create_instance(
                 container_definition=container_definition,
-                cmd=cmd,
-                env_vars=env_vars,
+                cmd=cmds[i],
+                env_vars=env_vars[i] if type(env_vars) is list else env_vars,
                 container_type=container_type,
             )
-            for cmd in cmds
+            for i in range(len(cmds))
         ]
+
         self.logger.info(
             f"AWSContainerService created {len(instances)} containers successfully"
         )
