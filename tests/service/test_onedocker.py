@@ -26,6 +26,8 @@ TEST_INSTANCE_ID_2 = "test-instance-id-2"
 TEST_IP_ADDRESS = "127.0.0.1"
 TEST_VERSION = "rc"
 TEST_ENV_VARS = {"test_name": "test_value"}
+TEST_ENV_VARS_2 = {"test_name_2": "test_value_2"}
+TEST_ENV_VARS_LIST = [TEST_ENV_VARS, TEST_ENV_VARS_2]
 TEST_PACKAGE_NAME = "project/exe_name"
 TEST_TASK_DEF = "task_def"
 TEST_CMD_ARGS_LIST = ["--k1=v1", "--k2=v2"]
@@ -128,6 +130,61 @@ class TestOneDockerServiceSync(unittest.TestCase):
         # Assert
         self.onedocker_svc._get_cmd.assert_has_calls(calls, any_order=False)
         self.assertEqual(returned_container_info, mocked_container_info)
+
+    @patch.object(OneDockerService, "_get_cmd")
+    def test_start_containers_with_env_var_list(self, mock_get_cmd):
+        # Arrange
+        mocked_container_info = _get_pending_container_instances()
+        self.container_svc.create_instances = MagicMock(
+            return_value=mocked_container_info
+        )
+        expected_cmd = ["test_cmd_1", "test_cmd_2"]
+        mock_get_cmd.side_effect = expected_cmd
+
+        # Act
+        returned_container_info: List[
+            ContainerInstance
+        ] = self.onedocker_svc.start_containers(
+            task_definition=TEST_TASK_DEF,
+            package_name=TEST_PACKAGE_NAME,
+            cmd_args_list=TEST_CMD_ARGS_LIST,
+            version=TEST_VERSION,
+            env_vars=TEST_ENV_VARS_LIST,
+            timeout=TEST_TIMEOUT,
+            container_type=TEST_CONTAINER_TYPE,
+        )
+
+        # Assert
+        self.assertEqual(returned_container_info, mocked_container_info)
+        self.container_svc.create_instances.assert_called_with(
+            container_definition=TEST_TASK_DEF,
+            cmds=expected_cmd,
+            env_vars=TEST_ENV_VARS_LIST,
+            container_type=TEST_CONTAINER_TYPE,
+        )
+
+    def test_start_containers_throw_with_invalid_env_var_list(self):
+        # Act & Assert
+        with self.assertRaises(ValueError):
+            self.onedocker_svc.start_containers(
+                task_definition=TEST_TASK_DEF,
+                package_name=TEST_PACKAGE_NAME,
+                cmd_args_list=TEST_CMD_ARGS_LIST,
+                version=TEST_VERSION,
+                env_vars=[TEST_ENV_VARS],
+                timeout=TEST_TIMEOUT,
+                container_type=TEST_CONTAINER_TYPE,
+            )
+        with self.assertRaises(ValueError):
+            self.onedocker_svc.start_containers(
+                task_definition=TEST_TASK_DEF,
+                package_name=TEST_PACKAGE_NAME,
+                cmd_args_list=TEST_CMD_ARGS_LIST,
+                version=TEST_VERSION,
+                env_vars=[],
+                timeout=TEST_TIMEOUT,
+                container_type=TEST_CONTAINER_TYPE,
+            )
 
     def test_get_cmd(self):
         expected_cmd_without_arguments = (
