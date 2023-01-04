@@ -13,10 +13,8 @@ from dataclasses_json import dataclass_json
 
 
 class MeasurementType(Enum):
-    # TODO These types are not finalized yet, only adding few to test the integration.
-    # TODO will update/add later when developing measurement service
-    MD5 = "MD5"
-    SHA256 = "SHA256"
+    sha256 = "sha256"
+    sha512 = "sha512"
 
     @classmethod
     def has_member(cls, name: str) -> bool:

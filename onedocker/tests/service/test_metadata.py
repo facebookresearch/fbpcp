@@ -18,10 +18,10 @@ TEST_KEY_ID = "test-key-id"
 TEST_KEY_DATA = "test-key-data"
 TEST_PACKAGE_NAME = "PL"
 TEST_PACKAGE_VERSION = "1.1"
-TEST_MEASUREMENT_KEY1 = "MD5"
-TEST_MEASUREMENT_KEY2 = "SHA256"
+TEST_MEASUREMENT_KEY1 = "sha512"
+TEST_MEASUREMENT_KEY2 = "sha256"
 TEST_MEASUREMENT1 = Measurement(
-    MeasurementType(TEST_MEASUREMENT_KEY1), value="md5-hash"
+    MeasurementType(TEST_MEASUREMENT_KEY1), value="sha512-hash"
 )
 TEST_MEASUREMENT2 = Measurement(
     MeasurementType(TEST_MEASUREMENT_KEY2), value="sha256-hash"
