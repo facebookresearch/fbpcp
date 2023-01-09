@@ -102,11 +102,20 @@ class S3Gateway(AWSGateway):
 
     @error_handler
     def list_folders(self, bucket: str, key: str) -> List[str]:
+        """List the folders for a given S3 path (key)
+
+        Args:
+            bucket: The name of the S3 bucket
+            key: The path in the bucket that we want to list the folders of
+
+        Returns:
+            return: A list of the folders in the base path (key)
+        """
         key = key + "/"
         response = self.client.list_objects_v2(Bucket=bucket, Prefix=key, Delimiter="/")
         return [
             prefix_dict["Prefix"][len(key) : -1]
-            for prefix_dict in response.get("CommonPrefixes")
+            for prefix_dict in response.get("CommonPrefixes", [])
         ]
 
     @error_handler
