@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.4.0] - 2023-01-17
+### Added
+- OneDocker Repository Service
+- OneDocker Measurement Service
+- OneDocker Metadata Service
+### Changed
+- Add support for passing list of environment variables in OneDocker and Container Service
+
 ## [0.3.4] - 2022-09-30
 ### Changed
 - MPCService container start-up only retry failed containers
