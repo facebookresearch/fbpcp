@@ -1,0 +1,13 @@
+FROM ghcr.io/facebookresearch/fbpcs/prod/onedocker:latest
+
+COPY fbpcp fbpcp
+COPY onedocker onedocker
+COPY pce pce
+COPY scripts scripts
+COPY tests tests
+COPY setup.py .
+COPY README.md .
+
+RUN pip install .
+
+CMD /bin/bash

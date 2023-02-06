@@ -1,0 +1,8 @@
+services:
+  fbpcp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ubuntu
+      platforms:
+        - "linux/arm64"
+    command: /bin/bash -c ./scripts/run-python-tests.sh
