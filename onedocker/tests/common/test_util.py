@@ -17,4 +17,4 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(0, run_cmd("cat", 1))
 
     def test_run_cmd_with_timeout(self) -> None:
-        self.assertRaises(subprocess.TimeoutExpired, run_cmd, "vi", 1)
+        self.assertRaises(subprocess.TimeoutExpired, run_cmd, "sleep 10", 1)
