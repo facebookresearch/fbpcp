@@ -6,6 +6,7 @@
 
 # pyre-strict
 
+import itertools
 import logging
 from typing import Any, Dict, List, Optional, Union
 
@@ -145,7 +146,7 @@ class AWSContainerService(ContainerService):
         container_batches = [
             self.ecs_gateway.describe_tasks(self.cluster, ids) for ids in id_batches
         ]
-        return sum(container_batches, [])
+        return list(itertools.chain.from_iterable(container_batches))
 
     def cancel_instance(self, instance_id: str) -> None:
         return self.ecs_gateway.stop_task(cluster=self.cluster, task_id=instance_id)
