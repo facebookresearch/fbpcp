@@ -109,7 +109,7 @@ def validate_pce(
         if ValidationSuite.contains_error_result(failed_results):
             return ValidatorResult.ERROR
     else:
-        print(OVERALL_SUCCESS_MESSAGE)
+        logging.info(OVERALL_SUCCESS_MESSAGE)
     return ValidatorResult.SUCCESS
 
 

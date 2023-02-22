@@ -51,26 +51,27 @@ class TestValidatePCE(unittest.TestCase):
         mock_duplicate_resource_checker.check_pce.return_value = []
         mock_validator.validate_network_and_compute.return_value = []
 
-        # act and assert
+        # act
         with self.assertLogs() as captured_logs:
-            with patch("builtins.print") as mock_print:
-                result = validate_pce(
-                    TEST_REGION,
-                    TEST_KEY_ID,
-                    TEST_KEY_DATA,
-                    TEST_PCE_ID,
-                    TEST_ROLE,
-                    TEST_SKIP_STEPS,
-                    [],
-                )
-            mock_print.assert_called_once_with(OVERALL_SUCCESS_MESSAGE)
+            result = validate_pce(
+                TEST_REGION,
+                TEST_KEY_ID,
+                TEST_KEY_DATA,
+                TEST_PCE_ID,
+                TEST_ROLE,
+                TEST_SKIP_STEPS,
+                [],
+            )
         # assert result set as success
         self.assertEqual(result, ValidatorResult.SUCCESS)
-        # assert exactly three INFO level logs emitted
+        # assert exactly four INFO level logs emitted
         log_records_levels = [
             log_record.levelno for log_record in captured_logs.records
         ]
-        self.assertEqual(log_records_levels, [logging.INFO, logging.INFO, logging.INFO])
+        self.assertEqual(
+            log_records_levels, [logging.INFO, logging.INFO, logging.INFO, logging.INFO]
+        )
+        self.assertEqual(captured_logs.records[3].getMessage(), OVERALL_SUCCESS_MESSAGE)
 
     def test_validate_pce_duplicate_resources_found(
         self,
@@ -92,24 +93,22 @@ class TestValidatePCE(unittest.TestCase):
         ]
         mock_validator.validate_network_and_compute.return_value = []
 
-        # act and assert that "success" message wasn't printed
+        # act
         with self.assertLogs() as captured_logs:
-            with patch("builtins.print") as mock_print:
-                result = validate_pce(
-                    TEST_REGION,
-                    TEST_KEY_ID,
-                    TEST_KEY_DATA,
-                    TEST_PCE_ID,
-                    TEST_ROLE,
-                    TEST_SKIP_STEPS,
-                    [],
-                )
-            mock_print.assert_not_called()
+            result = validate_pce(
+                TEST_REGION,
+                TEST_KEY_ID,
+                TEST_KEY_DATA,
+                TEST_PCE_ID,
+                TEST_ROLE,
+                TEST_SKIP_STEPS,
+                [],
+            )
         # assert result was success as ERROR
         self.assertEqual(result, ValidatorResult.ERROR)
 
-        # assert two ERROR level logs were emitted, one describing the error
-        # and second describing the duplicate resource
+        # assert exactly two ERROR level logs were emitted, one describing the
+        # error and the second describing the duplicate resource
         log_records_levels = [
             log_record.levelno for log_record in captured_logs.records
         ]
@@ -133,19 +132,17 @@ class TestValidatePCE(unittest.TestCase):
             ValidationResult(validation_result_code=ValidationResultCode.ERROR),
         ]
 
-        # act and assert that "success" message wasn't printed
+        # act
         with self.assertLogs() as captured_logs:
-            with patch("builtins.print") as mock_print:
-                result = validate_pce(
-                    TEST_REGION,
-                    TEST_KEY_ID,
-                    TEST_KEY_DATA,
-                    TEST_PCE_ID,
-                    TEST_ROLE,
-                    TEST_SKIP_STEPS,
-                    [],
-                )
-            mock_print.assert_not_called()
+            result = validate_pce(
+                TEST_REGION,
+                TEST_KEY_ID,
+                TEST_KEY_DATA,
+                TEST_PCE_ID,
+                TEST_ROLE,
+                TEST_SKIP_STEPS,
+                [],
+            )
         # assert result was success as ERROR
         self.assertEqual(result, ValidatorResult.ERROR)
 
