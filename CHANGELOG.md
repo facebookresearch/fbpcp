@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Add an optional exit_code entry in ContainerInstance
 ### Changed
 ### Removed
 - Delete deprecated MPC entities in FBPCP (moved to FBPCS)

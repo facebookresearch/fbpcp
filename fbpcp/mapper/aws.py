@@ -78,6 +78,7 @@ def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
         status=status,
         cpu=vcpu,
         memory=memory_in_gb,
+        exit_code=container.get("exitCode"),
     )
 
 
