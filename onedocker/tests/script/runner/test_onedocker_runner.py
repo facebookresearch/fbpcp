@@ -6,7 +6,7 @@
 
 import sys
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from docopt import docopt
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
@@ -132,11 +132,16 @@ class TestOnedockerRunner(unittest.TestCase):
             self.assertEqual(cm.exception.code, 1)
 
     @patch.object(OneDockerRepositoryService, "download")
+    @patch("onedocker.script.runner.onedocker_runner.S3Path")
+    @patch("onedocker.script.runner.onedocker_runner.S3StorageService")
     def test_main(
         self,
+        mockS3StorageService,
+        mockS3Path,
         mockOneDockerRepositoryServiceDownload,
     ):
         # Arrange
+        mockS3Path.region = MagicMock(return_value="us_west_1")
         with patch.object(
             sys,
             "argv",
@@ -144,7 +149,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 "onedocker-runner",
                 "echo",
                 "--version=latest",
-                "--repository_path=https://onedocker-runner-unittest-asacheti.s3.us-west-2.amazonaws.com/",
+                "--repository_path=test_repo_path",
                 "--timeout=1200",
                 "--exe_path=/usr/bin/",
                 "--exe_args=test_message",
@@ -214,6 +219,6 @@ class TestOnedockerRunner(unittest.TestCase):
 
 def getenv(key):
     if key == "ONEDOCKER_REPOSITORY_PATH":
-        return "https://onedocker-package-repo.s3.us-west-2.amazonaws.com/"
+        return "test_repo_path"
     else:
         raise KeyError from None
