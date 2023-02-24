@@ -28,3 +28,4 @@ class ContainerInstance:
     status: ContainerInstanceStatus = ContainerInstanceStatus.UNKNOWN
     cpu: Optional[int] = None  # Number of vCPU
     memory: Optional[int] = None  # Memory in GB
+    exit_code: Optional[int] = None

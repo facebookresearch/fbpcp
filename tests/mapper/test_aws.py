@@ -95,22 +95,29 @@ class TestAWSMapper(unittest.TestCase):
         }
         expected_task_list = [
             ContainerInstance(
-                self.TEST_TASK_ARN,
-                self.TEST_IP_ADDRESS,
-                ContainerInstanceStatus.STARTED,
+                instance_id=self.TEST_TASK_ARN,
+                ip_address=self.TEST_IP_ADDRESS,
+                status=ContainerInstanceStatus.STARTED,
             ),
             ContainerInstance(
-                self.TEST_TASK_ARN,
-                None,
-                ContainerInstanceStatus.COMPLETED,
+                instance_id=self.TEST_TASK_ARN,
+                ip_address=None,
+                status=ContainerInstanceStatus.COMPLETED,
                 cpu=self.TEST_CPU,
                 memory=self.TEST_MEMORY,
+                exit_code=0,
             ),
-            ContainerInstance(self.TEST_TASK_ARN, None, ContainerInstanceStatus.FAILED),
             ContainerInstance(
-                self.TEST_TASK_ARN,
-                None,
-                ContainerInstanceStatus.UNKNOWN,
+                instance_id=self.TEST_TASK_ARN,
+                ip_address=None,
+                status=ContainerInstanceStatus.FAILED,
+                exit_code=1,
+            ),
+            ContainerInstance(
+                instance_id=self.TEST_TASK_ARN,
+                ip_address=None,
+                status=ContainerInstanceStatus.UNKNOWN,
+                exit_code=-1,
             ),
         ]
         # Act
