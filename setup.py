@@ -20,7 +20,6 @@ install_requires = [
     "psutil==5.8.0",
     "click==7.1.2",
     "kubernetes==12.0.1",
-    "cryptography==3.3.2",
 ]
 
 with open("README.md", encoding="utf-8") as f:
