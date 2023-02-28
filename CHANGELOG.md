@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Delete deprecated MPC entities in FBPCP (moved to FBPCS)
 - Replace invalid S3 bucket from OneDocker unit tests with mock path
+- UnOSS OneDocker cryptogateway and remove fbpcp dependency to cryptography package
 
 ## [0.4.0] - 2023-01-17
 ### Added
