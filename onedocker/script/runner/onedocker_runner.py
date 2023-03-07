@@ -42,6 +42,7 @@ from fbpcp.service.storage_s3 import S3StorageService
 from fbpcp.util.s3path import S3Path
 from onedocker.common.env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
 from onedocker.common.util import run_cmd
+from onedocker.entity.exit_code import ExitCode
 from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
 
 
@@ -102,14 +103,17 @@ def _run_executable(
     net_start = psutil.net_io_counters()
 
     return_code = run_cmd(cmd, timeout)
-    if return_code != 0:
-        logger.error(f"Subprocess returned non-zero return code: {return_code}")
 
     net_end = psutil.net_io_counters()
     logger.info(
         f"Net usage: {net_end.bytes_sent - net_start.bytes_sent} bytes sent, {net_end.bytes_recv - net_start.bytes_recv} bytes received"
     )
 
+    if return_code != 0:
+        logger.error(
+            f"Subprocess returned non-zero exit code {return_code} for cmd '{cmd}'"
+        )
+        sys.exit(ExitCode.EXE_ERROR)
     sys.exit(return_code)
 
 
@@ -139,7 +143,7 @@ def _run_package(
         logger.exception(
             f"An error was raised while preparing {package_name}:{version} from {repository_path}, error: {err}"
         )
-        sys.exit(1)
+        sys.exit(ExitCode.SERVICE_UNAVAILABLE)
 
     try:
         _run_executable(
@@ -151,17 +155,17 @@ def _run_package(
         logger.exception(
             f"{timeout} seconds have passed. Now exiting the program...\n{err}"
         )
-        sys.exit(1)
+        sys.exit(ExitCode.TIMEOUT)
     except InterruptedError as err:
         logger.exception(
             f"Receive abort command from user, Now exiting the program...\n{err}",
         )
-        sys.exit(1)
+        sys.exit(ExitCode.SIGINT)
     except Exception as err:
         logger.exception(
             f"An error was raised while running {package_name}, error: {err}"
         )
-        sys.exit(1)
+        sys.exit(ExitCode.ERROR)
 
 
 def _build_cmd(executable: str, exe_args: Optional[str]) -> str:
