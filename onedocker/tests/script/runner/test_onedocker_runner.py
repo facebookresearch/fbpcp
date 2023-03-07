@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, patch
 from docopt import docopt
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.error.pcp import InvalidParameterError
+from onedocker.entity.exit_code import ExitCode
 from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
 from onedocker.script.runner.onedocker_runner import (
     __doc__ as __onedocker_runner_doc__,
@@ -108,7 +109,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 main()
 
             # Assert
-            self.assertEqual(cm.exception.code, 0)
+            self.assertEqual(cm.exception.code, ExitCode.SUCCESS)
 
     def test_main_local_timeout(self):
         # Arrange
@@ -117,10 +118,11 @@ class TestOnedockerRunner(unittest.TestCase):
             "argv",
             [
                 "onedocker-runner",
-                "nano",
+                "sleep",
                 "--version=latest",
                 "--repository_path=local",
-                "--exe_path=test.py",
+                "--exe_path=/usr/bin/",
+                "--exe_args=2",
                 "--timeout=1",
             ],
         ):
@@ -129,7 +131,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 main()
 
             # Assert
-            self.assertEqual(cm.exception.code, 1)
+            self.assertEqual(cm.exception.code, ExitCode.TIMEOUT)
 
     @patch.object(OneDockerRepositoryService, "download")
     @patch("onedocker.script.runner.onedocker_runner.S3Path")
@@ -160,7 +162,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 main()
 
             # Assert
-            self.assertEqual(cm.exception.code, 0)
+            self.assertEqual(cm.exception.code, ExitCode.SUCCESS)
             mockOneDockerRepositoryServiceDownload.assert_called_once_with(
                 "echo",
                 "latest",
@@ -214,7 +216,7 @@ class TestOnedockerRunner(unittest.TestCase):
                 with self.assertRaises(SystemExit) as cm:
                     main()
                 # Assert
-                self.assertEqual(cm.exception.code, 0)
+                self.assertEqual(cm.exception.code, ExitCode.SUCCESS)
 
 
 def getenv(key):
