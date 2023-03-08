@@ -133,6 +133,73 @@ class TestOnedockerRunner(unittest.TestCase):
             # Assert
             self.assertEqual(cm.exception.code, ExitCode.TIMEOUT)
 
+    @patch("onedocker.script.runner.onedocker_runner.run_cmd")
+    def test_main_local_run_command_error(self, mock_run_cmd):
+        # Arrange
+        mock_run_cmd.side_effect = Exception("Failed to run command")
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-runner",
+                "echo",
+                "--version=latest",
+                "--repository_path=local",
+                "--exe_path=/usr/bin/",
+                "--exe_args=test_message",
+            ],
+        ):
+            with self.assertRaises(SystemExit) as cm:
+                # Act
+                main()
+
+            # Assert
+            self.assertEqual(cm.exception.code, ExitCode.ERROR)
+
+    def test_main_local_executable_unavailable(self):
+        # Arrange
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-runner",
+                "foo",
+                "--version=latest",
+                "--repository_path=local",
+                "--exe_path=/usr/bin/",
+            ],
+        ):
+            with self.assertRaises(SystemExit) as cm:
+                # Act
+                main()
+
+            # Assert
+            self.assertEqual(cm.exception.code, ExitCode.SERVICE_UNAVAILABLE)
+
+    @patch("onedocker.script.runner.onedocker_runner.run_cmd")
+    def test_main_local_executable_failed(self, mock_run_cmd):
+        # Arrange
+        mock_run_cmd.return_value = 1
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-runner",
+                "echo",
+                "--version=latest",
+                "--repository_path=local",
+                "--exe_path=/usr/bin/",
+                "--exe_args=test_message",
+            ],
+        ):
+            with self.assertRaises(SystemExit) as cm:
+                # Act
+                main()
+
+            # Assert
+            mock_run_cmd.assert_called_once_with("/usr/bin/echo test_message", None)
+            self.assertEqual(cm.exception.code, ExitCode.EXE_ERROR)
+
     @patch.object(OneDockerRepositoryService, "download")
     @patch("onedocker.script.runner.onedocker_runner.S3Path")
     @patch("onedocker.script.runner.onedocker_runner.S3StorageService")
