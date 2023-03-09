@@ -54,9 +54,6 @@ DEFAULT_REPOSITORY_PATH = (
 # The default path in the Docker image that is going to host the executables
 DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
 
-# the default version of the binary
-DEFAULT_BINARY_VERSION = "latest"
-
 logger: logging.Logger
 
 
