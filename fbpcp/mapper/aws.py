@@ -6,6 +6,7 @@
 
 # pyre-strict
 
+import logging
 from decimal import Decimal
 from typing import Any, Dict, List
 
@@ -54,8 +55,9 @@ def map_mb_to_gb(mb: str) -> int:
 
 def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
     container = task["containers"][0]
+    logging.debug(f"The ECS task response from AWS: {task}")
     ip_v4 = (
-        container["networkInterfaces"][0]["privateIpv4Address"]
+        container["networkInterfaces"][0].get("privateIpv4Address")
         if len(container["networkInterfaces"]) > 0
         else None
     )
