@@ -6,10 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Changed
+### Removed
+
+## [0.4.1] - 2023-3-09
+### Added
 - Add an optional exit_code entry in ContainerInstance
 - Add OPAWDL
 ### Changed
 - Refactor OneDocker Runner to use granular exit codes
+- Fixed key error when getting ip address from AWS response
 ### Removed
 - Delete deprecated MPC entities in FBPCP (moved to FBPCS)
 - Replace invalid S3 bucket from OneDocker unit tests with mock path
