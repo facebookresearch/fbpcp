@@ -18,6 +18,7 @@ from fbpcp.error.pcp import PcpError
 from fbpcp.service.onedocker import (
     METRICS_START_CONTAINERS_COUNT,
     METRICS_START_CONTAINERS_DURATION,
+    ONEDOCKER_CMD_PREFIX,
     OneDockerService,
 )
 
@@ -44,6 +45,7 @@ TEST_CONTAINER_TYPE: ContainerType = ContainerType.LARGE
 TEST_CONTAINER_CONFIG: ContainerTypeConfig = ContainerTypeConfig.get_config(
     TEST_CLOUD_PROVIDER, TEST_CONTAINER_TYPE
 )
+TEST_OPA_WORKFLOW_PATH = "/folder/file.json"
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
@@ -69,6 +71,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             cmd_args=TEST_CMD_ARGS_LIST[0],
             certificate_request=None,
             container_type=TEST_CONTAINER_TYPE,
+            opa_workflow_path=TEST_OPA_WORKFLOW_PATH,
         )
         # Assert
         self.assertEqual(returned_container_info, mocked_container_info)
@@ -102,6 +105,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
                 TEST_CMD_ARGS_LIST[0],
                 TEST_TIMEOUT,
                 test_cert_request,
+                TEST_OPA_WORKFLOW_PATH,
             ),
             call(
                 TEST_PACKAGE_NAME,
@@ -109,6 +113,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
                 TEST_CMD_ARGS_LIST[1],
                 TEST_TIMEOUT,
                 test_cert_request,
+                TEST_OPA_WORKFLOW_PATH,
             ),
         ]
         self.onedocker_svc._get_cmd = MagicMock()
@@ -125,6 +130,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             timeout=TEST_TIMEOUT,
             certificate_request=test_cert_request,
             container_type=TEST_CONTAINER_TYPE,
+            opa_workflow_path=TEST_OPA_WORKFLOW_PATH,
         )
 
         # Assert
@@ -239,6 +245,26 @@ class TestOneDockerServiceSync(unittest.TestCase):
         # Assert
         self.assertEqual(result, expected_cmd)
 
+    def test_get_cmd_with_opa_workflow_path(self):
+        # Arrange
+        expected_runner_args = f"--exe_args={quote(str(TEST_CMD_ARGS_LIST[0]))} --version={quote(str(TEST_VERSION))} --timeout={quote(str(TEST_TIMEOUT))} --opa_workflow_path={TEST_OPA_WORKFLOW_PATH}"
+        expected_cmd = ONEDOCKER_CMD_PREFIX.format(
+            package_name=TEST_PACKAGE_NAME,
+            runner_args=expected_runner_args,
+        ).strip()
+
+        # Act
+        result = self.onedocker_svc._get_cmd(
+            package_name=TEST_PACKAGE_NAME,
+            version=TEST_VERSION,
+            cmd_args=TEST_CMD_ARGS_LIST[0],
+            timeout=TEST_TIMEOUT,
+            opa_workflow_path=TEST_OPA_WORKFLOW_PATH,
+        )
+
+        # Assert
+        self.assertEqual(result, expected_cmd)
+
     def test_stop_containers(self):
         containers = [
             TEST_INSTANCE_ID_1,
@@ -263,6 +289,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
                 TEST_CMD_ARGS_LIST[0],
                 TEST_TIMEOUT,
                 TEST_CERTIFICATE_REQUEST,
+                TEST_OPA_WORKFLOW_PATH,
             ),
             call(
                 TEST_PACKAGE_NAME,
@@ -270,6 +297,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
                 TEST_CMD_ARGS_LIST[1],
                 TEST_TIMEOUT,
                 TEST_CERTIFICATE_REQUEST,
+                TEST_OPA_WORKFLOW_PATH,
             ),
         ]
         self.onedocker_svc._get_cmd = MagicMock()
@@ -280,6 +308,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             version=TEST_VERSION,
             timeout=TEST_TIMEOUT,
             certificate_request=TEST_CERTIFICATE_REQUEST,
+            opa_workflow_path=TEST_OPA_WORKFLOW_PATH,
         )
         self.onedocker_svc._get_cmd.assert_has_calls(calls, any_order=False)
 

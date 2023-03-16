@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.4.1] - 2023-3-09
 ### Added
 - Add an optional exit_code entry in ContainerInstance
-- Add OPAWDL
+- Add OneDocker Plugin Architecture
 ### Changed
 - Refactor OneDocker Runner to use granular exit codes
 - Fixed key error when getting ip address from AWS response

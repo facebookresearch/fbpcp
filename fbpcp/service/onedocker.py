@@ -85,6 +85,7 @@ class OneDockerService(MetricsGetter):
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
         certificate_request: Optional[CertificateRequest] = None,
+        opa_workflow_path: Optional[str] = None,
         container_type: Optional[ContainerType] = None,
     ) -> ContainerInstance:
         """
@@ -102,6 +103,7 @@ class OneDockerService(MetricsGetter):
             timeout:            container timeout. If specified, docker container would be forced to stop
             tag:                Tag for docker containers
             certificate_request: An optional instance of CertificateRequest that contains the parameters required to create a TLS certificate
+            opa_workflow_path:  A string that denotes the path to a specified opa workflow. Supported Path type: local.
 
         """
         return self.start_containers(
@@ -113,6 +115,7 @@ class OneDockerService(MetricsGetter):
             timeout=timeout,
             tag=tag,
             certificate_request=certificate_request,
+            opa_workflow_path=opa_workflow_path,
             container_type=container_type,
         )[0]
 
@@ -129,6 +132,7 @@ class OneDockerService(MetricsGetter):
         timeout: Optional[int] = None,
         tag: Optional[str] = None,
         certificate_request: Optional[CertificateRequest] = None,
+        opa_workflow_path: Optional[str] = None,
         container_type: Optional[ContainerType] = None,
     ) -> List[ContainerInstance]:
         """Spin up cloud containers according to command arg list.
@@ -145,6 +149,7 @@ class OneDockerService(MetricsGetter):
             timeout:            container timeout. If specified, docker container would be forced to stop
             tag:                Tag for docker containers
             certificate_request: An optional instance of CertificateRequest that contains the parameters required to create a TLS certificate
+            opa_workflow_path:  A string that denotes the path to a specified opa workflow. Supported Path type: local.
 
         Returns:
             A list of the containers that were successfuly started
@@ -158,7 +163,14 @@ class OneDockerService(MetricsGetter):
             )
 
         cmds = [
-            self._get_cmd(package_name, version, cmd_args, timeout, certificate_request)
+            self._get_cmd(
+                package_name,
+                version,
+                cmd_args,
+                timeout,
+                certificate_request,
+                opa_workflow_path,
+            )
             for cmd_args in cmd_args_list
         ]
         container_type_log = f" of {container_type} type" if container_type else ""
@@ -264,10 +276,13 @@ class OneDockerService(MetricsGetter):
         cmd_args: Optional[str] = None,
         timeout: Optional[int] = None,
         certificate_request: Optional[CertificateRequest] = None,
+        opa_workflow_path: Optional[str] = None,
     ) -> str:
         args_dict = {"exe_args": cmd_args, "version": version, "timeout": timeout}
         if certificate_request:
             args_dict["cert_params"] = certificate_request.convert_to_cert_params()
+        if opa_workflow_path:
+            args_dict["opa_workflow_path"] = opa_workflow_path
         runner_args = build_cmd_args(**args_dict)
         return ONEDOCKER_CMD_PREFIX.format(
             package_name=package_name,
