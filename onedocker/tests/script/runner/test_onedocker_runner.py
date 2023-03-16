@@ -285,6 +285,41 @@ class TestOnedockerRunner(unittest.TestCase):
                 # Assert
                 self.assertEqual(cm.exception.code, ExitCode.SUCCESS)
 
+    @patch.object(OneDockerRepositoryService, "download")
+    @patch("onedocker.script.runner.onedocker_runner.S3Path")
+    @patch("onedocker.script.runner.onedocker_runner.S3StorageService")
+    @patch("onedocker.script.runner.onedocker_runner._run_opawdl")
+    def test_main_with_opa_enabled(
+        self,
+        mockOneDockerRunOPAWDL,
+        MockS3StorageService,
+        MockS3Path,
+        mockOneDockerRepositoryServiceDownload,
+    ):
+        # Arrange
+        test_opa_workflow_path = "/home/xyz.json"
+        MockS3Path.region = MagicMock(return_value="us_west_1")
+        with patch.object(
+            sys,
+            "argv",
+            [
+                "onedocker-runner",
+                "echo",
+                "--version=latest",
+                "--repository_path=test_repo_path",
+                "--timeout=1200",
+                "--exe_path=/usr/bin/",
+                "--exe_args=test_message",
+                f"--opa_workflow_path={test_opa_workflow_path}",
+            ],
+        ):
+            # Act
+            with self.assertRaises(SystemExit) as cm:
+                main()
+            # Assert
+            self.assertEqual(cm.exception.code, 0)
+            mockOneDockerRunOPAWDL.assert_called_once_with(test_opa_workflow_path)
+
 
 def getenv(key):
     if key == "ONEDOCKER_REPOSITORY_PATH":

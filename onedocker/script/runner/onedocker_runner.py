@@ -21,6 +21,7 @@ Options:
     --timeout=<timeout>                                     Set timeout (in sec) to kill the task.
     --log_path=<path>                                       Override the default path where logs are saved.
     --cert_params=<cert_params>                             String format of CertificateRequest dictionary if a TLS certificate is requested
+    --opa_workflow_path=<workflow_path>                     Set path of a pre-defined workflow for OneDocker Plugin Architecture usage. When set, OPA exeuction according to the predefined workflow is triggered.
     --verbose                                               Set logging level to DEBUG.
 """
 import logging
@@ -29,6 +30,7 @@ import resource
 import stat
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 from shlex import join, split
 from typing import Optional
@@ -44,6 +46,10 @@ from onedocker.common.env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
 from onedocker.common.util import run_cmd
 from onedocker.entity.exit_code import ExitCode
 from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
+from onedocker.repository.opawdl_workflow_instance_repository_local import (
+    LocalOPAWDLWorkflowInstanceRepository,
+)
+from onedocker.service.opawdl_driver import OPAWDLDriver
 
 
 # The default OneDocker repository path on S3
@@ -53,6 +59,9 @@ DEFAULT_REPOSITORY_PATH = (
 
 # The default path in the Docker image that is going to host the executables
 DEFAULT_EXE_FOLDER = "/root/onedocker/package/"
+
+# The default path in Docker image that hosts OPA workflow instances
+DEFAULT_OPA_WORKFLOW_INSTANCE_FOLDER = "/home/onedocker/"
 
 logger: logging.Logger
 
@@ -228,6 +237,21 @@ def _generate_certificate(
     )
 
 
+def _run_opawdl(workflow_path: str) -> None:
+    instance_repo = LocalOPAWDLWorkflowInstanceRepository(
+        DEFAULT_OPA_WORKFLOW_INSTANCE_FOLDER
+    )
+    instance_id = str(uuid.uuid4())
+    opawdl_driver = OPAWDLDriver(instance_id, workflow_path, instance_repo)
+
+    # run workflow defined in workflow_path
+    opawdl_driver.run_workflow()
+
+    # get and log workflow instance
+    workflow_instance = instance_repo.get(instance_id)
+    logger.info(f"Workflow instance:\n {workflow_instance}")
+
+
 def main() -> None:
     global logger
     s = schema.Schema(
@@ -240,6 +264,7 @@ def main() -> None:
             "--timeout": schema.Or(None, schema.Use(int)),
             "--log_path": schema.Or(None, schema.Use(Path)),
             "--cert_params": schema.Or(None, schema.And(str, len)),
+            "--opa_workflow_path": schema.Or(None, schema.And(str, len)),
             "--verbose": bool,
             "--help": bool,
         }
@@ -269,6 +294,10 @@ def main() -> None:
         if arguments["--cert_params"]
         else None
     )
+
+    # run OPAWDL
+    if arguments["--opa_workflow_path"]:
+        _run_opawdl(arguments["--opa_workflow_path"])
 
     _run_package(
         repository_path=repository_path,
