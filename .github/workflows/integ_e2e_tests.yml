@@ -1,0 +1,51 @@
+name: Integration and E2E tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      pce_id:
+        description: PCE ID
+        required: false
+        type: string
+        default: "test-pci-partner"
+
+  workflow_call:
+    inputs:
+      pce_id:
+        description: PCE ID
+        required: false
+        type: string
+        default: "test-pci-partner"
+
+
+jobs:
+  pce_validator_tests:
+    name: PCE validator E2E test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: Install Python packages
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install .
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_PCE_VALIDATOR_ROLE_TO_ASSUME }}
+          aws-region: us-west-1
+          role-duration-seconds: 1200
+
+      - name: PCE validator runner
+        id: runner
+        run: python3 ./pce/validator/validator.py --region="us-west-1" --pce-id=${{ inputs.pce_id }}
