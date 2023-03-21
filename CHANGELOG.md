@@ -6,10 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Add OneDocker Plugin Architecture
-- Add Secrets Manager Service
 ### Changed
 ### Removed
+
+## [0.5.0] - 2023-3-21
+### Added
+- Add OneDocker Plugin Architecture
+- Add Secrets Manager Service
 
 ## [0.4.1] - 2023-3-09
 ### Added
