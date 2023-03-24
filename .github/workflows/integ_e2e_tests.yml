@@ -49,3 +49,24 @@ jobs:
       - name: PCE validator runner
         id: runner
         run: python3 ./pce/validator/validator.py --region="us-west-1" --pce-id=${{ inputs.pce_id }}
+
+  onedocker_runner_tests:
+    name: Onedocker Runner tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: Install Python packages
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install .
+
+      - name: Ondocker runner
+        id: onedocker_runner
+        run: python3.8 -m onedocker.script.runner ls --version=latest --repository_path=local --exe_path="/usr/bin/"
