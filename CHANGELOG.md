@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Secrets Manager Service
+- TLS cert installer script
 ### Changed
 Refactor OneDocker CLI and OneDocker Service to support OneDocker E2E testing framework
 ### Removed
