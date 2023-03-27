@@ -45,6 +45,7 @@ class OneDockerService(MetricsGetter):
         container_svc: ContainerService,
         task_definition: Optional[str] = None,
         metrics: Optional[MetricsEmitter] = None,
+        container_cmd_prefix: Optional[str] = None,
     ) -> None:
         """Constructor of OneDockerService
         container_svc -- service to spawn container instances
@@ -56,6 +57,9 @@ class OneDockerService(MetricsGetter):
         self.container_svc = container_svc
         self.task_definition = task_definition
         self.metrics: Final[Optional[MetricsEmitter]] = metrics
+        self.container_cmd_prefix: str = (
+            container_cmd_prefix if container_cmd_prefix else ONEDOCKER_CMD_PREFIX
+        )
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def get_cluster(self) -> str:
@@ -284,7 +288,7 @@ class OneDockerService(MetricsGetter):
         if opa_workflow_path:
             args_dict["opa_workflow_path"] = opa_workflow_path
         runner_args = build_cmd_args(**args_dict)
-        return ONEDOCKER_CMD_PREFIX.format(
+        return self.container_cmd_prefix.format(
             package_name=package_name,
             runner_args=runner_args,
         ).strip()

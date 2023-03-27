@@ -50,6 +50,11 @@ storage_svc = None
 
 DEFAULT_TIMEOUT = 18000
 
+SUPER_ONEDOCKER_CMD_PREFIX = (
+    # patternlint-disable-next-line f-string-may-be-missing-leading-f
+    'bash src/onedocker_bootstraper.sh {package_name} "{runner_args}"'
+)
+
 
 def _upload(
     package_path: str,
@@ -192,11 +197,24 @@ def _build_repo_service(config: Dict[str, Any]) -> OneDockerRepositoryService:
     return OneDockerRepositoryService(storage_svc, config_setting["repository_path"])
 
 
-def _build_onedocker_service(config: Dict[str, Any], container_svc) -> OneDockerService:
+def _build_onedocker_service(
+    config: Dict[str, Any],
+    container_svc: ContainerService,
+    use_super_onedocker: Optional[bool] = False,
+) -> OneDockerService:
     config_setting: Optional[Dict[str, str]] = config.get("setting")
     if not config_setting or "task_definition" not in config_setting:
         raise KeyError("task_definition is absent in the config.")
-    return OneDockerService(container_svc, config_setting["task_definition"])
+    container_cmd_prefix: Optional[str] = (
+        SUPER_ONEDOCKER_CMD_PREFIX
+        if config_setting.get("use_super_onedocker")
+        else None
+    )
+    return OneDockerService(
+        container_svc=container_svc,
+        task_definition=config_setting["task_definition"],
+        container_cmd_prefix=container_cmd_prefix,
+    )
 
 
 def main() -> None:
