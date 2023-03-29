@@ -7,8 +7,12 @@
 # pyre-strict
 
 from botocore.exceptions import ClientError
-from fbpcp.error.pcp import InvalidParameterError, PcpError, ThrottlingError
-
+from fbpcp.error.pcp import (
+    InvalidParameterError,
+    LimitExceededError,
+    PcpError,
+    ThrottlingError,
+)
 
 # reference: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html
 def map_aws_error(error: ClientError) -> PcpError:
@@ -21,5 +25,8 @@ def map_aws_error(error: ClientError) -> PcpError:
 
     if code == "ThrottlingException":
         return ThrottlingError(message)
+
+    if code == "LimitExceededException":
+        return LimitExceededError(message)
 
     return PcpError(message)
