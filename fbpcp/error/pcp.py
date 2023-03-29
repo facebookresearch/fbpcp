@@ -17,3 +17,7 @@ class InvalidParameterError(PcpError):
 
 class ThrottlingError(PcpError):
     pass
+
+
+class LimitExceededError(PcpError):
+    pass

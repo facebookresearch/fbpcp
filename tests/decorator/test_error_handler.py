@@ -8,7 +8,7 @@ import unittest
 
 from botocore.exceptions import ClientError
 from fbpcp.decorator.error_handler import error_handler
-from fbpcp.error.pcp import PcpError, ThrottlingError
+from fbpcp.error.pcp import LimitExceededError, PcpError, ThrottlingError
 from google.cloud.exceptions import TooManyRequests
 
 
@@ -67,3 +67,24 @@ class TestErrorHandler(unittest.TestCase):
             raise err
 
         self.assertRaises(ThrottlingError, foo)
+
+    def test_limit_exceeded_error(self):
+        @error_handler
+        def foo():
+            err = ClientError(
+                {
+                    "Error": {
+                        "Code": "LimitExceededException",
+                        "Message": "test",
+                    },
+                    "ResponseMetadata": {
+                        "RequestId": "test_id123",
+                        "HTTPStatusCode": 400,
+                    },
+                },
+                "test",
+            )
+
+            raise err
+
+        self.assertRaises(LimitExceededError, foo)
