@@ -14,6 +14,7 @@ from fbpcp.entity.cloud_cost import CloudCost, CloudCostItem
 from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_permission import ContainerPermissionConfig
 from fbpcp.entity.firewall_ruleset import FirewallRule, FirewallRuleset
 from fbpcp.entity.policy_statement import PolicyStatement
 from fbpcp.entity.route_table import (
@@ -74,6 +75,15 @@ def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
         status = ContainerInstanceStatus.UNKNOWN
     vcpu = map_unit_to_vcpu(task["cpu"]) if "cpu" in task else None
     memory_in_gb = map_mb_to_gb(task["memory"]) if "memory" in task else None
+
+    container_permission = None
+
+    overrides = task.get("overrides")
+    if overrides:
+        task_role_arn = overrides.get("taskRoleArn")
+        if task_role_arn:
+            container_permission = ContainerPermissionConfig(task_role_arn)
+
     return ContainerInstance(
         instance_id=task["taskArn"],
         ip_address=ip_v4,
@@ -81,6 +91,7 @@ def map_ecstask_to_containerinstance(task: Dict[str, Any]) -> ContainerInstance:
         cpu=vcpu,
         memory=memory_in_gb,
         exit_code=container.get("exitCode"),
+        permission=container_permission,
     )
 
 

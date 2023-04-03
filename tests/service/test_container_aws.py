@@ -14,6 +14,7 @@ from fbpcp.entity.cloud_provider import CloudProvider
 
 from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_permission import ContainerPermissionConfig
 from fbpcp.entity.container_type import ContainerType, ContainerTypeConfig
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.container_aws import AWS_API_INPUT_SIZE_LIMIT, AWSContainerService
@@ -84,6 +85,7 @@ class TestAWSContainerService(unittest.TestCase):
                 env_vars=TEST_ENV_VARS,
                 cpu=self.test_container_config.cpu,
                 memory=self.test_container_config.memory,
+                task_role_arn=None,
             ),
             call(
                 task_definition=TEST_TASK_DEFNITION,
@@ -94,6 +96,7 @@ class TestAWSContainerService(unittest.TestCase):
                 env_vars=TEST_ENV_VARS,
                 cpu=self.test_container_config.cpu,
                 memory=self.test_container_config.memory,
+                task_role_arn=None,
             ),
         ]
 
@@ -150,6 +153,7 @@ class TestAWSContainerService(unittest.TestCase):
                 env_vars=TEST_ENV_VARS,
                 cpu=self.test_container_config.cpu,
                 memory=self.test_container_config.memory,
+                task_role_arn=None,
             ),
             call(
                 task_definition=TEST_TASK_DEFNITION,
@@ -160,6 +164,7 @@ class TestAWSContainerService(unittest.TestCase):
                 env_vars=TEST_ENV_VARS_2,
                 cpu=self.test_container_config.cpu,
                 memory=self.test_container_config.memory,
+                task_role_arn=None,
             ),
         ]
 
@@ -180,6 +185,78 @@ class TestAWSContainerService(unittest.TestCase):
         )
         self.assertEqual(
             self.container_svc.ecs_gateway.run_task.call_count, len(created_instances)
+        )
+
+    def test_create_instances_with_permission(self):
+        # Arrange
+        expected_role_id = "test-role-id"
+        permission = ContainerPermissionConfig(expected_role_id)
+
+        created_instances: List[ContainerInstance] = [
+            ContainerInstance(
+                TEST_INSTANCE_ID_1,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
+                permission=permission,
+            ),
+            ContainerInstance(
+                TEST_INSTANCE_ID_2,
+                TEST_IP_ADDRESS,
+                ContainerInstanceStatus.STARTED,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
+                permission=permission,
+            ),
+        ]
+
+        self.container_svc.ecs_gateway.run_task = MagicMock(
+            side_effect=created_instances
+        )
+
+        cmd_list = [TEST_CMD_1, TEST_CMD_2]
+
+        run_task_calls: List[call] = [
+            call(
+                task_definition=TEST_TASK_DEFNITION,
+                container=TEST_CONTAINER_DEFNITION,
+                cmd=TEST_CMD_1,
+                cluster=TEST_CLUSTER,
+                subnets=TEST_SUBNETS,
+                env_vars=TEST_ENV_VARS,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
+                task_role_arn=expected_role_id,
+            ),
+            call(
+                task_definition=TEST_TASK_DEFNITION,
+                container=TEST_CONTAINER_DEFNITION,
+                cmd=TEST_CMD_2,
+                cluster=TEST_CLUSTER,
+                subnets=TEST_SUBNETS,
+                env_vars=TEST_ENV_VARS_2,
+                cpu=self.test_container_config.cpu,
+                memory=self.test_container_config.memory,
+                task_role_arn=expected_role_id,
+            ),
+        ]
+
+        # Act
+        self.container_svc.create_instances(
+            container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+            cmds=cmd_list,
+            env_vars=[TEST_ENV_VARS, TEST_ENV_VARS_2],
+            container_type=TEST_CONTAINER_TYPE,
+            permission=permission,
+        )
+
+        # Assert
+        self.container_svc.ecs_gateway.run_task.assert_has_calls(
+            run_task_calls, any_order=False
+        )
+        self.assertEqual(
+            self.container_svc.ecs_gateway.run_task.call_count, len(run_task_calls)
         )
 
     def test_create_instances_throw_with_invalid_list_of_env_vars(self):
@@ -235,6 +312,7 @@ class TestAWSContainerService(unittest.TestCase):
             env_vars=TEST_ENV_VARS,
             cpu=self.test_container_config.cpu,
             memory=self.test_container_config.memory,
+            task_role_arn=None,
         )
         self.assertEqual(container_instance, created_instance)
 
