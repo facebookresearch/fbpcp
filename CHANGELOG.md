@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Insights Service
 - Add LimitExceeded Exception as PcpError
 - ECS Gateway Run Task support for overriding task role
+- Container Service Create Instance support for Container permission configuration
 ### Changed
 - Refactor OneDocker CLI and OneDocker Service to support OneDocker E2E testing framework
+- Update Container Instance to include Container Permission, when configured
 ### Removed
 
 ## [0.5.0] - 2023-3-21

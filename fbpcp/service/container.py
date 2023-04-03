@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Union
 from fbpcp.entity.cluster_instance import Cluster
 
 from fbpcp.entity.container_instance import ContainerInstance
+from fbpcp.entity.container_permission import ContainerPermissionConfig
 from fbpcp.entity.container_type import ContainerType
 from fbpcp.error.pcp import PcpError
 
@@ -36,6 +37,7 @@ class ContainerService(abc.ABC):
         cmd: str,
         env_vars: Optional[Dict[str, str]] = None,
         container_type: Optional[ContainerType] = None,
+        permission: Optional[ContainerPermissionConfig] = None,
     ) -> ContainerInstance:
         pass
 
@@ -46,6 +48,7 @@ class ContainerService(abc.ABC):
         cmds: List[str],
         env_vars: Optional[Union[Dict[str, str], List[Dict[str, str]]]] = None,
         container_type: Optional[ContainerType] = None,
+        permission: Optional[ContainerPermissionConfig] = None,
     ) -> List[ContainerInstance]:
         pass
 

@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Optional
 
 from dataclasses_json import dataclass_json
+from fbpcp.entity.container_permission import ContainerPermissionConfig
 
 
 class ContainerInstanceStatus(Enum):
@@ -29,3 +30,4 @@ class ContainerInstance:
     cpu: Optional[int] = None  # Number of vCPU
     memory: Optional[int] = None  # Memory in GB
     exit_code: Optional[int] = None
+    permission: Optional[ContainerPermissionConfig] = None
