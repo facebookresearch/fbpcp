@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add Insights Service
 - Add LimitExceeded Exception as PcpError
+- ECS Gateway Run Task support for overriding task role
 ### Changed
 - Refactor OneDocker CLI and OneDocker Service to support OneDocker E2E testing framework
 ### Removed

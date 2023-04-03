@@ -21,6 +21,7 @@ class TestECSGateway(unittest.TestCase):
     TEST_TASK_ARN_2 = "test-task-arn-2"
     TEST_TASK_ARN_DNE = "test-task-arn-dne"
     TEST_TASK_NEXT_TOKEN = "test-token"
+    TEST_TASK_ROLE_ARN = "test-task-role-arn"
 
     TEST_TASK_DEFINITION = "test-task-definition"
     TEST_TASK_DEFINITION_ARN = "test-task-definition-arn"
@@ -110,6 +111,7 @@ class TestECSGateway(unittest.TestCase):
             self.TEST_SUBNETS,
             cpu=self.TEST_CPU,
             memory=self.TEST_MEMORY,
+            task_role_arn=self.TEST_TASK_ROLE_ARN,
         )
         # Assert
         self.assertEqual(task, expected_task)
@@ -134,6 +136,7 @@ class TestECSGateway(unittest.TestCase):
                 ],
                 "cpu": str(cpu_response),
                 "memory": str(memory_response),
+                "taskRoleArn": self.TEST_TASK_ROLE_ARN,
             },
         )
 
