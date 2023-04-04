@@ -76,8 +76,11 @@ class ECSGateway(AWSGateway, MetricsGetter):
         env_vars: Optional[Dict[str, str]] = None,
         cpu: Optional[int] = None,
         memory: Optional[int] = None,
+        task_role_arn: Optional[str] = None,
     ) -> ContainerInstance:
-        overrides = self._get_overrides(container, cmd, env_vars, cpu, memory)
+        overrides = self._get_overrides(
+            container, cmd, env_vars, cpu, memory, task_role_arn
+        )
         response = self.client.run_task(
             taskDefinition=task_definition,
             cluster=cluster,
@@ -273,19 +276,21 @@ class ECSGateway(AWSGateway, MetricsGetter):
         env_vars: Optional[Dict[str, str]] = None,
         cpu: Optional[int] = None,
         memory: Optional[int] = None,
+        task_role_arn: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Returns a set of overrides for how an ECS task should run"""
-        environment = []
-        if env_vars:
-            environment = [
-                {"name": env_name, "value": env_value}
-                for env_name, env_value in env_vars.items()
-            ]
+        environment = self._map_env_vars_to_environment_override(env_vars)
         container_overrides: Dict[str, Any] = {
             "name": container,
             "command": [cmd],
             "environment": environment,
         }
+
+        task_overrides: Dict[str, Any] = {}
+
+        if task_role_arn:
+            task_overrides["taskRoleArn"] = task_role_arn
+
         if cpu and memory:
             cpu, memory = map_vcpu_to_unit(cpu), map_gb_to_mb(memory)
             container_overrides.update(
@@ -294,14 +299,25 @@ class ECSGateway(AWSGateway, MetricsGetter):
                     "memory": memory,
                 }
             )
-            overrides = {
-                "containerOverrides": [container_overrides],
-                "cpu": str(cpu),
-                "memory": str(memory),
-            }
-        else:
-            overrides = {
-                "containerOverrides": [container_overrides],
-            }
+            task_overrides.update(
+                {
+                    "cpu": str(cpu),
+                    "memory": str(memory),
+                }
+            )
 
-        return overrides
+        task_overrides["containerOverrides"] = [container_overrides]
+
+        return task_overrides
+
+    def _map_env_vars_to_environment_override(
+        self, env_vars: Optional[Dict[str, str]] = None
+    ) -> List[Dict[str, str]]:
+        """Returns an environemnt override based on specified environment variables"""
+        if not env_vars:
+            return []
+
+        return [
+            {"name": env_name, "value": env_value}
+            for env_name, env_value in env_vars.items()
+        ]
