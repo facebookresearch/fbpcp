@@ -14,6 +14,7 @@ from fbpcp.entity.cloud_provider import CloudProvider
 
 from fbpcp.entity.cluster_instance import Cluster
 from fbpcp.entity.container_instance import ContainerInstance
+from fbpcp.entity.container_permission import ContainerPermissionConfig
 from fbpcp.entity.container_type import ContainerType, ContainerTypeConfig
 from fbpcp.error.pcp import PcpError
 from fbpcp.gateway.ecs import ECSGateway
@@ -60,6 +61,7 @@ class AWSContainerService(ContainerService):
         cmd: str,
         env_vars: Optional[Dict[str, str]] = None,
         container_type: Optional[ContainerType] = None,
+        permission: Optional[ContainerPermissionConfig] = None,
     ) -> ContainerInstance:
         task_definition, container = split_container_definition(container_definition)
 
@@ -74,6 +76,9 @@ class AWSContainerService(ContainerService):
                 CloudProvider.AWS, container_type
             )
             cpu, memory = container_config.cpu, container_config.memory
+
+        task_role_arn = permission.role_id if permission else None
+
         return self.ecs_gateway.run_task(
             task_definition=task_definition,
             container=container,
@@ -83,6 +88,7 @@ class AWSContainerService(ContainerService):
             env_vars=env_vars,
             cpu=cpu,
             memory=memory,
+            task_role_arn=task_role_arn,
         )
 
     def create_instances(
@@ -91,6 +97,7 @@ class AWSContainerService(ContainerService):
         cmds: List[str],
         env_vars: Optional[Union[Dict[str, str], List[Dict[str, str]]]] = None,
         container_type: Optional[ContainerType] = None,
+        permission: Optional[ContainerPermissionConfig] = None,
     ) -> List[ContainerInstance]:
         """
         Args:
@@ -114,6 +121,7 @@ class AWSContainerService(ContainerService):
                 cmd=cmds[i],
                 env_vars=env_vars[i] if type(env_vars) is list else env_vars,
                 container_type=container_type,
+                permission=permission,
             )
             for i in range(len(cmds))
         ]

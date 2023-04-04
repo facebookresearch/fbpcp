@@ -11,6 +11,7 @@ from unittest.mock import call, MagicMock, patch
 from fbpcp.entity.cluster_instance import Cluster, ClusterStatus
 from fbpcp.entity.container_definition import ContainerDefinition
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_permission import ContainerPermissionConfig
 from fbpcp.gateway.ecs import ECSGateway
 from fbpcp.mapper.aws import map_gb_to_mb, map_vcpu_to_unit
 from fbpcp.util.aws import convert_list_to_dict, get_container_definition_id
@@ -21,11 +22,11 @@ class TestECSGateway(unittest.TestCase):
     TEST_TASK_ARN_2 = "test-task-arn-2"
     TEST_TASK_ARN_DNE = "test-task-arn-dne"
     TEST_TASK_NEXT_TOKEN = "test-token"
-    TEST_TASK_ROLE_ARN = "test-task-role-arn"
 
     TEST_TASK_DEFINITION = "test-task-definition"
     TEST_TASK_DEFINITION_ARN = "test-task-definition-arn"
     TEST_CONTAINER = "test-container"
+    TEST_CONTAINER_PERMISSION = ContainerPermissionConfig("test-task-role-arn")
     TEST_CLUSTER = "test-cluster"
     TEST_CMD = "test-cmd"
     TEST_CMD_WITH_ARGS = [
@@ -88,6 +89,7 @@ class TestECSGateway(unittest.TestCase):
                         ],
                         "cpu": str(cpu_response),
                         "memory": str(memory_response),
+                        "taskRoleArn": self.TEST_CONTAINER_PERMISSION.role_id,
                     },
                     "cpu": str(cpu_response),
                     "memory": str(memory_response),
@@ -101,6 +103,7 @@ class TestECSGateway(unittest.TestCase):
             ContainerInstanceStatus.STARTED,
             self.TEST_CPU,
             self.TEST_MEMORY,
+            permission=self.TEST_CONTAINER_PERMISSION,
         )
         # Act
         task = self.gw.run_task(
@@ -111,7 +114,7 @@ class TestECSGateway(unittest.TestCase):
             self.TEST_SUBNETS,
             cpu=self.TEST_CPU,
             memory=self.TEST_MEMORY,
-            task_role_arn=self.TEST_TASK_ROLE_ARN,
+            task_role_arn=self.TEST_CONTAINER_PERMISSION.role_id,
         )
         # Assert
         self.assertEqual(task, expected_task)
@@ -136,7 +139,7 @@ class TestECSGateway(unittest.TestCase):
                 ],
                 "cpu": str(cpu_response),
                 "memory": str(memory_response),
-                "taskRoleArn": self.TEST_TASK_ROLE_ARN,
+                "taskRoleArn": self.TEST_CONTAINER_PERMISSION.role_id,
             },
         )
 
@@ -154,8 +157,11 @@ class TestECSGateway(unittest.TestCase):
                                     "privateIpv4Address": self.TEST_IP_ADDRESS,
                                 },
                             ],
-                        }
+                        },
                     ],
+                    "overrides": {
+                        "taskRoleArn": self.TEST_CONTAINER_PERMISSION.role_id,
+                    },
                     "taskArn": self.TEST_TASK_ARN,
                 }
             ],
@@ -167,6 +173,7 @@ class TestECSGateway(unittest.TestCase):
             self.TEST_TASK_ARN,
             self.TEST_IP_ADDRESS,
             ContainerInstanceStatus.STARTED,
+            permission=self.TEST_CONTAINER_PERMISSION,
         )
 
         self.assertEqual(container, expected_container)
@@ -202,6 +209,9 @@ class TestECSGateway(unittest.TestCase):
                             ],
                         }
                     ],
+                    "overrides": {
+                        "taskRoleArn": self.TEST_CONTAINER_PERMISSION.role_id,
+                    },
                     "taskArn": self.TEST_TASK_ARN,
                 },
                 {
@@ -231,6 +241,7 @@ class TestECSGateway(unittest.TestCase):
                 self.TEST_TASK_ARN,
                 self.TEST_IP_ADDRESS,
                 ContainerInstanceStatus.STARTED,
+                permission=self.TEST_CONTAINER_PERMISSION,
             ),
             ContainerInstance(
                 self.TEST_TASK_ARN_2,
@@ -257,6 +268,9 @@ class TestECSGateway(unittest.TestCase):
                             ],
                         }
                     ],
+                    "overrides": {
+                        "taskRoleArn": self.TEST_CONTAINER_PERMISSION.role_id,
+                    },
                     "taskArn": self.TEST_TASK_ARN,
                 },
                 {
@@ -272,6 +286,9 @@ class TestECSGateway(unittest.TestCase):
                             ],
                         }
                     ],
+                    "overrides": {
+                        "taskRoleArn": self.TEST_CONTAINER_PERMISSION.role_id,
+                    },
                     "taskArn": self.TEST_TASK_ARN_2,
                 },
             ],
@@ -289,12 +306,14 @@ class TestECSGateway(unittest.TestCase):
                 self.TEST_TASK_ARN,
                 self.TEST_IP_ADDRESS,
                 ContainerInstanceStatus.STARTED,
+                permission=self.TEST_CONTAINER_PERMISSION,
             ),
             None,
             ContainerInstance(
                 self.TEST_TASK_ARN_2,
                 self.TEST_IP_ADDRESS,
                 ContainerInstanceStatus.STARTED,
+                permission=self.TEST_CONTAINER_PERMISSION,
             ),
         ]
         self.assertEqual(containers, expected_containers)
