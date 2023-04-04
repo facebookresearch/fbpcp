@@ -13,6 +13,7 @@ from typing import Dict, Final, List, Optional, Union
 from fbpcp.decorator.metrics import duration_time, error_counter, request_counter
 from fbpcp.entity.certificate_request import CertificateRequest
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_permission import ContainerPermissionConfig
 from fbpcp.entity.container_type import ContainerType
 from fbpcp.error.pcp import PcpError
 from fbpcp.metrics.emitter import MetricsEmitter
@@ -91,6 +92,7 @@ class OneDockerService(MetricsGetter):
         certificate_request: Optional[CertificateRequest] = None,
         opa_workflow_path: Optional[str] = None,
         container_type: Optional[ContainerType] = None,
+        permission: Optional[ContainerPermissionConfig] = None,
     ) -> ContainerInstance:
         """
         This function statrts one container for running MPC games.
@@ -108,6 +110,7 @@ class OneDockerService(MetricsGetter):
             tag:                Tag for docker containers
             certificate_request: An optional instance of CertificateRequest that contains the parameters required to create a TLS certificate
             opa_workflow_path:  A string that denotes the path to a specified opa workflow. Supported Path type: local.
+            permission:         A configuration which describes the container permissions
 
         """
         return self.start_containers(
@@ -121,6 +124,7 @@ class OneDockerService(MetricsGetter):
             certificate_request=certificate_request,
             opa_workflow_path=opa_workflow_path,
             container_type=container_type,
+            permission=permission,
         )[0]
 
     @error_counter(METRICS_START_CONTAINERS_ERROR_COUNT)
@@ -138,6 +142,7 @@ class OneDockerService(MetricsGetter):
         certificate_request: Optional[CertificateRequest] = None,
         opa_workflow_path: Optional[str] = None,
         container_type: Optional[ContainerType] = None,
+        permission: Optional[ContainerPermissionConfig] = None,
     ) -> List[ContainerInstance]:
         """Spin up cloud containers according to command arg list.
 
@@ -154,6 +159,7 @@ class OneDockerService(MetricsGetter):
             tag:                Tag for docker containers
             certificate_request: An optional instance of CertificateRequest that contains the parameters required to create a TLS certificate
             opa_workflow_path:  A string that denotes the path to a specified opa workflow. Supported Path type: local.
+            permission:         A configuration which describes the container permissions
 
         Returns:
             A list of the containers that were successfuly started
@@ -192,6 +198,7 @@ class OneDockerService(MetricsGetter):
             cmds=cmds,
             env_vars=env_vars,
             container_type=container_type,
+            permission=permission,
         )
         if containers:
             self.logger.info(

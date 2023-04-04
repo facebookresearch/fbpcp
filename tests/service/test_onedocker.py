@@ -13,6 +13,7 @@ from unittest.mock import ANY, call, MagicMock, patch
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.entity.cloud_provider import CloudProvider
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
+from fbpcp.entity.container_permission import ContainerPermissionConfig
 from fbpcp.entity.container_type import ContainerType, ContainerTypeConfig
 from fbpcp.error.pcp import PcpError
 from fbpcp.service.onedocker import (
@@ -46,6 +47,7 @@ TEST_CONTAINER_CONFIG: ContainerTypeConfig = ContainerTypeConfig.get_config(
     TEST_CLOUD_PROVIDER, TEST_CONTAINER_TYPE
 )
 TEST_OPA_WORKFLOW_PATH = "/folder/file.json"
+TEST_PERMISSION: ContainerPermissionConfig = ContainerPermissionConfig("test-role-id")
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
@@ -72,9 +74,17 @@ class TestOneDockerServiceSync(unittest.TestCase):
             certificate_request=None,
             container_type=TEST_CONTAINER_TYPE,
             opa_workflow_path=TEST_OPA_WORKFLOW_PATH,
+            permission=TEST_PERMISSION,
         )
         # Assert
         self.assertEqual(returned_container_info, mocked_container_info)
+        self.container_svc.create_instances.assert_called_with(
+            container_definition=TEST_TASK_DEF,
+            cmds=ANY,
+            env_vars=ANY,
+            container_type=TEST_CONTAINER_TYPE,
+            permission=TEST_PERMISSION,
+        )
 
     def test_start_containers(self):
         # Arrange
@@ -131,6 +141,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             certificate_request=test_cert_request,
             container_type=TEST_CONTAINER_TYPE,
             opa_workflow_path=TEST_OPA_WORKFLOW_PATH,
+            permission=TEST_PERMISSION,
         )
 
         # Assert
@@ -167,6 +178,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
             cmds=expected_cmd,
             env_vars=TEST_ENV_VARS_LIST,
             container_type=TEST_CONTAINER_TYPE,
+            permission=None,
         )
 
     def test_start_containers_throw_with_invalid_env_var_list(self):
@@ -180,6 +192,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
                 env_vars=[TEST_ENV_VARS],
                 timeout=TEST_TIMEOUT,
                 container_type=TEST_CONTAINER_TYPE,
+                permission=None,
             )
         with self.assertRaises(ValueError):
             self.onedocker_svc.start_containers(
@@ -190,6 +203,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
                 env_vars=[],
                 timeout=TEST_TIMEOUT,
                 container_type=TEST_CONTAINER_TYPE,
+                permission=None,
             )
 
     def test_get_cmd(self):
