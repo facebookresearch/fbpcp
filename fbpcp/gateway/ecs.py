@@ -77,34 +77,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
         cpu: Optional[int] = None,
         memory: Optional[int] = None,
     ) -> ContainerInstance:
-        environment = []
-        if env_vars:
-            environment = [
-                {"name": env_name, "value": env_value}
-                for env_name, env_value in env_vars.items()
-            ]
-        container_override: Dict[str, Any] = {
-            "name": container,
-            "command": [cmd],
-            "environment": environment,
-        }
-        if cpu and memory:
-            cpu, memory = map_vcpu_to_unit(cpu), map_gb_to_mb(memory)
-            container_override.update(
-                {
-                    "cpu": cpu,
-                    "memory": memory,
-                }
-            )
-            override = {
-                "containerOverrides": [container_override],
-                "cpu": str(cpu),
-                "memory": str(memory),
-            }
-        else:
-            override = {
-                "containerOverrides": [container_override],
-            }
+        overrides = self._get_overrides(container, cmd, env_vars, cpu, memory)
         response = self.client.run_task(
             taskDefinition=task_definition,
             cluster=cluster,
@@ -114,7 +87,7 @@ class ECSGateway(AWSGateway, MetricsGetter):
                     "assignPublicIp": "ENABLED",
                 }
             },
-            overrides=override,
+            overrides=overrides,
         )
 
         if not response["tasks"]:
@@ -292,3 +265,43 @@ class ECSGateway(AWSGateway, MetricsGetter):
                     container_definitions.append(container_definition)
 
         return container_definitions
+
+    def _get_overrides(
+        self,
+        container: str,
+        cmd: str,
+        env_vars: Optional[Dict[str, str]] = None,
+        cpu: Optional[int] = None,
+        memory: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Returns a set of overrides for how an ECS task should run"""
+        environment = []
+        if env_vars:
+            environment = [
+                {"name": env_name, "value": env_value}
+                for env_name, env_value in env_vars.items()
+            ]
+        container_overrides: Dict[str, Any] = {
+            "name": container,
+            "command": [cmd],
+            "environment": environment,
+        }
+        if cpu and memory:
+            cpu, memory = map_vcpu_to_unit(cpu), map_gb_to_mb(memory)
+            container_overrides.update(
+                {
+                    "cpu": cpu,
+                    "memory": memory,
+                }
+            )
+            overrides = {
+                "containerOverrides": [container_overrides],
+                "cpu": str(cpu),
+                "memory": str(memory),
+            }
+        else:
+            overrides = {
+                "containerOverrides": [container_overrides],
+            }
+
+        return overrides
