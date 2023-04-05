@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Changed
+### Removed
+
+## [0.6.0] - 2023-04-05
+### Added
 - Add Insights Service
 - Add LimitExceeded Exception as PcpError
 - ECS Gateway Run Task support for overriding task role
@@ -14,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Refactor OneDocker CLI and OneDocker Service to support OneDocker E2E testing framework
 - Update Container Instance to include Container Permission, when configured
+- Upgrade Github Action build and release workflow to use `ubuntu-latest`, from the deprecated `ubuntu-18.04`
 ### Removed
 
 ## [0.5.0] - 2023-3-21
