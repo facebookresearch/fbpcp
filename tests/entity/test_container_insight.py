@@ -7,7 +7,7 @@
 import json
 import unittest
 
-from onedocker.entity.container_insight import ContainerInsight
+from fbpcp.entity.container_insight import ContainerInsight
 
 
 class TestContainerInsight(unittest.TestCase):
