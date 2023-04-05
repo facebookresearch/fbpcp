@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Changed
+### Removed
+
+## [0.6.0] - 2023-04-04
+### Added
 - Add Insights Service
 - Add LimitExceeded Exception as PcpError
 - ECS Gateway Run Task support for overriding task role
