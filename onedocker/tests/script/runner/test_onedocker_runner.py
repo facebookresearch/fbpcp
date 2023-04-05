@@ -205,12 +205,12 @@ class TestOnedockerRunner(unittest.TestCase):
     @patch("onedocker.script.runner.onedocker_runner.S3StorageService")
     def test_main(
         self,
-        mockS3StorageService,
-        mockS3Path,
+        MockS3StorageService,
+        MockS3Path,
         mockOneDockerRepositoryServiceDownload,
     ):
         # Arrange
-        mockS3Path.region = MagicMock(return_value="us_west_1")
+        MockS3Path.region = MagicMock(return_value="us_west_1")
         with patch.object(
             sys,
             "argv",
