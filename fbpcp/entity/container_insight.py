@@ -9,7 +9,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from onedocker.entity.insight import Insight
+from fbpcp.entity.insight import Insight
 
 
 @dataclass
