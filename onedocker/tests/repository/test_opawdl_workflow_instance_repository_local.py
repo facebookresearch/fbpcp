@@ -50,14 +50,20 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
         self.workflow_repo = LocalOPAWDLWorkflowInstanceRepository(
             self.test_repo_directory
         )
+        self.patcher_path_exists = patch(
+            "onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists"
+        )
+        self.mock_path_exists = self.patcher_path_exists.start()
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
-    def test_create(self, mock_path_exists):
+    def tearDown(self):
+        self.patcher_path_exists.stop()
+
+    def test_create(self):
         # Arrange
         test_file_path = Path(self.test_repo_directory).joinpath(
             self.test_opawdl_workflow_instance.get_instance_id()
         )
-        mock_path_exists.return_value = False
+        self.mock_path_exists.return_value = False
         # Act
         with patch("builtins.open", new_callable=mock_open()) as open_mock:
             self.workflow_repo.create(self.test_opawdl_workflow_instance)
@@ -67,10 +73,9 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
             str(self.test_opawdl_workflow_instance)
         )
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
-    def test_create_raise_exception(self, mock_path_exists):
+    def test_create_raise_exception(self):
         # Arrange
-        mock_path_exists.return_value = True
+        self.mock_path_exists.return_value = True
         # Act and Assert
         with self.assertRaisesRegex(
             Exception,
@@ -78,11 +83,10 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
         ):
             self.workflow_repo.create(self.test_opawdl_workflow_instance)
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
-    def test_get(self, mock_path_exists):
+    def test_get(self):
         # Arrange
         test_file_path = Path(self.test_repo_directory).joinpath(self.test_instance_id)
-        mock_path_exists.return_value = True
+        self.mock_path_exists.return_value = True
         # Act
         with patch("builtins.open", new_callable=mock_open()) as open_mock:
             open_mock.return_value.__enter__().read.return_value = str(
@@ -93,10 +97,9 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
         open_mock.assert_called_once_with(test_file_path, "r")
         self.assertEqual(result, self.test_opawdl_workflow_instance)
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
-    def test_get_raise_exception(self, mock_path_exists):
+    def test_get_raise_exception(self):
         # Arrange
-        mock_path_exists.return_value = False
+        self.mock_path_exists.return_value = False
         # Act and Assert
         with patch("builtins.open"):
             with self.assertRaisesRegex(
@@ -105,13 +108,12 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
             ):
                 self.workflow_repo.get(self.test_instance_id)
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
-    def test_update(self, mock_path_exists):
+    def test_update(self):
         # Arrange
         test_file_path = Path(self.test_repo_directory).joinpath(
             self.test_opawdl_workflow_instance.get_instance_id()
         )
-        mock_path_exists.return_value = True
+        self.mock_path_exists.return_value = True
         # Act
         with patch("builtins.open", new_callable=mock_open()) as open_mock:
             self.workflow_repo.update(self.test_opawdl_workflow_instance)
@@ -121,10 +123,9 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
             str(self.test_opawdl_workflow_instance)
         )
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
-    def test_update_raise_exception(self, mock_path_exists):
+    def test_update_raise_exception(self):
         # Arrange
-        mock_path_exists.return_value = False
+        self.mock_path_exists.return_value = False
         # Act and Assert
         with patch("builtins.open"):
             with self.assertRaisesRegex(
@@ -133,9 +134,8 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
             ):
                 self.workflow_repo.update(self.test_opawdl_workflow_instance)
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
     @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.unlink")
-    def test_delete(self, mock_path_unlink, mock_path_exists):
+    def test_delete(self, mock_path_unlink):
         # Arrange
         test_file_path = Path(self.test_repo_directory).joinpath(
             self.test_opawdl_workflow_instance.get_instance_id()
@@ -145,10 +145,9 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
         # Assert
         test_file_path.unlink.assert_called_once()
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
-    def test_delete_raise_exception(self, mock_path_exists):
+    def test_delete_raise_exception(self):
         # Arrange
-        mock_path_exists.return_value = False
+        self.mock_path_exists.return_value = False
         # Act and Assert
         with self.assertRaisesRegex(
             Exception,
@@ -158,11 +157,10 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
                 self.test_opawdl_workflow_instance.get_instance_id()
             )
 
-    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
-    def test_exist(self, mock_path_exists):
+    def test_exist(self):
         ## Test when instance exists
         # Arrange
-        mock_path_exists.return_value = True
+        self.mock_path_exists.return_value = True
         # Act
         res = self.workflow_repo.exist(self.test_instance_id)
         # Assert
@@ -170,7 +168,7 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
 
         ## Test when instance does NOT exist
         # Arrange
-        mock_path_exists.return_value = False
+        self.mock_path_exists.return_value = False
         # Act
         res = self.workflow_repo.exist(self.test_instance_id)
         # Assert
