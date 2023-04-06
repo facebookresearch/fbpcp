@@ -27,3 +27,7 @@ class OPAWDLWorkflowInstanceRepository(abc.ABC):
     @abc.abstractmethod
     def delete(self, instance_id: str) -> None:
         pass
+
+    @abc.abstractmethod
+    def exist(self, instance_id: str) -> bool:
+        pass

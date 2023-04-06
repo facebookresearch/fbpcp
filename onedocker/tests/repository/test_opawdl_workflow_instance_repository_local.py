@@ -157,3 +157,21 @@ class TestLocalOPAWDLWorkflowInstanceRepository(unittest.TestCase):
             self.workflow_repo.delete(
                 self.test_opawdl_workflow_instance.get_instance_id()
             )
+
+    @patch("onedocker.repository.opawdl_workflow_instance_repository_local.Path.exists")
+    def test_exist(self, mock_path_exists):
+        ## Test when instance exists
+        # Arrange
+        mock_path_exists.return_value = True
+        # Act
+        res = self.workflow_repo.exist(self.test_instance_id)
+        # Assert
+        self.assertEqual(res, True)
+
+        ## Test when instance does NOT exist
+        # Arrange
+        mock_path_exists.return_value = False
+        # Act
+        res = self.workflow_repo.exist(self.test_instance_id)
+        # Assert
+        self.assertEqual(res, False)
