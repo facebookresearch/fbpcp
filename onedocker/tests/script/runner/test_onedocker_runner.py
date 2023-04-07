@@ -13,8 +13,12 @@ from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.error.pcp import InvalidParameterError
 from onedocker.entity.exit_code import ExitCode
 from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
+from onedocker.repository.opawdl_workflow_instance_repository_local import (
+    LocalOPAWDLWorkflowInstanceRepository,
+)
 from onedocker.script.runner.onedocker_runner import (
     __doc__ as __onedocker_runner_doc__,
+    _gen_opawdl_instance_id,
     main,
 )
 
@@ -319,6 +323,22 @@ class TestOnedockerRunner(unittest.TestCase):
             # Assert
             self.assertEqual(cm.exception.code, 0)
             mockOneDockerRunOPAWDL.assert_called_once_with(test_opa_workflow_path)
+
+    @patch(
+        "onedocker.script.runner.onedocker_runner.uuid.uuid4",
+        side_effect=[123, 456],
+    )
+    @patch(
+        "onedocker.script.runner.onedocker_runner.LocalOPAWDLWorkflowInstanceRepository.exist",
+        side_effect=[True, False],
+    )
+    def test_gen_opawdl_instance_id(self, mock_exist, mock_uuid4):
+        # Arrange
+        test_repo = LocalOPAWDLWorkflowInstanceRepository("")
+        # Act
+        res_instance_id = _gen_opawdl_instance_id(test_repo)
+        # Assert
+        self.assertEqual(res_instance_id, "456")
 
 
 def getenv(key):

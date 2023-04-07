@@ -46,6 +46,9 @@ from onedocker.common.env import ONEDOCKER_EXE_PATH, ONEDOCKER_REPOSITORY_PATH
 from onedocker.common.util import run_cmd
 from onedocker.entity.exit_code import ExitCode
 from onedocker.repository.onedocker_repository_service import OneDockerRepositoryService
+from onedocker.repository.opawdl_workflow_instance_repository import (
+    OPAWDLWorkflowInstanceRepository,
+)
 from onedocker.repository.opawdl_workflow_instance_repository_local import (
     LocalOPAWDLWorkflowInstanceRepository,
 )
@@ -238,10 +241,13 @@ def _generate_certificate(
 
 
 def _run_opawdl(workflow_path: str) -> None:
+    # initialize OPAWDL repository
     instance_repo = LocalOPAWDLWorkflowInstanceRepository(
         DEFAULT_OPA_WORKFLOW_INSTANCE_FOLDER
     )
-    instance_id = str(uuid.uuid4())
+    # generate an unique instance_id
+    instance_id = _gen_opawdl_instance_id(instance_repo)
+    # initialize OPAWDLDriver
     opawdl_driver = OPAWDLDriver(instance_id, workflow_path, instance_repo)
 
     # run workflow defined in workflow_path
@@ -250,6 +256,15 @@ def _run_opawdl(workflow_path: str) -> None:
     # get and log workflow instance
     workflow_instance = instance_repo.get(instance_id)
     logger.info(f"Workflow instance:\n {workflow_instance}")
+
+
+def _gen_opawdl_instance_id(repo: OPAWDLWorkflowInstanceRepository) -> str:
+    instance_id = str(uuid.uuid4())
+    instance_exists = repo.exist(instance_id)
+    while instance_exists:
+        instance_id = str(uuid.uuid4())
+        instance_exists = repo.exist(instance_id)
+    return instance_id
 
 
 def main() -> None:
