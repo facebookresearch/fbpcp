@@ -4,11 +4,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import json
 import unittest
 from shlex import quote
 from typing import List
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import ANY, call, MagicMock, patch
+from unittest.mock import ANY, AsyncMock, call, MagicMock, patch
 
 from fbpcp.entity.certificate_request import CertificateRequest, KeyAlgorithm
 from fbpcp.entity.cloud_provider import CloudProvider
@@ -48,16 +49,24 @@ TEST_CONTAINER_CONFIG: ContainerTypeConfig = ContainerTypeConfig.get_config(
 )
 TEST_OPA_WORKFLOW_PATH = "/folder/file.json"
 TEST_PERMISSION: ContainerPermissionConfig = ContainerPermissionConfig("test-role-id")
+TEST_TIME = float(1680805642.80)
+TEST_EXIT_CODE = 0
+TEST_CLASS_NAME = "ContainerInsight"
 
 
 class TestOneDockerServiceSync(unittest.TestCase):
     @patch("fbpcp.metrics.emitter.MetricsEmitter")
     @patch("fbpcp.service.container.ContainerService")
-    def setUp(self, MockContainerService, MockMetricsEmitter):
+    @patch("fbpcp.service.insights.InsightsService")
+    def setUp(self, MockContainerService, MockMetricsEmitter, MockInsightsService):
         self.container_svc = MockContainerService()
         self.metrics = MockMetricsEmitter()
+        self.insights = MockInsightsService()
         self.onedocker_svc = OneDockerService(
-            self.container_svc, TEST_TASK_DEF, self.metrics
+            container_svc=self.container_svc,
+            task_definition=TEST_TASK_DEF,
+            metrics=self.metrics,
+            insights=self.insights,
         )
 
     def test_start_container(self):
@@ -372,12 +381,90 @@ class TestOneDockerServiceSync(unittest.TestCase):
         self.assertEqual(cluster, expected_result)
         self.container_svc.get_cluster.assert_called_with()
 
+    @patch("time.time", MagicMock(return_value=TEST_TIME))
+    def test_get_insight(self):
+        #  Arrange
+        container_instance = ContainerInstance(
+            instance_id=TEST_INSTANCE_ID_1,
+            ip_address=TEST_IP_ADDRESS,
+            status=ContainerInstanceStatus.STARTED,
+            cpu=TEST_CONTAINER_CONFIG.cpu,
+            memory=TEST_CONTAINER_CONFIG.memory,
+            exit_code=TEST_EXIT_CODE,
+        )
+        self.container_svc.get_cluster.return_value = TEST_CLUSTER_STR
+
+        expected_result = json.dumps(
+            {
+                "time": TEST_TIME,
+                "cluster_name": TEST_CLUSTER_STR,
+                "instance_id": TEST_INSTANCE_ID_1,
+                "status": "STARTED",
+                "exit_code": TEST_EXIT_CODE,
+                "class_name": TEST_CLASS_NAME,
+            }
+        )
+
+        # Act
+        insight = self.onedocker_svc._get_insight(container_instance)
+
+        # Assert
+        self.assertEqual(insight, expected_result)
+
+    @patch("time.time", MagicMock(return_value=TEST_TIME))
+    def test_insights_emit(self):
+        # Arrange
+        self.container_svc.create_instances = MagicMock(
+            return_value=_get_pending_container_instances()
+        )
+        self.container_svc.get_cluster.return_value = TEST_CLUSTER_STR
+
+        calls = [
+            call(
+                json.dumps(
+                    {
+                        "time": TEST_TIME,
+                        "cluster_name": TEST_CLUSTER_STR,
+                        "instance_id": TEST_INSTANCE_ID_1,
+                        "status": "UNKNOWN",
+                        "exit_code": None,
+                        "class_name": TEST_CLASS_NAME,
+                    }
+                )
+            ),
+            call(
+                json.dumps(
+                    {
+                        "time": TEST_TIME,
+                        "cluster_name": TEST_CLUSTER_STR,
+                        "instance_id": TEST_INSTANCE_ID_2,
+                        "status": "UNKNOWN",
+                        "exit_code": None,
+                        "class_name": TEST_CLASS_NAME,
+                    }
+                )
+            ),
+        ]
+
+        # Act
+        self.onedocker_svc.start_containers(
+            package_name=TEST_PACKAGE_NAME,
+            cmd_args_list=TEST_CMD_ARGS_LIST,
+        )
+        # Assert
+        self.insights.emit.assert_has_calls(calls)
+
 
 class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
     @patch("fbpcp.service.container.ContainerService")
     def setUp(self, MockContainerService):
         self.container_svc = MockContainerService()
-        self.onedocker_svc = OneDockerService(self.container_svc, TEST_TASK_DEF)
+        self.insights = AsyncMock()
+        self.onedocker_svc = OneDockerService(
+            container_svc=self.container_svc,
+            task_definition=TEST_TASK_DEF,
+            insights=self.insights,
+        )
 
     async def test_waiting_for_pending_container(self):
         pending_containers = _get_pending_container_instances()
@@ -398,6 +485,53 @@ class TestOneDockerServiceAsync(IsolatedAsyncioTestCase):
             [container.instance_id for container in pending_containers]
         )
         self.assertEqual(expected_containers, running_containers)
+
+    @patch("time.time", MagicMock(return_value=TEST_TIME))
+    async def test_insights_emit_async(self):
+        # Arrange
+        running_containers = _get_running_container_instances()
+        pending_containers = _get_pending_container_instances()
+
+        self.onedocker_svc.get_containers = MagicMock(
+            side_effect=([running_containers[0]], [running_containers[1]])
+        )
+
+        self.container_svc.get_cluster.return_value = TEST_CLUSTER_STR
+
+        calls = [
+            call(
+                json.dumps(
+                    {
+                        "time": TEST_TIME,
+                        "cluster_name": TEST_CLUSTER_STR,
+                        "instance_id": TEST_INSTANCE_ID_1,
+                        "status": "STARTED",
+                        "exit_code": None,
+                        "class_name": TEST_CLASS_NAME,
+                    }
+                )
+            ),
+            call(
+                json.dumps(
+                    {
+                        "time": TEST_TIME,
+                        "cluster_name": TEST_CLUSTER_STR,
+                        "instance_id": TEST_INSTANCE_ID_2,
+                        "status": "STARTED",
+                        "exit_code": None,
+                        "class_name": TEST_CLASS_NAME,
+                    }
+                )
+            ),
+        ]
+
+        # Act
+        await self.onedocker_svc.wait_for_pending_containers(
+            [container.instance_id for container in pending_containers]
+        )
+
+        # Assert
+        self.insights.emit_async.assert_has_calls(calls)
 
 
 def _get_pending_container_instances() -> List[ContainerInstance]:
