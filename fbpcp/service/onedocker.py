@@ -8,10 +8,12 @@
 
 import asyncio
 import logging
+import time
 from typing import Dict, Final, List, Optional, Union
 
 from fbpcp.decorator.metrics import duration_time, error_counter, request_counter
 from fbpcp.entity.certificate_request import CertificateRequest
+from fbpcp.entity.container_insight import ContainerInsight
 from fbpcp.entity.container_instance import ContainerInstance, ContainerInstanceStatus
 from fbpcp.entity.container_permission import ContainerPermissionConfig
 from fbpcp.entity.container_type import ContainerType
@@ -19,6 +21,7 @@ from fbpcp.error.pcp import PcpError
 from fbpcp.metrics.emitter import MetricsEmitter
 from fbpcp.metrics.getter import MetricsGetter
 from fbpcp.service.container import ContainerService
+from fbpcp.service.insights import InsightsService
 from fbpcp.util.arg_builder import build_cmd_args
 from fbpcp.util.typing import checked_cast
 
@@ -47,11 +50,13 @@ class OneDockerService(MetricsGetter):
         task_definition: Optional[str] = None,
         metrics: Optional[MetricsEmitter] = None,
         container_cmd_prefix: Optional[str] = None,
+        insights: Optional[InsightsService] = None,
     ) -> None:
         """Constructor of OneDockerService
         container_svc -- service to spawn container instances
         task_definition -- container definition to spawn container instances
         metrics -- metrics emitter to emit metrics
+        insights -- insights service to emit insights
         """
         if container_svc is None:
             raise ValueError(f"Dependency is missing. container_svc={container_svc}, ")
@@ -61,6 +66,7 @@ class OneDockerService(MetricsGetter):
         self.container_cmd_prefix: str = (
             container_cmd_prefix if container_cmd_prefix else ONEDOCKER_CMD_PREFIX
         )
+        self.insights: Final[Optional[InsightsService]] = insights
         self.logger: logging.Logger = logging.getLogger(__name__)
 
     def get_cluster(self) -> str:
@@ -209,6 +215,11 @@ class OneDockerService(MetricsGetter):
             name = f"{METRICS_CONTAINER_COUNT}.{self.container_svc.get_region()}.{self.container_svc.get_cluster()}"
             name = f"{METRICS_CONTAINER_COUNT}.{tag}" if tag else name
             self.metrics.count(name, len(containers))
+
+        if self.insights:
+            for container in containers:
+                self.insights.emit(self._get_insight(container))
+
         return containers
 
     async def wait_for_pending_containers(
@@ -237,8 +248,13 @@ class OneDockerService(MetricsGetter):
                 failed_metrics,
                 failed_count,
             )
+        containers = [checked_cast(ContainerInstance, container) for container in res]
 
-        return [checked_cast(ContainerInstance, container) for container in res]
+        if self.insights:
+            for container in containers:
+                await self.insights.emit_async(self._get_insight(container))
+
+        return containers
 
     async def wait_for_pending_container(
         self, container_id: str
@@ -299,3 +315,12 @@ class OneDockerService(MetricsGetter):
             package_name=package_name,
             runner_args=runner_args,
         ).strip()
+
+    def _get_insight(self, container: ContainerInstance) -> str:
+        return ContainerInsight(
+            time=time.time(),
+            cluster_name=self.get_cluster(),
+            instance_id=container.instance_id,
+            status=container.status.value,
+            exit_code=container.exit_code,
+        ).convert_to_str_with_class_name()
