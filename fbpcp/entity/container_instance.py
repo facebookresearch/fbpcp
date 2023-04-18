@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Optional
 
 from dataclasses_json import dataclass_json
+from fbpcp.entity.container_metadata import ContainerStoppedMetadata
 from fbpcp.entity.container_permission import ContainerPermissionConfig
 
 
@@ -31,3 +32,4 @@ class ContainerInstance:
     memory: Optional[int] = None  # Memory in GB
     exit_code: Optional[int] = None
     permission: Optional[ContainerPermissionConfig] = None
+    stopped_metadata: Optional[ContainerStoppedMetadata] = None
