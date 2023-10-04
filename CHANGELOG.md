@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.6.1] - 2023-10-04
+### Added
+### Changed
+- Upgrade urllib3 version to 1.26.17 per internal security request
+### Removed
+
 ## [0.6.0] - 2023-04-05
 ### Added
 - Add Insights Service
