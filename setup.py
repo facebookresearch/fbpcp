@@ -10,7 +10,7 @@ from setuptools import find_packages, setup
 
 install_requires = [
     "boto3==1.18.57",
-    "urllib3==1.26.17",
+    "urllib3==1.26.18",
     "dataclasses-json==0.5.2",
     "pyyaml==5.4.1",
     "tqdm==4.55.1",
@@ -27,7 +27,7 @@ with open("README.md", encoding="utf-8") as f:
 
 setup(
     name="fbpcp",
-    version="0.6.1",
+    version="0.6.2",
     description="Facebook Private Computation Platform",
     author="Facebook",
     author_email="researchtool-help@fb.com",
