@@ -6,13 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-- Integrate InsightsService with OneDockerService
-- Add ContainerStoppedMetadata
 ### Changed
+### Removed
+
+## [0.6.2]
+### Added
+### Changed
+- Bump urllib3 version.
 ### Removed
 
 ## [0.6.1] - 2023-10-04
 ### Added
+- Integrate InsightsService with OneDockerService
+- Add ContainerStoppedMetadata
 ### Changed
 - Upgrade urllib3 version to 1.26.17 per internal security request
 ### Removed
