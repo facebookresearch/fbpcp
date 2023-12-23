@@ -159,7 +159,7 @@ class S3Gateway(AWSGateway):
             response["RestrictPublicBuckets"],
         )
 
-    class ProgressPercentage(object):
+    class ProgressPercentage:
         def __init__(self, file_name: str, file_size: int) -> None:
             self._progressbar: tqdm = tqdm(total=file_size, desc=file_name)
 
