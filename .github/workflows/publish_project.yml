@@ -28,7 +28,7 @@ jobs:
     - name: Get version check output
       id: version_check
       run: >-
-       echo "::set-output name=version_check::$(python3 ./scripts/compare_package_version.py | tail -1)"
+       echo "version_check=$(python3 ./scripts/compare_package_version.py | tail -1)" >> $GITHUB_OUTPUT
 
   build-n-publish:
     name: Build and publish distributions to PyPI
