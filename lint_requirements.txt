@@ -1,6 +1,6 @@
-black==22.3.0
-ufmt==2.0.0b2
-usort==1.0.2
-libcst==0.4.6
+black==24.2.0
+ufmt==2.5.1
+usort==1.0.8
+libcst==1.1.0
 flake8==3.9.0
 flake8-bugbear==21.3.2
