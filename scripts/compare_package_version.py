@@ -26,7 +26,7 @@ def get_pypi_version(package: str) -> str:
     try:
         pypi_package_url = f"https://pypi.python.org/pypi/{package}/json"
         response = requests.get(pypi_package_url)
-    except (requests.exceptions.RequestException) as e:
+    except requests.exceptions.RequestException as e:
         print(f"{str(e)}")
         sys.exit(1)
     if response is not None:

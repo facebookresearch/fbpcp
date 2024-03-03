@@ -111,9 +111,9 @@ class ECSGateway(AWSGateway, MetricsGetter):
 
         arn_to_instance: Dict[str, Optional[ContainerInstance]] = {}
         for resp_task_dict in response["tasks"]:
-            arn_to_instance[
-                resp_task_dict["taskArn"]
-            ] = map_ecstask_to_containerinstance(resp_task_dict)
+            arn_to_instance[resp_task_dict["taskArn"]] = (
+                map_ecstask_to_containerinstance(resp_task_dict)
+            )
 
         for failure in response["failures"]:
             self.logger.warning(
