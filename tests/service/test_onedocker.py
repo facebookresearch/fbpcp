@@ -140,19 +140,19 @@ class TestOneDockerServiceSync(unittest.TestCase):
         self.onedocker_svc._get_cmd = MagicMock()
 
         # Act
-        returned_container_info: List[
-            ContainerInstance
-        ] = self.onedocker_svc.start_containers(
-            task_definition=TEST_TASK_DEF,
-            package_name=TEST_PACKAGE_NAME,
-            cmd_args_list=TEST_CMD_ARGS_LIST,
-            version=TEST_VERSION,
-            env_vars=TEST_ENV_VARS,
-            timeout=TEST_TIMEOUT,
-            certificate_request=test_cert_request,
-            container_type=TEST_CONTAINER_TYPE,
-            opa_workflow_path=TEST_OPA_WORKFLOW_PATH,
-            permission=TEST_PERMISSION,
+        returned_container_info: List[ContainerInstance] = (
+            self.onedocker_svc.start_containers(
+                task_definition=TEST_TASK_DEF,
+                package_name=TEST_PACKAGE_NAME,
+                cmd_args_list=TEST_CMD_ARGS_LIST,
+                version=TEST_VERSION,
+                env_vars=TEST_ENV_VARS,
+                timeout=TEST_TIMEOUT,
+                certificate_request=test_cert_request,
+                container_type=TEST_CONTAINER_TYPE,
+                opa_workflow_path=TEST_OPA_WORKFLOW_PATH,
+                permission=TEST_PERMISSION,
+            )
         )
 
         # Assert
@@ -170,16 +170,16 @@ class TestOneDockerServiceSync(unittest.TestCase):
         mock_get_cmd.side_effect = expected_cmd
 
         # Act
-        returned_container_info: List[
-            ContainerInstance
-        ] = self.onedocker_svc.start_containers(
-            task_definition=TEST_TASK_DEF,
-            package_name=TEST_PACKAGE_NAME,
-            cmd_args_list=TEST_CMD_ARGS_LIST,
-            version=TEST_VERSION,
-            env_vars=TEST_ENV_VARS_LIST,
-            timeout=TEST_TIMEOUT,
-            container_type=TEST_CONTAINER_TYPE,
+        returned_container_info: List[ContainerInstance] = (
+            self.onedocker_svc.start_containers(
+                task_definition=TEST_TASK_DEF,
+                package_name=TEST_PACKAGE_NAME,
+                cmd_args_list=TEST_CMD_ARGS_LIST,
+                version=TEST_VERSION,
+                env_vars=TEST_ENV_VARS_LIST,
+                timeout=TEST_TIMEOUT,
+                container_type=TEST_CONTAINER_TYPE,
+            )
         )
 
         # Assert

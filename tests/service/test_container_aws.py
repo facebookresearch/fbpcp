@@ -103,13 +103,13 @@ class TestAWSContainerService(unittest.TestCase):
         ]
 
         # Act
-        container_instances: List[
-            ContainerInstance
-        ] = self.container_svc.create_instances(
-            container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
-            cmds=cmd_list,
-            env_vars=TEST_ENV_VARS,
-            container_type=TEST_CONTAINER_TYPE,
+        container_instances: List[ContainerInstance] = (
+            self.container_svc.create_instances(
+                container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+                cmds=cmd_list,
+                env_vars=TEST_ENV_VARS,
+                container_type=TEST_CONTAINER_TYPE,
+            )
         )
 
         # Assert
@@ -171,13 +171,13 @@ class TestAWSContainerService(unittest.TestCase):
         ]
 
         # Act
-        container_instances: List[
-            ContainerInstance
-        ] = self.container_svc.create_instances(
-            container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
-            cmds=cmd_list,
-            env_vars=[TEST_ENV_VARS, TEST_ENV_VARS_2],
-            container_type=TEST_CONTAINER_TYPE,
+        container_instances: List[ContainerInstance] = (
+            self.container_svc.create_instances(
+                container_definition=f"{TEST_TASK_DEFNITION}#{TEST_CONTAINER_DEFNITION}",
+                cmds=cmd_list,
+                env_vars=[TEST_ENV_VARS, TEST_ENV_VARS_2],
+                container_type=TEST_CONTAINER_TYPE,
+            )
         )
 
         # Assert
