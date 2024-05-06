@@ -27,7 +27,7 @@ from fbpcp.util.typing import checked_cast
 
 ONEDOCKER_CMD_PREFIX = (
     # patternlint-disable-next-line f-string-may-be-missing-leading-f
-    "python3.8 -m onedocker.script.runner {package_name} {runner_args}"
+    "python3.10 -m onedocker.script.runner {package_name} {runner_args}"
 )
 
 DEFAULT_BINARY_VERSION = "latest"

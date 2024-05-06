@@ -218,10 +218,8 @@ class TestOneDockerServiceSync(unittest.TestCase):
             )
 
     def test_get_cmd(self):
-        expected_cmd_without_arguments = (
-            f"python3.8 -m onedocker.script.runner {TEST_PACKAGE_NAME} --version=latest"
-        )
-        expected_cmd_with_arguments = f"python3.8 -m onedocker.script.runner {TEST_PACKAGE_NAME} --exe_args={TEST_CMD_ARGS_LIST[0]} --version={TEST_VERSION} --timeout={TEST_TIMEOUT}"
+        expected_cmd_without_arguments = f"python3.10 -m onedocker.script.runner {TEST_PACKAGE_NAME} --version=latest"
+        expected_cmd_with_arguments = f"python3.10 -m onedocker.script.runner {TEST_PACKAGE_NAME} --exe_args={TEST_CMD_ARGS_LIST[0]} --version={TEST_VERSION} --timeout={TEST_TIMEOUT}"
         cmd_without_arguments = self.onedocker_svc._get_cmd(TEST_PACKAGE_NAME)
         cmd_with_arguments = self.onedocker_svc._get_cmd(
             TEST_PACKAGE_NAME, TEST_VERSION, TEST_CMD_ARGS_LIST[0], TEST_TIMEOUT
@@ -256,7 +254,7 @@ class TestOneDockerServiceSync(unittest.TestCase):
                 "country_name": TEST_COUNTRY_NAME,
             }
         )
-        expected_cmd = f"python3.8 -m onedocker.script.runner {TEST_PACKAGE_NAME} --exe_args={quote(str(TEST_CMD_ARGS_LIST[0]))} --version={quote(str(TEST_VERSION))} --timeout={quote(str(TEST_TIMEOUT))} --cert_params={quote(str(cert_params))}"
+        expected_cmd = f"python3.10 -m onedocker.script.runner {TEST_PACKAGE_NAME} --exe_args={quote(str(TEST_CMD_ARGS_LIST[0]))} --version={quote(str(TEST_VERSION))} --timeout={quote(str(TEST_TIMEOUT))} --cert_params={quote(str(cert_params))}"
 
         # Act
         result = self.onedocker_svc._get_cmd(
