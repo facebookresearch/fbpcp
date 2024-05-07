@@ -13,7 +13,7 @@ install_requires = [
     "urllib3==1.26.18",
     "dataclasses-json==0.5.2",
     "pyyaml==5.4.1",
-    "tqdm==4.55.1",
+    "tqdm==4.66.3",
     "google-cloud-storage==1.30.0",
     "docopt==0.6.2",
     "schema==0.7.5",
