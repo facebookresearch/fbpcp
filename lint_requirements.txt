@@ -1,4 +1,4 @@
-black==24.2.0
+black==24.3.0
 ufmt==2.5.1
 usort==1.0.8
 libcst==1.1.0
