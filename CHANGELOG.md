@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [0.6.3]
+### Added
+### Changed
+- Bump tqdm version.
+### Removed
+
 ## [0.6.2]
 ### Added
 ### Changed
