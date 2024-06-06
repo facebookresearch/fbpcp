@@ -1,3 +1,8 @@
+![Maintenance Mode](https://img.shields.io/badge/maintenance%20mode-%E2%9C%94%EF%B8%8F-red)
+**THIS PROJECT IS CURRENTLY IN MAINTENANCE MODE. Only critical bug patches will be applied; no new features will be added.**
+
+---
+
 # FBPCP (Facebook Private Computation Platform)
 [Secure multi-party computation](https://en.wikipedia.org/wiki/Secure_multi-party_computation) (also known as secure computation, multi-party computation (MPC), or privacy-preserving computation) is a subfield of cryptography with the goal of creating methods for parties to jointly compute a function over their inputs while keeping those inputs private.
 
