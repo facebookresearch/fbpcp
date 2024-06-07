@@ -20,13 +20,13 @@ MPC(Multi Party Computation) Roles includes publisher and partner.  If you donot
 You need to install through fbpcp [README](https://github.com/facebookresearch/fbpcp/blob/main/README.md).
 
 ## PCE Validator Usage
- python3.8 -m pce.validator --region=<region> --key-id=<key_id> --key-data=<key_data> --pce-id=<pce_id> --role=<role>
+ python3.10 -m pce.validator --region=<region> --key-id=<key_id> --key-data=<key_data> --pce-id=<pce_id> --role=<role>
 
 Example1: for resources tagged with {"pce:pce-id": "test-pce-tag-value"}
- python3.8 -m pce.validator --region=us-west-2 --key-id=AWS_ACCESS_KEY_ID --key-data=AWS_SECRET_ACCESS_KEY --pce-id="test-pce-tag-value"
+ python3.10 -m pce.validator --region=us-west-2 --key-id=AWS_ACCESS_KEY_ID --key-data=AWS_SECRET_ACCESS_KEY --pce-id="test-pce-tag-value"
 
 Example2: if your host has AWS environment variables setup, you can remove --key-id= and --key-data
- python3.8 -m pce.validator --region=us-west-2 --pce-id="test-pce-tag-value"
+ python3.10 -m pce.validator --region=us-west-2 --pce-id="test-pce-tag-value"
 
 Example3: you can optionally pass in the role, the output will stay the same
- python3.8 -m pce.validator --region=us-west-2 --pce-id="test-pce-tag-value" --role partner
+ python3.10 -m pce.validator --region=us-west-2 --pce-id="test-pce-tag-value" --role partner

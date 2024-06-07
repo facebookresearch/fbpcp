@@ -13,13 +13,13 @@ FBPCP (Facebook Private Computation Platform) is a secure, privacy safe and scal
 ## Installation Requirements:
 ### Prerequisites for working on Ubuntu 18.04:
 * An AWS account (Access Key ID, Secret Access Key) to use AWS SDK (boto3 API) in FBPCP
-* python >= 3.8
+* python >= 3.10
 * python3-pip
 
 ## Installing prerequisites on Ubuntu 18.04:
-* python3.8
+* python3.10
 ```sh
-sudo apt-get install -y python3.8
+sudo apt-get install -y python3.10
 ```
 * python3-pip
 ```sh
@@ -27,32 +27,32 @@ sudo apt-get install -y python3-pip
 ```
 ## Installing fbpcp
 ```sh
-python3.8 -m pip install 'git+https://github.com/facebookresearch/fbpcp.git'
+python3.10 -m pip install 'git+https://github.com/facebookresearch/fbpcp.git'
 # (add --user if you don't have permission)
 
 # Or, to install it from a local clone:
 git clone https://github.com/facebookresearch/fbpcp.git
-python3.8 -m pip install -e fbpcp
+python3.10 -m pip install -e fbpcp
 # (add --user if you don't have permission)
 
 # Or, to install it from Pypi
-python3.8 -m pip install fbpcp
+python3.10 -m pip install fbpcp
 ```
 
 ## Upgrading fbpcp
 * To latest version in github main branch
 ```sh
-python3.8 -m pip uninstall fbpcp
+python3.10 -m pip uninstall fbpcp
 # uninstall fbpcp first
 
-python3.8 -m pip install 'git+https://github.com/facebookresearch/fbpcp.git'
+python3.10 -m pip install 'git+https://github.com/facebookresearch/fbpcp.git'
 # (add --user if you don't have permission)
 # re-install fbpcp from github repository
 ```
 
 * To latest version in Pypi
 ```sh
-python3.8 -m pip install fbpcp --upgrade
+python3.10 -m pip install fbpcp --upgrade
 ```
 
 ## Architecture
