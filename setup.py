@@ -10,7 +10,7 @@ from setuptools import find_packages, setup
 
 install_requires = [
     "boto3==1.18.57",
-    "urllib3==1.26.18",
+    "urllib3==1.26.19",
     "dataclasses-json==0.5.2",
     "pyyaml==5.4.1",
     "tqdm==4.66.3",
