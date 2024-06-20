@@ -34,6 +34,6 @@ def error_handler(f: Callable) -> Callable:
         except OpenApiException as err:
             raise map_k8s_error(err) from None
         except Exception as err:
-            raise PcpError(err) from None
+            raise PcpError(err) from err
 
     return wrapper
