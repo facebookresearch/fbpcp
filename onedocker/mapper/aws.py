@@ -13,7 +13,7 @@ from onedocker.entity.metadata import PackageMetadata
 
 
 def map_dynamodbitem_to_packagemetadata(
-    dynamodb_item: Dict[str, Any]
+    dynamodb_item: Dict[str, Any],
 ) -> PackageMetadata:
     measurements = {
         MeasurementType(key): value

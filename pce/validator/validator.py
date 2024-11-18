@@ -21,7 +21,6 @@ Options ([+] can be repeated):
     --skip-step=<skip-step> [+]     name of a validation step to be skipped, eg vpc_peering
 """
 
-
 import logging
 import sys
 from enum import Enum
@@ -58,7 +57,6 @@ def get_arn(
     key_id: str,
     key_data: str,
 ) -> str:
-
     sts_gateway: STSGateway = STSGateway(region, key_id, key_data, None)
     return sts_gateway.get_caller_arn()
 

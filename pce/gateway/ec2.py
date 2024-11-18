@@ -57,7 +57,6 @@ class EC2Gateway(AWSGateway):
     def accept_vpc_peering_connection(
         self, vpc_peering_connection_id: str, vpc_id: str
     ) -> Optional[VpcPeering]:
-
         response = self.client.accept_vpc_peering_connection(
             VpcPeeringConnectionId=vpc_peering_connection_id
         )
@@ -72,7 +71,6 @@ class EC2Gateway(AWSGateway):
     def create_route(
         self, route_table_id: str, vpc_peering_connection_id: str, dest_cidr: str
     ) -> bool:
-
         response = self.client.create_route(
             RouteTableId=route_table_id,
             DestinationCidrBlock=dest_cidr,
@@ -85,7 +83,6 @@ class EC2Gateway(AWSGateway):
     def replace_route(
         self, route_table_id: str, vpc_peering_connection_id: str, dest_cidr: str
     ) -> None:
-
         self.client.replace_route(
             RouteTableId=route_table_id,
             DestinationCidrBlock=dest_cidr,

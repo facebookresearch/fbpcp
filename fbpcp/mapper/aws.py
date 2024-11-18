@@ -198,7 +198,7 @@ def map_ec2ippermission_to_firewallrule(ip_permission: Dict[str, Any]) -> Firewa
 
 
 def map_ec2securitygroup_to_firewallruleset(
-    security_group: Dict[str, Any]
+    security_group: Dict[str, Any],
 ) -> FirewallRuleset:
     id = security_group["GroupId"]
     vpc_id = security_group["VpcId"]
