@@ -24,6 +24,7 @@ Options:
     --opa_workflow_path=<workflow_path>                     Set path of a pre-defined workflow for OneDocker Plugin Architecture usage. When set, OPA exeuction according to the predefined workflow is triggered.
     --verbose                                               Set logging level to DEBUG.
 """
+
 import logging
 import os
 import resource

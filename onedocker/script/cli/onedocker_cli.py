@@ -220,7 +220,15 @@ def _build_onedocker_service(
 
 
 def main() -> None:
-    global container_svc, onedocker_svc, onedocker_repo_svc, log_svc, logger, task_definition, repository_path, storage_svc
+    global \
+        container_svc, \
+        onedocker_svc, \
+        onedocker_repo_svc, \
+        log_svc, \
+        logger, \
+        task_definition, \
+        repository_path, \
+        storage_svc
     s = schema.Schema(
         {
             "upload": bool,

@@ -43,7 +43,6 @@ class AWSPCEService(PCEService):
         return PCE(pce_id, self.region, pce_network, pce_compute)
 
     def _get_network(self, pce_id: str) -> PCENetwork:
-
         tags = {PCE_ID_KEY: pce_id}
         vpcs = self.ec2_gateway.describe_vpcs(tags=tags)
         vpc = vpcs[0] if vpcs else None
